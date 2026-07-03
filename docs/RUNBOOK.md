@@ -6,7 +6,7 @@ as native processes (plan.md decision log #3). Two services:
 | Service | How it runs | Check |
 |---|---|---|
 | **Ollama** (VLM + embeddings) | `brew services start ollama` (login item, binds 127.0.0.1:11434) | `ollama ps` |
-| **my-flopy server** | launchd agent `nl.eviloverlord.flopy` (see below) | `curl http://<LAN-IP>:8484/api/status` |
+| **my-flopy server** | launchd agent `nl.eviloverlord.flopy` (see below) | `curl -i http://<LAN-IP>:8484/api/status` — **a 401 also means alive** (auth is on every endpoint; add `-H "Authorization: Bearer <token>"` for the real payload) |
 
 Models in use (already pulled): `qwen3-vl:4b-instruct` (extractor — always the
 `-instruct` tag, see plan decision log #8), `qwen3-vl:2b-instruct` (speed
@@ -24,16 +24,26 @@ refuses wildcard binds by design (§5.1) — always a specific address.
 
 - Logs: `~/Library/Logs/flopy/server.log`
 - Restart: `launchctl kickstart -k gui/$(id -u)/nl.eviloverlord.flopy`
-- Remove: `launchctl bootout gui/$(id -u)/nl.eviloverlord.flopy`
+- Remove: `launchctl bootout gui/$(id -u)/nl.eviloverlord.flopy && rm ~/Library/LaunchAgents/nl.eviloverlord.flopy.plist`
+
+Troubleshooting: **repeating bind errors in the log** usually mean the mini's
+LAN IP changed (DHCP) — re-run `bash deploy/install.sh` to pick up the new
+address, and give the mini a **DHCP reservation / static IP** in the router so
+it stops happening (launchd retries every 15 s by design, so it recovers by
+itself once the address is right).
 
 ## Phone setup (first time, ~2 minutes)
 
-1. On the mini: `uv run python -m server.tokens_cli add "niels-iphone"` → copy
-   the printed token (shown once).
+1. On the mini, **from the repo checkout directory** (the tokens file lives in
+   the data dir, which defaults to `<repo>/data/archive` — running the command
+   elsewhere writes a tokens file the service never reads):
+   `uv run python -m server.tokens_cli add "my-iphone"` → copy the printed
+   token (shown once). If you set `FLOPY_DATA_DIR`, export the same value for
+   this command.
 2. On the phone (same Wi-Fi): open `http://<mini-LAN-IP>:8484`, tap **⚙︎**,
    paste the token, Save.
 3. Share-sheet → **Add to Home Screen** for an app-like experience.
-4. Lost/stolen phone: `uv run python -m server.tokens_cli revoke "niels-iphone"`
+4. Lost/stolen phone: `uv run python -m server.tokens_cli revoke "my-iphone"`
    — takes effect immediately.
 
 Camera note: the capture button uses the file-picker→camera hop (works over
@@ -78,6 +88,6 @@ uv run python -m spike.benchmark --set data/testset-real --out docs/phase0-real
 ## Known limitations (v1, tracked)
 
 - Remote ("on the road") access not yet wired: Tailscale + host-level egress
-  lockdown + formal airplane-mode test are the Phase 3 gate (issues #14).
+  lockdown + formal airplane-mode test are the Phase 3 gate (issue #14).
 - Latency ~20–30 s/page vs the 15 s KPI (issue #13).
 - Semantic-search relevance cutoff untuned until real letters exist (#20).

@@ -15,6 +15,10 @@ UV_BIN="$(command -v uv || echo /opt/homebrew/bin/uv)"
 HOST="${1:-$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || echo 127.0.0.1)}"
 case "$HOST" in
   0.0.0.0|::|"") echo "refusing wildcard bind ($HOST) — pass a specific LAN IP" >&2; exit 1 ;;
+  127.0.0.1)
+    echo "WARNING: no LAN address detected (en0/en1) — installing bound to 127.0.0.1." >&2
+    echo "         Phones will NOT be able to reach it. Re-run with an explicit IP:" >&2
+    echo "         bash deploy/install.sh <LAN-IP>" >&2 ;;
 esac
 
 mkdir -p "$LOGDIR" "$DATA_DIR"
