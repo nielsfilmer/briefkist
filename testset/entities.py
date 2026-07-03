@@ -112,7 +112,7 @@ _SENDERS: dict[str, dict[str, list[Party]]] = {
     "nl": {
         "invoice": [
             Party("Van Dijk Installatietechniek B.V.", "Industrieweg 42", "3542 AD Utrecht"),
-            Party("Tandartspraktijk De Molen", "Molenstraat 8", "6811 KG Arnhem"),
+            Party("Schildersbedrijf Kuipers", "Ambachtsweg 11", "7418 EX Deventer"),
         ],
         "government_tax": [
             Party("Belastingdienst", "Postbus 2536", "6401 DA Heerlen"),
@@ -124,6 +124,10 @@ _SENDERS: dict[str, dict[str, list[Party]]] = {
         ],
         "medical": [
             Party("Meander Medisch Centrum", "Maatweg 3", "3813 TZ Amersfoort"),
+            # a dentist practice is medical, not generic invoice — the doc_type
+            # domain rule in spike/extract.py decides (was misfiled in the
+            # invoice pool; the extractor itself flagged it)
+            Party("Tandartspraktijk De Molen", "Molenstraat 8", "6811 KG Arnhem"),
         ],
         "bank": [
             Party("Triodos Bank N.V.", "Postbus 55", "3700 AB Zeist"),

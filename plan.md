@@ -5,7 +5,7 @@
 > single byte leave your network.
 
 - **Owner:** niels@eviloverlord.nl
-- **Status:** Executing (v0.2) — Phase 0 (feasibility spike) in build on the production host
+- **Status:** Executing (v0.3) — Phase 0 spike complete: **GO** (see `docs/phase0/VERDICT.md`); Phase 1–2 build in flight
 - **Last updated:** 2026-07-03
 - **Working name:** *my-flopy* (rename later, e.g. "Postvault", "Briefkist", "Mailcrate")
 
@@ -33,6 +33,37 @@ in the section it supersedes.
    known ground truth, photo-degraded. The owner drops real letter photos into
    a designated folder later; the benchmark re-runs on them for the true
    go/no-go. (§10 Phase 0)
+
+## Decision log — 2026-07-03 (v0.3, Phase 0 spike findings)
+
+Measured on the production host (8 GB M1 mini) against the synthetic set; the
+benchmark of record is `docs/phase0/` (see `VERDICT.md` there).
+
+6. **OCR primary = Apple Vision** (macOS Vision framework, on-device, ~zero
+   extra resident RAM): 99.9% character accuracy across ALL degradation tiers
+   on the synthetic set — at/above the §11 targets. PaddleOCR (PP-OCRv5 latin)
+   is benchmarked alongside as the cross-platform alternative; Tesseract
+   dropped from consideration for v1. (§6.2)
+7. **Extraction is TEXT-FIRST: the VLM reads the OCR transcript; the page
+   image is NOT attached by default.** Measured on qwen3-vl:4b-instruct:
+   attaching the image *degraded* structured extraction (fields plainly in the
+   OCR text returned null) and added ~50 s vision-encode per page. With
+   OCR at 99.9%, the transcript is the better eye. Image attachment remains an
+   escalation path for low-OCR-confidence documents. This softens the §6.4
+   "image + OCR text" formula on 4B-class models. (§6.4)
+8. **Model/runtime pins that matter on this host** (§6.3 gotchas, all
+   measured, all trap-shaped): use the **`-instruct` Ollama tags** — the bare
+   `qwen3-vl:*` tags are *thinking* models that burn their entire constrained-
+   decoding budget on reasoning and return empty JSON; keep **`num_ctx` at
+   4096** — 8192's KV cache spills out of the ~5.3 GiB Metal budget and
+   generation collapses from ~13 tok/s to ~1.4 tok/s; **schema fields must be
+   required-but-nullable** — optional fields let the grammar (and the model)
+   skip keys that are plainly on the page.
+9. **Tags are reconciled deterministically** (§6.4 as designed): the domain
+   tag follows doc_type, `bill` follows a validated payment amount, and model
+   judgment is trusted only for `legal`/`personal`. Small models fill
+   grammar-constrained tag lists with plausible junk otherwise (measured 60%
+   precision raw → reconciliation fixes it).
 
 ---
 
@@ -277,6 +308,11 @@ in current (2025–2026) tooling.
   are benchmarked head-to-head in Phase 0 and the winner becomes primary** — Apple
   Vision costs ~zero extra RAM, which matters on 8 GB. The text below stands as the
   candidate list.)*
+- ***Benchmark outcome (decision log #6): Apple Vision is primary** — 99.9% char
+  accuracy on every tier of the synthetic set (`docs/phase0/`). PaddleOCR stays the
+  cross-platform alternate (note: paddlex phones home on init unless
+  `PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK=True` — an egress trap, disabled in our
+  engine wrapper; models pre-download once at install).*
 - **Recommendation:** **PaddleOCR (PP-OCRv5)** as the primary OCR engine, with
   **Surya** as a strong alternative and **Tesseract 5** as a battle-tested fallback.
   - **PaddleOCR** — best accuracy/speed balance on real-world photos, excellent
@@ -328,6 +364,10 @@ in current (2025–2026) tooling.
   dedicated model — **dots.ocr** (MIT), **Nanonets-OCR2-3B** (Apache-2.0, Ollama-ready),
   or **PaddleOCR-VL 0.9B** (Apache-2.0) — can beat a general VLM, at the cost of Qwen's
   flexible free-form field reasoning. Consider as a two-stage upgrade, not for v1.
+- **Gotchas measured on our own host (decision log #8):** use the `-instruct`
+  Ollama tags (bare `qwen3-vl:*` = thinking variant → empty JSON under
+  constrained decoding); `num_ctx` 4096, not more (KV spill past the ~5.3 GiB
+  Metal budget → ~10× slower generation); schema fields required-but-nullable.
 - **Known gotchas to design around:**
   - llama.cpp uses a **two-file** scheme (main GGUF + separate `mmproj` vision
     projector) — a missing/mismatched `mmproj` silently breaks vision or emits garbage
@@ -343,7 +383,11 @@ in current (2025–2026) tooling.
 ### 6.4 Metadata extraction & tagging strategy
 - **Recommendation:** A **two-stage, schema-constrained** pipeline:
   1. **OCR** produces verbatim text (trusted for exact strings).
-  2. **VLM/LLM** receives *image + OCR text* and returns **strict JSON** matching a
+  2. **VLM/LLM** receives ~~*image + OCR text*~~ **the OCR text (text-first —
+     amended by decision log #7: on 4B-class models the image input measurably
+     degraded extraction and tripled latency; image attachment is the escalation
+     path for low-OCR-confidence documents, not the default)** and returns
+     **strict JSON** matching a
      predefined schema. **JSON format reliability is a decoding-layer problem, not a
      model-choice problem** — enforce it, don't just prompt for it. Concretely: define
      the schema as a **Pydantic** model → pass its JSON Schema to **Ollama structured

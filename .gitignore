@@ -13,6 +13,8 @@ credentials/
 
 # === Captured mail / documents / archive data (privacy) ===
 data/
+# benchmark working images (only report.md/results.json/VERDICT.md are tracked)
+docs/phase0*/preprocessed/
 archive/
 uploads/
 documents/

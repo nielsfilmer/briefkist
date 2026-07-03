@@ -288,6 +288,11 @@ Status: **executing — Phase 0 (feasibility spike) in build**.
 - [testset/](testset/README.md) — Phase 0 synthetic test-set generator (NL/DE/EN
   letters + ground truth + photo degradation) and the real-photo drop-folder
   convention. See its README for usage.
+- [spike/](spike/README.md) — Phase 0 pipeline components (preprocess, OCR
+  engines, VLM extraction, deterministic validation) + the benchmark harness.
+  These modules ARE the v1 pipeline (the server imports them); see its README.
+- `docs/phase0/` — committed benchmark report of record (`report.md`,
+  `results.json`, `VERDICT.md` — the go/no-go).
 - `tests/` — pytest suite (`uv run pytest`).
 - `data/` — generated/captured data, **gitignored** (synthetic set under
   `data/testset/`, real letters under `data/testset-real/`).
