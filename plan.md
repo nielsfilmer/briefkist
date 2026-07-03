@@ -128,7 +128,7 @@ and it keeps the models in one place.
 instead of Postgres, everything native on the 8 GB mini — see the decision log)*
 
 ```
-┌─────────────────────────┐         LAN / Tailscale VPN         ┌──────────────────────────────────┐
+┌─────────────────────────┐         LAN / Tailscale VPN         ┌────────────────────────────────────┐
 │   Phone (web app)       │  ───────  HTTPS (token)  ─────────► │  Self-hosted Backend (Mac mini,    │
 │  mobile capture page    │                                     │  all native processes, no Docker)  │
 │  • Browser camera       │                                     │                                    │
@@ -145,7 +145,7 @@ instead of Postgres, everything native on the 8 GB mini — see the decision log
                                                                 │    • Files on disk (originals)     │
    (Flutter native apps: deferred — §6.7)                       │    • SQLite (metadata + FTS5       │
                                                                 │        + sqlite-vec)               │
-                                                                └──────────────────────────────────┘
+                                                                └────────────────────────────────────┘
 ```
 
 **Processing is async and queued.** Capture is instant; the phone uploads and the
