@@ -215,6 +215,21 @@ def test_solo_absolute_bar_boundary(conn):
     assert just_over not in ids
 
 
+def test_margin_disabled_when_best_hit_is_keyword_confirmed(conn):
+    """The production regression (issue #20, second data point): with the best
+    semantic candidate already confirmed by the keyword leg, a semantic-only
+    doc inside the margin window must NOT ride along — it needs the absolute
+    bar. Distances mirror the real case (0.58 confirmed vs 0.60 solo)."""
+    confirmed = _make_doc(conn, "aangifte findme", "inkomstenbelasting tekst",
+                          embedding=_emb_at_distance(0.58))
+    straggler = _make_doc(conn, "loodgieter", "iets anders",
+                          embedding=_emb_at_distance(0.60))
+    hits = store.list_documents(conn, query="findme", query_embedding=_QUERY_EMB)
+    ids = [h["id"] for h in hits]
+    assert confirmed in ids
+    assert straggler not in ids
+
+
 def test_solo_margin_boundary(conn):
     """Gap 0.035 from the best hit is inside the 0.04 margin, 0.045 is outside
     (both above the absolute bar so only the margin rule decides)."""
