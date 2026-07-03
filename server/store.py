@@ -299,7 +299,7 @@ def list_documents(
     for doc_id in ids:
         row = conn.execute(
             "SELECT id, title, correspondent, doc_type, document_date, due_date, amount_due, "
-            "language, status, needs_review, created_at FROM documents WHERE id = ?",
+            "currency, language, status, needs_review, created_at FROM documents WHERE id = ?",
             (doc_id,),
         ).fetchone()
         if row:
