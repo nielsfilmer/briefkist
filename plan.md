@@ -659,6 +659,82 @@ model or prompt changes actually improve real-world results — all locally.
 
 ---
 
+## 15. Prior Art & Competitive Landscape
+
+Researched 2026-07-03. **Verdict: no single existing product does exactly this.**
+Nothing on the market combines all of this project's defining traits — a
+mail-tailored phone-photo capture UX, **local-VLM structured extraction** of
+mail-native fields (correspondent, IBAN, amounts, due dates, references), and a
+**local-first archive with both full-text AND semantic search** — in one
+purpose-built, single-household product. The closest reality is exactly what §6.8
+already anticipates: **assemble Paperless-ngx + an AI plugin + a third-party
+mobile app yourself**, an assembly that still leaves real gaps.
+
+### Closest existing solutions
+
+- **Paperless-ngx + paperless-gpt + Swift Paperless** (the assemble-it-yourself
+  stack) — the real competitor and the basis for our fork/fallback thinking.
+  - [Paperless-ngx](https://github.com/paperless-ngx/paperless-ngx) — self-hosted
+    archive core: Tesseract OCR, full-text search, tags/correspondents/types/custom
+    fields. No semantic/vector search.
+  - [paperless-gpt](https://github.com/icereed/paperless-gpt) — LLM layer with
+    **local Ollama vision OCR** and metadata (title, tags, correspondent, date,
+    custom fields). But **no first-class IBAN / amount / due-date extraction**, and
+    it does not encode the §6.4 discipline that the *OCR* layer (not the VLM) is
+    authoritative for exact strings. **No vector search.**
+  - [Swift Paperless](https://github.com/paulgessinger/swift-paperless) — the only
+    healthy iOS client (Paperless Mobile is abandoned), but a generic native scanner,
+    not a mail-tailored capture flow, and iOS-only (not one Flutter cross-platform app).
+  - **Coverage:** local ✓, household ✓, full-text ✓; mobile capture / local-VLM
+    extraction *partial*; **missing entirely: semantic search, mail-native financial
+    fields, a mail-tailored capture UX, single-app cohesion, guaranteed NL/DE/EN tuning.**
+- **[paperless-ai](https://github.com/clusterzx/paperless-ai)** — AI middleware
+  (Ollama/OpenAI) for title/tags/type/correspondent + "chat with your documents";
+  weaker OCR, no vision emphasis, no structured financial fields, no semantic search.
+- **Paperless-AIssist** ([discussion](https://github.com/paperless-ngx/paperless-ngx/discussions/12252))
+  — newest (2025) middleware; local Ollama vision OCR, separate vision-vs-reasoning
+  models, and **type-specific custom-field extraction** — the closest prior art to our
+  §6.4 plan. Still no mobile capture and no semantic search. **Worth studying before we
+  build extraction from scratch.**
+- **[Docspell](https://docspell.org/), [Papra](https://github.com/papra-hq/papra),
+  Mayan EDMS, Teedy** — self-hosted DMS with OCR/tagging, but **no local VLM
+  understanding**, no mail-tailored photo capture, no semantic search. (Papra/Docspell
+  are AGPL — a licensing watch-item if this ever became a hosted service; §6.8.)
+- **[Khoj](https://github.com/khoj-ai/khoj) / [Morphik](https://github.com/morphik-org/morphik-core)**
+  — self-hostable local-AI RAG/semantic search over documents. **Not mail archivers**
+  (no capture, no correspondent/IBAN schema, no filing UX) — candidate *components*,
+  not competitors.
+- **[Genius Scan](https://geniusscansdk.com/docs/v5/document-scanning/structured-data-extraction/)**
+  — mobile scanner with **on-device** OCR and structured extraction including **IBAN/BIC
+  and receipt amounts**, offline. Proves capture-side local extraction is feasible, but
+  it's a scanner SDK/app, not an archive with search.
+- **Cloud snail-mail (Earth Class Mail, iPostal1, Shoeboxed, Evernote Scannable)** —
+  confirm the market need but are cloud/third-party-in-the-data-path — the direct
+  antithesis of this project's local-first requirement. Not comparable.
+
+### The gap this project fills
+
+The individual ingredients all exist somewhere; the **integration + mail-specific
+tailoring + semantic layer + single cross-platform app + NL/DE/EN focus, fully
+offline** is the whitespace. The project is **not redundant** — the novel value is a
+coherent, mail-specific, semantic-enabled, fully-local product, while the archive core
+itself is a solved problem worth mirroring/forking rather than rebuilding.
+
+### Implications for build-vs-fork (§6.8)
+
+- Reinforces §6.8's "mirror the Paperless data model" call — the ecosystem is mature and
+  its data model is close to ours (§8), keeping a later migration cheap.
+- **Reuse, don't reinvent, the extraction plumbing:** study **Paperless-AIssist**'s
+  separate-vision/reasoning + type-specific field extraction before building §6.4.
+- **The semantic-search layer (bge-m3 + sqlite-vec) is genuinely additive** — no
+  Paperless plugin offers it; it stays our differentiator.
+- **Convergence watch-item:** an *official* AI integration may eventually land inside
+  Paperless-ngx and subsume the plugin layer. If it ships with local vision, our
+  *extraction* edge narrows — but semantic search, the mail-tailored capture app, and the
+  NL/DE/EN structured schema remain ours. Tracked as a follow-up.
+
+---
+
 *Next step: run Phase 0 (the feasibility spike) — synthetic-first letters (decision
 log #5), with the owner's real letter photos re-benchmarked as they arrive — to
 validate OCR + VLM extraction quality before committing to the full build.*
