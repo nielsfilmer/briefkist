@@ -10,7 +10,9 @@ type) and tags, then files it into a searchable archive (full-text + semantic). 
 it on the road via a private WireGuard/Tailscale overlay — **no cloud, no public
 ports, no third party in the data path.**
 
-> **Status:** planning → Phase 0 (feasibility spike). No application code yet.
+> **Status:** executing — Phase 0 (feasibility spike) in build on the production
+> host (the owner's 8 GB M1 Mac mini). See the decision log at the top of
+> [plan.md](plan.md) for the 2026-07-03 reality-check amendments.
 
 ## Documents
 
@@ -20,23 +22,24 @@ ports, no third party in the data path.**
 - **[CLAUDE.md](CLAUDE.md)** — working conventions for Claude Code sessions on this repo
   (PR-per-task workflow, review discipline, permission model, phase tracking).
 
-## Planned stack (see plan.md §6–§7)
+## Stack (v1 — see plan.md §6–§7 and the decision log)
 
 | Layer | Choice |
 |---|---|
-| App (mobile + desktop) | Flutter |
-| Capture | Native OS scanners (VisionKit / ML Kit) |
-| OCR | PaddleOCR |
-| Understanding | Qwen3-VL-8B via Ollama/MLX |
-| Search | Postgres + pgvector + FTS (or fork Paperless-ngx) · bge-m3 embeddings |
-| Backend | FastAPI, Docker Compose |
-| Host | Always-on Apple Silicon Mac mini |
+| App (v1) | Mobile-first web app served by the backend (Flutter native apps deferred) |
+| Capture (v1) | Phone browser camera + backend OpenCV cleanup |
+| OCR | Apple Vision vs PaddleOCR — Phase 0 benchmark picks the primary |
+| Understanding | Qwen3-VL-4B (2B fallback) via Ollama |
+| Search | SQLite FTS5 + sqlite-vec · bge-m3 embeddings |
+| Backend | FastAPI — all native processes, no Docker |
+| Host | The owner's always-on 8 GB M1 Mac mini |
 | Remote access | Tailscale / WireGuard overlay |
 
 ## Development workflow
 
 Every change goes on a feature branch → PR against `main` → parallel code + QA review →
-merge (the human is the merge gate). Phase progress is tracked in GitHub milestones and
+merge (merge gate delegated to Claude for this repo 2026-07-03 — see CLAUDE.md workflow
+step 5). Phase progress is tracked in GitHub milestones and
 `phase-tracker` issues, not in a roadmap checklist. See [CLAUDE.md](CLAUDE.md) for the
 full workflow, and run `/status` for the live per-phase snapshot.
 

@@ -5,9 +5,34 @@
 > single byte leave your network.
 
 - **Owner:** niels@eviloverlord.nl
-- **Status:** Planning (v0.1 of this document)
+- **Status:** Executing (v0.2) — Phase 0 (feasibility spike) in build on the production host
 - **Last updated:** 2026-07-03
 - **Working name:** *my-flopy* (rename later, e.g. "Postvault", "Briefkist", "Mailcrate")
+
+## Decision log — 2026-07-03 (v0.2, execution-start reality check)
+
+Confirmed with the owner at execution start; each decision is also annotated inline
+in the section it supersedes.
+
+1. **The production host is the owner's existing always-on Mac mini: Apple M1,
+   8 GB unified memory, macOS 14.4** — not a to-be-bought 32 GB machine. Every
+   sizing decision below follows from this. A RAM upgrade (new mini) remains a
+   possible later step and restores the original 8B-model plan.
+2. **VLM tier drops to Qwen3-VL-4B (primary) / Qwen3-VL-2B (fallback)** — both
+   Apache-2.0, both fit 8 GB. Qwen3-VL-8B does not fit usably. (§6.3)
+3. **Bespoke-light backend, not the Paperless-ngx fork, and no Docker on this
+   host**: FastAPI + SQLite (FTS5 + sqlite-vec) as native processes. Docker
+   Desktop's VM plus the Paperless stack (Postgres/Redis/web) plus a resident
+   VLM does not fit in 8 GB; Docker on macOS also has no Metal passthrough.
+   Paperless-ngx remains a documented fallback/migration option. (§6.5, §6.6, §6.8)
+4. **First capture surface is a mobile web page served by the backend** (phone
+   browser camera → upload over LAN/tunnel), because the host has no Xcode and
+   the native Flutter/VisionKit app cannot be built here. Flutter app deferred
+   to a later phase. (§6.7, roadmap §10)
+5. **Phase 0 test data is synthetic-first**: generated NL/DE/EN letters with
+   known ground truth, photo-degraded. The owner drops real letter photos into
+   a designated folder later; the benchmark re-runs on them for the true
+   go/no-go. (§10 Phase 0)
 
 ---
 
@@ -99,24 +124,28 @@ A **thin mobile client + a self-hosted backend** on the owner's hardware. Heavy 
 on the backend (a Mac or home server), not the phone — phones lack the RAM for good VLMs
 and it keeps the models in one place.
 
+*(diagram amended 2026-07-03 to the as-built v1: web app instead of Flutter, SQLite
+instead of Postgres, everything native on the 8 GB mini — see the decision log)*
+
 ```
-┌─────────────────────────┐         LAN / Tailscale VPN         ┌──────────────────────────────────┐
-│      Mobile App         │  ───────  HTTPS (mTLS/token)  ────► │        Self-hosted Backend         │
-│  (Flutter, iOS→Android) │                                     │                                    │
-│  • Camera + doc scanner │                                     │  API (FastAPI)                     │
-│  • Edge detect/crop     │  ◄────  status / results  ────────  │    │                               │
-│  • Upload queue         │                                     │    ├─ Ingest & preprocess (OpenCV) │
-└─────────────────────────┘                                     │    ├─ OCR (PaddleOCR/Surya)        │
-                                                                │    ├─ VLM extract (Qwen-VL via     │
-┌─────────────────────────┐                                     │    │     Ollama / MLX)             │
-│     Desktop App         │  ───────  same local API  ────────► │    ├─ Embeddings (nomic-embed)     │
-│  (Flutter desktop or    │                                     │    └─ Tagging / classification     │
-│   web served locally)   │                                     │                                    │
-│  • Browse / search      │                                     │  Storage:                          │
-│  • Correct metadata     │                                     │    • Files on disk (originals)     │
-│  • Bulk manage          │                                     │    • Postgres (metadata)           │
-└─────────────────────────┘                                     │    • FTS + vector index (search)   │
-                                                                └──────────────────────────────────┘
+┌─────────────────────────┐         LAN / Tailscale VPN         ┌────────────────────────────────────┐
+│   Phone (web app)       │  ───────  HTTPS (token)  ─────────► │  Self-hosted Backend (Mac mini,    │
+│  mobile capture page    │                                     │  all native processes, no Docker)  │
+│  • Browser camera       │                                     │                                    │
+│  • Upload queue         │  ◄────  status / results  ────────  │  API (FastAPI)                     │
+│  • Status view          │                                     │    │                               │
+└─────────────────────────┘                                     │    ├─ Ingest & preprocess (OpenCV) │
+                                                                │    ├─ OCR (Apple Vision /          │
+┌─────────────────────────┐                                     │    │     PaddleOCR — Phase 0 pick) │
+│  Desktop (same web app) │  ───────  same local API  ────────► │    ├─ VLM extract (Qwen3-VL-4B     │
+│  • Browse / search      │                                     │    │     via Ollama, native)       │
+│  • Correct metadata     │                                     │    ├─ Embeddings (bge-m3)          │
+│  • Bulk manage          │                                     │    └─ Tagging / classification     │
+└─────────────────────────┘                                     │  Storage:                          │
+                                                                │    • Files on disk (originals)     │
+   (Flutter native apps: deferred — §6.7)                       │    • SQLite (metadata + FTS5       │
+                                                                │        + sqlite-vec)               │
+                                                                └────────────────────────────────────┘
 ```
 
 **Processing is async and queued.** Capture is instant; the phone uploads and the
@@ -154,20 +183,27 @@ impossible, use a VPS *only* with full-disk encryption where you alone hold the 
 accept the reduced guarantee explicitly.
 
 **Decided hardware: an always-on Apple Silicon Mac mini** — it is both the VLM host and
-the always-on server. Target **32 GB** unified memory (comfortably runs a 7–8B VLM plus
-Postgres/search with headroom; 16 GB works but is tight). MLX gives the best
-Apple-Silicon throughput.
+the always-on server. ~~Target **32 GB** unified memory (comfortably runs a 7–8B VLM plus
+Postgres/search with headroom; 16 GB works but is tight).~~ **Superseded 2026-07-03:**
+the actual host is the owner's existing **M1 mini with 8 GB** (also runs Plex/Sonarr/etc.).
+Consequences: 4B-class VLM (§6.3), SQLite instead of Postgres, no Docker, sequential
+pipeline stages to cap peak RAM. A 32 GB replacement remains the upgrade path back to
+8B-class models. MLX gives the best Apple-Silicon throughput.
 
 **Mac-mini-specific setup notes (these shape the architecture):**
 - **The VLM runs natively on macOS, not in Docker.** Docker Desktop on Mac runs Linux
   containers in a VM with **no Metal GPU passthrough**, so Ollama/MLX must run as a
-  **native host process** to use the GPU. Practical split: **Ollama (or mlx-vlm) native
-  on the host**; API, workers, Postgres, and search in Docker Compose. Preprocessing/OCR
-  (PaddleOCR, OpenCV) can go either way — native is simplest on Apple Silicon.
-- **Egress lockdown must therefore be host-level, not just container-level.** Because the
-  model is a native process, use a macOS **application firewall that blocks outbound**
-  (built-in pf via a ruleset, or **LuLu**/Little Snitch) to deny the Ollama/MLX process
-  any network access. Container network isolation still covers the Dockerized services.
+  **native host process** to use the GPU. ~~Practical split: Ollama native on the host;
+  API, workers, Postgres, and search in Docker Compose.~~ **Superseded 2026-07-03:**
+  on the 8 GB host there is no Docker at all — **every component (API, worker, Ollama,
+  SQLite) is a native macOS process** (§6.6, decision log #3).
+- **Egress lockdown is therefore entirely host-level.** All processing runs natively,
+  so the anti-leak control is a macOS **application firewall that blocks outbound
+  per-process** (built-in pf via a ruleset, or **LuLu**/Little Snitch): deny the
+  Ollama, worker, and OCR processes any outbound network access; allow the API process
+  to answer only on the tunnel interface. ~~Container network isolation covers the
+  Dockerized services~~ — nothing runs in containers; the container-isolation notes
+  below apply only if containers return with bigger hardware.
 - **Always-on:** disable sleep for the server role (`sudo pmset -a sleep 0 disksleep 0`;
   set "Start up automatically after a power failure"). Note the tension with FileVault:
   FileVault requires a password at boot, so after a power outage the box won't auto-unlock
@@ -185,7 +221,7 @@ The overlay makes the network safe; that shifts the weak links to **the phone** 
 |---|---|
 | Interception on public WiFi | WireGuard end-to-end encryption; no plaintext ever on the wire |
 | Server found/exploited from the internet | **No port forwarding, no public ports.** Bind the API to the tunnel interface, never `0.0.0.0`. The box is unreachable except over the tunnel |
-| **A model/dependency exfiltrates documents** | **Egress lockdown — the key anti-leak control.** Run OCR/VLM (and all worker) containers with **no network access at all**; once models are pulled they never need the internet, so a compromised model *physically cannot* phone home. Deny-all outbound on the host; allowlist nothing |
+| **A model/dependency exfiltrates documents** | **Egress lockdown — the key anti-leak control.** Deny the OCR/VLM/worker **processes** all outbound network access via the host application firewall (pf ruleset or LuLu — host-level because everything runs natively, see setup notes above); once models are pulled they never need the internet, so a compromised model *physically cannot* phone home. Deny-all outbound on the host; allowlist nothing |
 | Foothold on the tunnel still hits the API | Layer app auth on top of device identity: per-device **token or mTLS**, revocable; auth on every endpoint |
 | Lost/stolen phone | Device biometric/passcode; cache **thumbnails, not originals**; drop full images after upload is confirmed; **remotely revoke** the phone's tunnel key + app token |
 | Stolen server disk | Full-disk encryption (FileVault/LUKS) **+** app-level encryption of document blobs, so a powered-off disk yields nothing |
@@ -200,8 +236,9 @@ The overlay makes the network safe; that shifts the weak links to **the phone** 
 
 ### Hardening checklist (build-time)
 - API bound to the tunnel interface only; host firewall default-deny inbound *and* outbound.
-- Model/worker containers: no network, read-only rootfs, dropped Linux capabilities,
-  least-privilege user.
+- Model/worker processes: per-process outbound deny (pf/LuLu), least-privilege user.
+  *(If containers ever return on bigger hardware: no network, read-only rootfs,
+  dropped Linux capabilities as well.)*
 - Request size limits, rate limiting, no directory listing, audit log of every access.
 - Per-device credentials, short-lived tokens, one-click revocation of a device.
 - Airplane-mode / egress-block test in CI-equivalent: prove the stack works with zero
@@ -217,7 +254,8 @@ in current (2025–2026) tooling.
 ### 6.1 Image capture & preprocessing (on device + backend)
 - **Recommendation:** On-device document scanning UI + edge detection at capture time,
   then a robust backend cleanup pass.
-  - **iOS capture:** `VNDocumentCameraViewController` (Apple VisionKit) gives
+  - **iOS capture *(deferred with the Flutter app, §6.7 — v1 uses the browser camera
+    + backend cleanup)*:** `VNDocumentCameraViewController` (Apple VisionKit) gives
     Apple-quality edge detection, multi-page capture, and perspective correction *for
     free*, fully on-device. Wrap it via a Flutter platform channel or the
     `cunning_document_scanner` plugin.
@@ -235,6 +273,10 @@ in current (2025–2026) tooling.
   and need a GPU — so they'd break the fully-local, freely-licensed goal. Out of v1.
 
 ### 6.2 OCR engine
+- *(Amended 2026-07-03: given the Apple Silicon host, **Apple Vision OCR and PaddleOCR
+  are benchmarked head-to-head in Phase 0 and the winner becomes primary** — Apple
+  Vision costs ~zero extra RAM, which matters on 8 GB. The text below stands as the
+  candidate list.)*
 - **Recommendation:** **PaddleOCR (PP-OCRv5)** as the primary OCR engine, with
   **Surya** as a strong alternative and **Tesseract 5** as a battle-tested fallback.
   - **PaddleOCR** — best accuracy/speed balance on real-world photos, excellent
@@ -253,10 +295,12 @@ in current (2025–2026) tooling.
   text together. Belt-and-suspenders again.
 
 ### 6.3 Vision-language model (understanding & extraction)
-- **Recommendation:** **Qwen3-VL-8B** as the primary extractor, with **Qwen2.5-VL-7B**
-  as the tooling-stable fallback. Quantize to **Q4_K_M** (the accepted sweet spot; the
-  vision projector stays FP16 even in Q4 builds, so vision loss is small — avoid
-  aggressive GPTQ).
+- **Recommendation *(amended 2026-07-03 for the 8 GB host)*:** **Qwen3-VL-4B** as the
+  primary extractor, **Qwen3-VL-2B** as the low-RAM fallback (both Apache-2.0). The
+  original pick, **Qwen3-VL-8B**, needs ~6–9 GB for weights alone and does not fit
+  usably in 8 GB total; it becomes the upgrade path if the host RAM grows. Quantize to
+  **Q4_K_M** (the accepted sweet spot; the vision projector stays FP16 even in Q4
+  builds, so vision loss is small — avoid aggressive GPTQ).
   - Runs locally via **Ollama** (easiest), **MLX/mlx-vlm** (fastest on Apple Silicon,
     ~15–25% quicker than llama.cpp), **vLLM** (best server throughput + reliable
     schema-guided JSON), or **llama.cpp** (most flexible).
@@ -322,10 +366,11 @@ in current (2025–2026) tooling.
 ### 6.5 Search layer
 At this scale (thousands of docs) everything is fast enough; the real constraints are
 **operational simplicity** and **multilingual embedding quality**. Two good paths:
-- **If bespoke backend:** **SQLite FTS5 + sqlite-vec** fused with **Reciprocal Rank
-  Fusion (RRF)**. Zero extra services, one file to back up — the simplest thing that
-  fully works. (Pin sqlite-vec; it's still pre-v1.)
-- **If forking Paperless-ngx (recommended, see §6.8):** it already ships **PostgreSQL +
+- **If bespoke backend *(chosen 2026-07-03, see §6.8)*:** **SQLite FTS5 + sqlite-vec**
+  fused with **Reciprocal Rank Fusion (RRF)**. Zero extra services, one file to back
+  up — the simplest thing that fully works, and the only thing that fits comfortably
+  next to a resident VLM in 8 GB. (Pin sqlite-vec; it's still pre-v1.)
+- **If forking Paperless-ngx (~~recommended~~ superseded, see §6.8):** it already ships **PostgreSQL +
   full-text search**, so use **Postgres FTS + pgvector** and don't add a second
   datastore. Meilisearch (MIT) is the "batteries-included hybrid, least code" option if
   you'd rather not hand-roll RRF.
@@ -338,19 +383,30 @@ At this scale (thousands of docs) everything is fast enough; the real constraint
   that actually holds up in Dutch and German.
 
 ### 6.6 Backend
-- **Recommendation:** **Python + FastAPI** for the API, a task queue for async
-  processing (**Celery/Redis** or the lighter **Dramatiq/RQ**, or even Postgres-backed
-  jobs), and **Docker Compose** to run the whole stack (API, Postgres, Ollama, workers)
-  on the home server with one command.
+- **Recommendation *(amended 2026-07-03)*:** **Python + FastAPI** for the API, with a
+  **SQLite-backed job queue processed by an in-process/native worker** for async
+  processing. ~~Celery/Redis … and Docker Compose to run the whole stack~~ —
+  **superseded:** on the real 8 GB host there is no Docker at all; every component
+  (API, worker, Ollama, SQLite) runs as a **native macOS process**. Docker Desktop's
+  Linux VM would burn ~1–2 GB of the 8 GB for zero benefit, and Docker on Mac has no
+  Metal passthrough anyway. Celery/Redis is overkill for a single-household queue.
 - **Why Python:** the entire local-ML ecosystem (PaddleOCR, Surya, OpenCV, mlx-vlm,
   embeddings) is Python-native. FastAPI is ergonomic and fast.
-- **Backend is the Mac mini (decided):** run Ollama/MLX **natively on the host** (Metal
-  GPU access — Docker on Mac has no Metal passthrough) and the rest (API, workers,
-  Postgres, search) in Docker Compose. MLX gives the best Apple-Silicon throughput. This
-  native-model split drives the host-level egress lockdown in §5.1.
+- **Backend is the Mac mini (decided):** everything native. The egress lockdown in
+  §5.1 is therefore entirely **host-level** (pf/LuLu per-process rules) — the
+  container-level isolation described there applies only if containers return with
+  bigger hardware.
 
 ### 6.7 Cross-platform app framework (desktop + mobile, one codebase)
-- **Recommendation:** **Flutter**.
+- **Amended 2026-07-03 — v1 ships a web UI, Flutter is deferred.** The host has no
+  Xcode (and 8 GB makes local iOS toolchains painful), so the native Flutter/VisionKit
+  app can't be built on it today. v1 instead serves a **mobile-first web app from the
+  backend**: iPhone Safari's `<input capture>` / `getUserMedia` camera for capture +
+  upload over the LAN/tunnel, and the same app as the desktop browse/search/correct
+  surface. This loses VisionKit's native edge-detection UX — compensated by the
+  backend OpenCV cleanup pass — and gains zero-install, zero-signing deployment.
+  The Flutter plan below stands as the *later* native-app path (needs Xcode, any Mac).
+- **Original recommendation (deferred, not dropped):** **Flutter**.
   - One codebase for **iOS, Android, macOS, Windows, Linux** — genuinely covers the
     desktop + mobile requirement.
   - Mature camera + platform-channel access (needed to call VisionKit's document
@@ -364,7 +420,14 @@ At this scale (thousands of docs) everything is fast enough; the real constraint
   *and* real desktop apps, which is exactly this project's shape.
 
 ### 6.8 Build vs. fork an existing project
-- **Recommendation:** **Fork/extend Paperless-ngx** as the archive/search/storage core
+- **Decided 2026-07-03: the bespoke-light path.** The fork-Paperless recommendation
+  below assumed a 32 GB host running Docker. On the real 8 GB mini, Paperless-ngx's
+  stack (Postgres + Redis + web + consumer, under a Docker VM) cannot coexist with a
+  resident VLM — so v1 is the **bespoke FastAPI + SQLite backend** (§6.5/§6.6), which
+  natively fits. Paperless-ngx remains the documented **fallback/migration target** if
+  the hardware grows or the bespoke archive proves limiting; its data model still
+  informs ours (§8), which keeps a later migration straightforward.
+- **Original recommendation (superseded):** **Fork/extend Paperless-ngx** as the archive/search/storage core
   and add the two things it lacks — a great **mobile-photo capture flow** and
   **VLM-based auto-metadata/tagging** — rather than building the whole archive from
   scratch.
@@ -400,20 +463,23 @@ At this scale (thousands of docs) everything is fast enough; the real constraint
 
 ## 7. Recommended Stack (Bottom Line)
 
+*(table amended 2026-07-03 to the as-built v1 stack; original choices that were
+superseded are noted inline)*
+
 | Layer | Choice | Notes |
 |---|---|---|
-| **App (mobile + desktop)** | **Flutter** | one codebase, iOS first, VisionKit scanner via platform channel |
-| **On-device capture** | VisionKit `VNDocumentCameraViewController` (iOS), ML Kit (Android) | on-device edge detect + perspective correction |
-| **Backend API** | **FastAPI** (Python) + async worker queue | Docker Compose to run it all |
+| **App (v1)** | **Mobile-first web app served by the backend** (Flutter native app deferred — §6.7) | phone Safari camera capture + desktop browse in one UI, zero install |
+| **On-device capture (later, native app)** | VisionKit `VNDocumentCameraViewController` (iOS), ML Kit (Android) | when the Flutter app lands; v1 relies on backend cleanup |
+| **Backend API** | **FastAPI** (Python) + SQLite-backed async worker | all native processes, no Docker (§6.6) |
 | **Preprocessing** | **OpenCV** | deskew, dewarp, threshold, denoise |
-| **OCR** | **PaddleOCR (PP-OCRv5)**; Surya / Tesseract / Apple Vision as alternates | verbatim, multilingual NL/DE/EN |
-| **Understanding/extraction** | **Qwen3-VL-8B** (Apache-2.0; Qwen2.5-VL-7B fallback) via **Ollama** or **MLX** | image + OCR text → schema-constrained JSON |
-| **Text LLM (optional)** | **Qwen2.5-7B** / Qwen3-8B (Apache-2.0), Phi-4-mini (MIT) via Ollama | **not** Llama Vision (EU license) |
+| **OCR** | **Apple Vision + PaddleOCR benchmarked in Phase 0**; Tesseract fallback | verbatim, multilingual NL/DE/EN; winner becomes primary |
+| **Understanding/extraction** | **Qwen3-VL-4B** (Apache-2.0; 2B fallback, 8B on future RAM upgrade) via **Ollama** | image + OCR text → schema-constrained JSON |
+| **Text LLM (optional)** | small Qwen3 (Apache-2.0), Phi-4-mini (MIT) via Ollama | **not** Llama Vision (EU license) |
 | **Embeddings** | **bge-m3** (MIT) via Ollama | multilingual NL/DE/EN semantic search |
-| **Datastore** | **Postgres + pgvector + FTS** (fork path) or **SQLite FTS5 + sqlite-vec** (bespoke) | one store: metadata + keyword + vector |
-| **Archive core (optional fork)** | **Paperless-ngx** | reuse storage/tags/search/API |
+| **Datastore** | **SQLite FTS5 + sqlite-vec** (bespoke path — decided §6.8) | one file: metadata + keyword + vector |
+| **Archive core** | bespoke (Paperless-ngx = fallback/migration option) | §6.8 |
 | **Remote access** | **Tailscale / WireGuard** | private overlay, nothing public |
-| **Hardware** | **Always-on Apple Silicon Mac mini (target 32 GB)** | VLM runs here (native, not the phone); doubles as always-on server — §5.1 |
+| **Hardware** | **The owner's existing always-on M1 Mac mini, 8 GB** (upgrade path: 32 GB mini → 8B models) | VLM runs here (native, not the phone); doubles as always-on server — §5.1 |
 
 **Privacy guarantee by construction:** the phone talks only to your backend over a
 private network; all models and data live on your hardware; no component makes an
@@ -458,22 +524,36 @@ instead of silently guessing.
 ## 10. Roadmap (phased)
 
 ### Phase 0 — Spike / feasibility (prove the hard part)
-- Stand up **Ollama (native) + Qwen3-VL-8B (or Qwen2.5-VL-7B) + PaddleOCR** on the
-  **Mac mini**.
-- Feed 20–30 real photographed letters (NL/DE/EN) through a script.
+*(amended 2026-07-03: model tier + synthetic-first data, per the decision log)*
+- Stand up **Ollama (native) + Qwen3-VL-4B (2B fallback) + OCR (Apple Vision vs
+  PaddleOCR benchmark)** on the **Mac mini (the existing 8 GB M1)**.
+- Feed 20–30 letters (NL/DE/EN) through a script — **synthetic-first**: generated
+  letters with known ground truth, photo-degraded (skew/shadow/blur). The owner drops
+  photos of real mail into a designated folder when available and the same benchmark
+  re-runs on them for the definitive numbers.
 - Measure OCR accuracy and JSON-extraction quality.
 - **Airplane-mode smoke test:** cut the mini's internet (or block egress) and confirm
   the pipeline still OCRs + extracts end to end — proving no step depends on the cloud.
-- **Go/no-go gate** = accuracy targets met *and* airplane-mode test passes.
+- **Peak-RAM measurement:** record peak memory of the full pipeline (Ollama + OCR +
+  worker) on the 8 GB host alongside Plex/Sonarr — the fit is plausible but must be
+  proven, not assumed.
+- **Go/no-go gate** = accuracy targets met *and* airplane-mode test passes *and*
+  the pipeline runs within the host's real memory headroom.
 
 ### Phase 1 — End-to-end thin slice
-- Flutter iOS capture (VisionKit scanner) → upload to FastAPI → run pipeline →
-  store in Paperless-ngx (or minimal Postgres) → view result on desktop.
+*(amended 2026-07-03: web capture + SQLite, per the decision log)*
+- **Mobile web capture page** (phone browser camera) → upload to FastAPI → run
+  pipeline → store in **SQLite archive** → view result in the desktop web UI.
+  *(Originally: Flutter iOS capture → Paperless-ngx/Postgres — deferred/superseded.)*
 - One document type end to end; manual correction UI.
+- **Camera secure-context note:** iPhone Safari only grants `getUserMedia` on HTTPS.
+  v1 capture therefore uses `<input type="file" capture>` (a file-picker-to-camera
+  hop, no secure context needed); a live in-page camera UX requires an HTTPS cert on
+  the tunnel (`tailscale cert` / local CA) — do that in Phase 3 hardening.
 
 ### Phase 2 — Understanding & search
 - Full metadata schema + validation, hybrid tagging, correspondent resolution.
-- FTS + semantic search (pgvector + bge-m3) with a real search UI.
+- FTS + semantic search (SQLite FTS5 + sqlite-vec + bge-m3) with a real search UI.
 - Review queue for low-confidence documents.
 
 ### Phase 3 — Polish & daily-driver
@@ -512,7 +592,7 @@ Concrete, testable targets. Establish a labeled test set of ~100 real documents
 
 ### Performance
 - **Capture-to-uploaded ≤ 3 s** perceived on the phone (async processing after).
-- **Full pipeline ≤ 15 s per page** on the target hardware (16–32 GB Apple Silicon).
+- **Full pipeline ≤ 15 s per page** on the target hardware (the 8 GB M1 mini, 4B-class VLM).
 - **Search results ≤ 300 ms** for keyword; ≤ 1 s for semantic.
 
 ### Effort / UX
@@ -550,11 +630,11 @@ model or prompt changes actually improve real-world results — all locally.
 | VLM hallucinates exact strings (IBAN, amounts) | Wrong financial data | Trust OCR layer + deterministic validation for format-critical fields; never the VLM alone |
 | Photographed docs are skewed/low-light | OCR errors | Strong on-device + backend preprocessing; capture UX nudges (guides, retake) |
 | Local runtime bugs (Qwen3-VL Metal crash, llama-server OCR regression) | Broken vision / silent accuracy loss | Pin known-good versions; prefer Ollama/MLX; test image path end to end before upgrading |
-| Model too big for hardware | Slow / won't run | Start at 7–8B Q4 (fits 16 GB); scale up only if hardware allows |
+| Model too big for hardware | Slow / won't run | Start at 4B Q4 (fits the 8 GB host — decision log #2); scale up only if hardware grows |
 | Multilingual accuracy (NL/DE) | Wrong extraction | Choose multilingual OCR (PaddleOCR/Surya) + bge-m3 embeddings; test set covers all three languages |
 | **Model license unusable in EU** | Legal blocker / rework | Stick to Apache-2.0 weights (Qwen3-VL, InternVL3.5, Pixtral) or Gemma terms; **never Llama Vision** (not licensed to EU parties); avoid Qwen2.5-VL-3B (research-only) |
-| Scope creep (build everything from scratch) | Never ships | Fork Paperless-ngx for the archive; concentrate effort on capture + AI |
-| Remote access ("on the road") exposes the backend | Document leak | Private overlay only, no public ports, egress-locked model containers, per-device token/mTLS — full design in **§5.1** |
+| Scope creep (build everything from scratch) | Never ships | Bespoke-*light* only (FastAPI + SQLite, decision log #3): mirror Paperless's data model for a later migration; concentrate effort on capture + AI |
+| Remote access ("on the road") exposes the backend | Document leak | Private overlay only, no public ports, host-level egress lock on model/worker processes, per-device token/mTLS — full design in **§5.1** |
 | Lost/stolen phone (the weak link once network is safe) | Cached documents leak | Thumbnails-not-originals caching, device lock, remote key/token revocation (§5.1) |
 | Backup/data loss | Lose the archive | Automated encrypted local/off-site-you-control backups from day one |
 
@@ -562,18 +642,23 @@ model or prompt changes actually improve real-world results — all locally.
 
 ## 14. Open Questions
 
-- ~~**Backend hardware:** dedicate the Mac, or build a Linux+GPU box?~~ **Decided:**
-  always-on **Apple Silicon Mac mini** (target 32 GB), VLM native via Ollama/MLX — see §5.1.
-- **Fork vs. bespoke:** commit to Paperless-ngx as the core, or keep the option open
-  through Phase 1 and decide at the Phase 2 gate?
+- ~~**Backend hardware:** dedicate the Mac, or build a Linux+GPU box?~~ **Decided
+  (updated 2026-07-03):** the owner's existing always-on **M1 Mac mini, 8 GB** — VLM
+  native via Ollama, 4B-class models; 32 GB mini is the future upgrade path — see §5.1.
+- ~~**Fork vs. bespoke:** commit to Paperless-ngx as the core, or keep the option open
+  through Phase 1 and decide at the Phase 2 gate?~~ **Decided 2026-07-03:**
+  bespoke-light (FastAPI + SQLite); Paperless-ngx demoted to fallback/migration
+  option — it doesn't fit the 8 GB host. See §6.8.
 - **Household use:** single user, or shared archive for 2–3 people (affects auth &
   correspondent model)?
-- **iOS distribution:** personal dev build / TestFlight / self-signed — how will the app
+- **iOS distribution** *(deferred with the Flutter app, §6.7 — v1's web app needs no
+  distribution)*: personal dev build / TestFlight / self-signed — how will the app
   get onto the phone(s)?
 - **Retention & legal:** which document classes need guaranteed retention periods
   (tax = 7 years in NL), and should the app enforce them?
 
 ---
 
-*Next step: run Phase 0 (the feasibility spike) against a handful of real letters to
+*Next step: run Phase 0 (the feasibility spike) — synthetic-first letters (decision
+log #5), with the owner's real letter photos re-benchmarked as they arrive — to
 validate OCR + VLM extraction quality before committing to the full build.*
