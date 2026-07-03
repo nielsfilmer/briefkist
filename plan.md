@@ -682,9 +682,9 @@ mobile app yourself**, an assembly that still leaves real gaps.
     custom fields). But **no first-class IBAN / amount / due-date extraction**, and
     it does not encode the §6.4 discipline that the *OCR* layer (not the VLM) is
     authoritative for exact strings. **No vector search.**
-  - [Swift Paperless](https://github.com/paulgessinger/swift-paperless) — the only
-    healthy iOS client (Paperless Mobile is abandoned), but a generic native scanner,
-    not a mail-tailored capture flow, and iOS-only (not one Flutter cross-platform app).
+  - [Swift Paperless](https://github.com/paulgessinger/swift-paperless) — an actively
+    maintained native iOS client, but a generic native scanner, not a mail-tailored
+    capture flow, and iOS-only (not one Flutter cross-platform app).
   - **Coverage:** local ✓, household ✓, full-text ✓; mobile capture / local-VLM
     extraction *partial*; **missing entirely: semantic search, mail-native financial
     fields, a mail-tailored capture UX, single-app cohesion, guaranteed NL/DE/EN tuning.**
@@ -706,8 +706,8 @@ mobile app yourself**, an assembly that still leaves real gaps.
   not competitors.
 - **[Genius Scan](https://geniusscansdk.com/docs/v5/document-scanning/structured-data-extraction/)**
   — mobile scanner with **on-device** OCR and structured extraction including **IBAN/BIC
-  and receipt amounts**, offline. Proves capture-side local extraction is feasible, but
-  it's a scanner SDK/app, not an archive with search.
+  and receipt amounts** (per its iOS SDK docs). Proves capture-side local extraction is
+  feasible, but it's a scanner SDK/app, not an archive with search.
 - **Cloud snail-mail (Earth Class Mail, iPostal1, Shoeboxed, Evernote Scannable)** —
   confirm the market need but are cloud/third-party-in-the-data-path — the direct
   antithesis of this project's local-first requirement. Not comparable.
