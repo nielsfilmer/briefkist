@@ -252,6 +252,20 @@ observed running it.
 
 ---
 
+## How to run it
+
+- **Server + web UI:** `uv run python -m server.app` from the repo root.
+  Defaults: `127.0.0.1:8484`, data in `data/archive/`. Env overrides:
+  `FLOPY_HOST` (bind a specific interface — 0.0.0.0 is refused), `FLOPY_PORT`,
+  `FLOPY_DATA_DIR`, `FLOPY_VLM_MODEL` (default `qwen3-vl:4b-instruct`).
+  Prereq: `ollama serve` running with the models pulled (see spike/README.md).
+- **For QA / throwaway runs:** off-port with throwaway data, e.g.
+  `FLOPY_DATA_DIR=/tmp/flopy-qa FLOPY_PORT=8998 uv run python -m server.app`.
+  With no device tokens minted, loopback requests are allowed (bootstrap);
+  non-loopback needs `uv run python -m server.tokens_cli add <name>`.
+- **Benchmark / test set:** see `spike/README.md` and `testset/README.md`.
+- **Tests/lint:** `uv run pytest`, `uv run ruff check .`.
+
 ## What this project is
 
 A fully local, self-hosted system to photograph, read, tag, archive, and search
@@ -271,7 +285,8 @@ embeddings — all **native processes, no Docker**. Full detail in [plan.md](pla
 with 8 GB RAM**, macOS 14.4 (it also runs Plex/Sonarr — leave those alone). Every
 sizing choice assumes 8 GB; an upgrade to a 32 GB mini restores the 8B-model path.
 
-Status: **executing — Phase 0 (feasibility spike) in build**.
+Status: **executing — Phase 0 complete (GO, `docs/phase0/VERDICT.md`); Phase 1
+(end-to-end thin slice + search) in build**.
 
 ## File map
 
@@ -293,6 +308,10 @@ Status: **executing — Phase 0 (feasibility spike) in build**.
   These modules ARE the v1 pipeline (the server imports them); see its README.
 - `docs/phase0/` — committed benchmark report of record (`report.md`,
   `results.json`, `VERDICT.md` — the go/no-go).
+- `server/` — the FastAPI backend: SQLite (FTS5 + sqlite-vec) store, sequential
+  worker, §9 pipeline (imports spike/ components), per-device token auth.
+- `web/` — the v1 web app served by the backend: phone capture page + archive
+  browse/search/correct (vanilla JS, mobile-first, dark-mode aware).
 - `tests/` — pytest suite (`uv run pytest`).
 - `data/` — generated/captured data, **gitignored** (synthetic set under
   `data/testset/`, real letters under `data/testset-real/`).
@@ -312,6 +331,7 @@ Each phase = a GitHub milestone `Phase N — <name>` + a `phase-tracker`-labelle
 issue milestoned to it. Deferred/later-phase work = a `follow-up`-labelled issue
 against the right milestone. `/status` reads live state; `/phase` does the write ops.
 
-- Current anchor: **Phase 0 — Feasibility spike** — milestone #1 + `phase-tracker`
-  issue [#1](https://github.com/nielsfilmer/my-flopy/issues/1). Roadmap of all phases is
-  in plan.md §10.
+- Current anchor: **Phase 1 — End-to-end thin slice** — milestone #2 +
+  `phase-tracker` issue [#17](https://github.com/nielsfilmer/my-flopy/issues/17).
+  (Phase 0 closed 2026-07-03: milestone #1 + issue #1, verdict GO.) Roadmap of
+  all phases is in plan.md §10.
