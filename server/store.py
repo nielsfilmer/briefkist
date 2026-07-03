@@ -138,11 +138,22 @@ def _opt_keywords(value: Any) -> str:
     return json.dumps([k for k in items if k], ensure_ascii=False)
 
 
+def _opt_category(value: Any) -> str | None:
+    text = _opt_str(value)
+    if text is None:
+        return None
+    from spike.extract import CATEGORIES  # lazy: avoids import cycle at module load
+
+    if text not in CATEGORIES:
+        raise ValueError(f"must be one of: {', '.join(CATEGORIES)}")
+    return text
+
+
 _CORRECTABLE: dict[str, Any] = {
     "title": _opt_str,
     "correspondent": _opt_str,
     "correspondent_place": _opt_str,
-    "category": _opt_str,
+    "category": _opt_category,
     "document_date": _opt_iso_date,
     "reference": _opt_str,
     "language": _opt_str,

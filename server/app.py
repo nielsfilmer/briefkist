@@ -1,4 +1,4 @@
-"""FastAPI app: ingest, browse/search, correct, review queue, static web UI.
+"""FastAPI app: ingest, browse/search, correct, static web UI.
 
 Run:  uv run python -m server.app
 Bind/auth posture: see config.py and auth.py (plan.md §5.1).
@@ -170,7 +170,13 @@ def correct_document(device: Device, conn: Conn, doc_id: int, patch: dict) -> di
                     (doc_id,),
                 )
             )
-            embedding = embed(ocr_text[:6000] + "\n" + (doc.get("title") or ""))
+            # same composition as the pipeline: summary + keywords lead
+            embedding = embed(
+                (doc.get("summary") or "")
+                + "\n" + " ".join(doc.get("keywords") or [])
+                + "\n" + (doc.get("title") or "")
+                + "\n" + ocr_text[:6000]
+            )
         except Exception:  # noqa: BLE001 — degrade: FTS reindex still happens
             log.warning("re-embed after correction failed for doc %s", doc_id)
         store.index_document(conn, doc_id, embedding)

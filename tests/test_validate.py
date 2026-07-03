@@ -59,5 +59,15 @@ def test_normalize_place():
     assert normalize_place("14 Harbour Road, Bristol BS1 4QD") == "Bristol"
     assert normalize_place("3542 AD Utrecht") == "Utrecht"
     assert normalize_place("Den Haag") == "Den Haag"
+    assert normalize_place("Bussum, Nederland") == "Bussum"
+    assert normalize_place("Frankfurt am Main") == "Frankfurt am Main"
     assert normalize_place(None) is None
     assert normalize_place("1234 AB") is None
+
+
+def test_curate_keywords_keeps_year_bearing_terms():
+    from spike.validate import curate_keywords
+
+    assert curate_keywords(["Euro 2024", "aangifte 2023", "belastingjaar 2023"]) == [
+        "Euro 2024", "aangifte 2023", "belastingjaar 2023",
+    ]

@@ -83,8 +83,8 @@ def _clean(text: str) -> str:
     """Whitespace- and case-insensitive form for character accuracy. Whitespace:
     OCR reading order and line wrapping legitimately differ from the source text.
     Case: deliberate — the archive's uses of the transcript (FTS5 search, VLM
-    extraction input) are case-insensitive, and format-critical fields (IBAN,
-    amounts, dates) are scored separately via exact normalized comparison, so
+    extraction input) are case-insensitive, and format-critical fields (dates,
+    references) are scored separately via exact normalized comparison, so
     case slips there still count where they matter."""
     return re.sub(r"\s+", " ", text).strip().lower()
 
@@ -124,9 +124,13 @@ def score_fields(extraction: dict, truth: dict) -> dict:
         "document_date"
     ]
     scores["reference"] = _norm_str(extraction.get("reference")) == _norm_str(truth["reference"])
-    # keywords have no synthetic ground truth; sanity-check curation only
-    kws = extraction.get("keywords") or []
-    scores["keywords_curated"] = 3 <= len(kws) <= 8 and all(len(k) > 2 for k in kws)
+    # keywords have no synthetic ground truth; sanity-check what the PIPELINE
+    # would store, i.e. after deterministic curation (raw model output may
+    # legitimately contain junk that curation removes)
+    from .validate import curate_keywords
+
+    curated = curate_keywords(extraction.get("keywords") or [])
+    scores["keywords_curated"] = 3 <= len(curated) <= 8
     return scores
 
 

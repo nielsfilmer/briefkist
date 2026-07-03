@@ -251,6 +251,11 @@ async function openDetail(docId) {
           body: JSON.stringify({ [key]: input.value || null }),
         });
         if (key === "summary") $("#d-summary").textContent = updated.summary || "";
+        if (key === "keywords") {
+          $("#d-keywords").innerHTML = (updated.keywords || [])
+            .map((k) => `<span class="badge kw">${escapeHtml(k)}</span>`)
+            .join("");
+        }
         input.classList.remove("dirty");
         input.classList.add("saved");
         setTimeout(() => input.classList.remove("saved"), 1500);

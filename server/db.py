@@ -91,6 +91,9 @@ CREATE INDEX IF NOT EXISTS idx_jobs_state ON jobs(state, id);
 CREATE INDEX IF NOT EXISTS idx_documents_status ON documents(status);
 CREATE INDEX IF NOT EXISTS idx_documents_category ON documents(category);
 
+"""
+
+_FTS_SCHEMA = """
 CREATE VIRTUAL TABLE IF NOT EXISTS doc_fts USING fts5(
     title, correspondent, subject, reference, keywords, summary, ocr_text,
     tokenize = 'unicode61 remove_diacritics 2'
@@ -106,7 +109,14 @@ CREATE VIRTUAL TABLE IF NOT EXISTS doc_vec USING vec0(
 # v1 -> v2: drop the financial + review columns, rename doc_type -> category,
 # add archive metadata, rebuild the FTS table with the new column set, and
 # requeue existing documents so the new pipeline fills summary/keywords.
+# The whole script (including the FTS recreate appended in _migrate and the
+# user_version bump) runs inside ONE transaction: sqlite3.executescript
+# autocommits per statement otherwise, and a crash mid-migration would leave
+# user_version=1 with columns already dropped — every later connect() would
+# retry the migration and die on the missing columns, bricking the archive.
+# SQLite DDL is transactional, so BEGIN/COMMIT makes this all-or-nothing.
 _MIGRATE_V1_TO_V2 = """
+BEGIN;
 DROP INDEX IF EXISTS idx_documents_due;
 ALTER TABLE documents DROP COLUMN iban;
 ALTER TABLE documents DROP COLUMN due_date;
@@ -144,11 +154,12 @@ UPDATE documents SET status = 'queued'
 
 def _migrate(conn: sqlite3.Connection, from_version: int) -> None:
     if from_version == 1:
-        conn.executescript(_MIGRATE_V1_TO_V2)
-        # recreate the FTS table with the v2 column set (executescript above
-        # dropped it); vec table is shape-compatible and left in place
+        # one atomic script: migration body + FTS recreate + version bump
+        # (vec table is shape-compatible and left in place)
         conn.executescript(
-            _SCHEMA[_SCHEMA.index("CREATE VIRTUAL TABLE IF NOT EXISTS doc_fts") :]
+            _MIGRATE_V1_TO_V2
+            + _FTS_SCHEMA
+            + f"PRAGMA user_version = {_SCHEMA_VERSION};\nCOMMIT;\n"
         )
 
 
@@ -171,11 +182,20 @@ def connect(db_path: Path | None = None) -> sqlite3.Connection:
     # every per-request connection
     version = conn.execute("PRAGMA user_version").fetchone()[0]
     if version < _SCHEMA_VERSION:
-        if version == 0:
-            conn.executescript(_SCHEMA)
-            conn.executescript(_VEC_SCHEMA)
-        else:
-            _migrate(conn, version)
-        conn.execute(f"PRAGMA user_version = {_SCHEMA_VERSION}")
-        conn.commit()
+        try:
+            if version == 0:
+                # fresh database: IF NOT EXISTS DDL is idempotent, crash-safe
+                conn.executescript(_SCHEMA)
+                conn.executescript(_FTS_SCHEMA)
+                conn.executescript(_VEC_SCHEMA)
+                conn.execute(f"PRAGMA user_version = {_SCHEMA_VERSION}")
+                conn.commit()
+            else:
+                _migrate(conn, version)  # bumps user_version atomically itself
+        except Exception:
+            # never leak a connection holding a write transaction — the next
+            # connect() must be able to retry against an intact database
+            conn.rollback()
+            conn.close()
+            raise
     return conn

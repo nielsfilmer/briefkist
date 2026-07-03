@@ -139,18 +139,23 @@ This means the "read the letter and understand it" step no longer requires the c
 - Auto edge-detection, deskew, perspective correction, contrast enhancement.
 - Multi-page documents (a letter is often several pages) and envelope + contents.
 - Local OCR + VLM metadata extraction, **multilingual: Dutch, English, German** at minimum.
-- Structured metadata: correspondent (sender), recipient, document date, received date,
-  document type, reference/customer numbers, monetary amounts, due/pay-by dates, IBAN.
-- Auto-tagging with a controlled + free-form tag vocabulary.
+- Structured metadata *(amended 2026-07-04, decision log v0.4)*: correspondent
+  (sender + place), recipient, document date, category, reference numbers,
+  subject, summary, curated keywords. ~~monetary amounts, due/pay-by dates,
+  IBAN~~ — removed: this is an archive, not an invoicing tool.
+- ~~Auto-tagging with a controlled + free-form tag vocabulary.~~ *(v0.4:
+  replaced by category + curated keywords.)*
 - Archive storage with original image, cleaned image, OCR text, and metadata.
-- Full-text **and** semantic search; filter by tag/correspondent/date/type.
+- Full-text **and** semantic search; filter by ~~tag~~ *(v0.4:
+  category)*/correspondent/date.
 - Desktop app for browsing, correcting, bulk-managing the archive.
 
 ### In scope (later / v2+)
 - Android capture.
 - Import from scanners / PDF / email (`.eml`) so paper *and* digital mail live together.
 - Automatic correspondent detection & "file this like the last one from X" learning.
-- Reminders for due dates / actionable mail (bills, deadlines).
+- ~~Reminders for due dates / actionable mail (bills, deadlines).~~ *(Dropped
+  2026-07-04, decision log v0.4: pure archive — no due-date tracking.)*
 - Duplicate detection, retention rules ("keep 7 years"), export.
 - OCR quality feedback loop (corrections improve future extraction prompts).
 

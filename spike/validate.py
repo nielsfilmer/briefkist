@@ -51,8 +51,11 @@ def curate_keywords(raw: list[str] | None, limit: int = 8) -> list[str]:
         if len(keyword) < 3:
             continue
         if not _KW_YEAR.fullmatch(keyword):
-            digits = sum(c.isdigit() for c in keyword)
-            if digits / len(keyword) > 0.4:
+            # strip embedded years before the digit-ratio check so terms like
+            # "Euro 2024" or "aangifte 2023" aren't killed by their year part
+            base = _KW_YEAR.sub("", keyword)
+            digits = sum(c.isdigit() for c in base)
+            if base and digits / len(base) > 0.4:
                 continue  # amounts, phone numbers, bare identifiers
             if "€" in keyword or "$" in keyword:
                 continue
@@ -72,11 +75,17 @@ def curate_keywords(raw: list[str] | None, limit: int = 8) -> list[str]:
 
 def normalize_place(raw: str | None) -> str | None:
     """Reduce a sender place to the bare city/town name: the model tends to
-    return full address lines despite instructions. Take the last
-    comma-separated segment and drop postcode-ish tokens."""
+    return full address lines despite instructions. Prefer the segment that
+    carries a postcode (digits) — that's the postcode+city line — and strip
+    the postcode tokens from it; with no digits anywhere, the FIRST segment is
+    the city ("Bussum, Nederland" → "Bussum")."""
     if not raw:
         return None
-    segment = raw.split(",")[-1]
+    segments = [s for s in raw.split(",") if s.strip()]
+    if not segments:
+        return None
+    with_digits = [s for s in segments if any(c.isdigit() for c in s)]
+    segment = with_digits[-1] if with_digits else segments[0]
     words = [
         w
         for w in segment.split()
