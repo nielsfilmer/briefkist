@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>my-flopy</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>📮 my-flopy</h1>
+  <nav>
+    <button id="tab-capture" class="tab active">Capture</button>
+    <button id="tab-archive" class="tab">Archive</button>
+    <button id="btn-settings" title="Device token">⚙︎</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ============ Capture ============ -->
+  <section id="view-capture">
+    <label class="big-capture" for="file-input">
+      <span class="cam">📷</span>
+      <span>Photograph letter</span>
+      <span class="hint">You can select multiple pages</span>
+    </label>
+    <input id="file-input" type="file" accept="image/*" capture="environment" multiple hidden>
+
+    <div id="pending" hidden>
+      <div id="page-previews"></div>
+      <div class="row">
+        <button id="btn-add-page" class="secondary">+ Add page</button>
+        <button id="btn-upload" class="primary">Upload document</button>
+        <button id="btn-clear" class="secondary">✕</button>
+      </div>
+    </div>
+
+    <h2>Recent uploads</h2>
+    <ul id="upload-list" class="cards"></ul>
+  </section>
+
+  <!-- ============ Archive ============ -->
+  <section id="view-archive" hidden>
+    <form id="search-form" class="row wrap">
+      <input id="search-input" type="search" placeholder="Search… (keyword or meaning)"
+             autocomplete="off">
+      <select id="filter-type">
+        <option value="">any type</option>
+        <option>invoice</option><option>government_tax</option><option>insurance</option>
+        <option>medical</option><option>bank</option><option>subscription</option>
+        <option>other</option>
+      </select>
+      <label class="check"><input type="checkbox" id="filter-review"> needs review</label>
+      <button class="primary">Search</button>
+    </form>
+    <ul id="doc-list" class="cards"></ul>
+    <p id="archive-empty" hidden>No documents found.</p>
+  </section>
+
+  <!-- ============ Detail ============ -->
+  <dialog id="detail">
+    <div class="detail-head">
+      <h2 id="d-title"></h2>
+      <button id="d-close">✕</button>
+    </div>
+    <p id="d-review" class="review-banner" hidden></p>
+    <div id="d-fields" class="fields"></div>
+    <div id="d-tags" class="tagrow"></div>
+    <div id="d-pages" class="pages"></div>
+  </dialog>
+
+  <!-- ============ Settings ============ -->
+  <dialog id="settings">
+    <h2>Device token</h2>
+    <p>Create one on the server: <code>uv run python -m server.tokens_cli add "this-phone"</code></p>
+    <input id="token-input" type="password" placeholder="paste token">
+    <div class="row">
+      <button id="token-save" class="primary">Save</button>
+      <button id="token-cancel" class="secondary">Cancel</button>
+    </div>
+  </dialog>
+</main>
+
+<div id="toast" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>
