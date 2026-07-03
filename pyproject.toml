@@ -12,6 +12,10 @@ dependencies = [
     "rapidfuzz>=3.6",
     "pyobjc-framework-Vision>=10.0; sys_platform == 'darwin'",
     "pyobjc-framework-Quartz>=10.0; sys_platform == 'darwin'",
+    "fastapi>=0.111",
+    "uvicorn>=0.30",
+    "python-multipart>=0.0.9",
+    "sqlite-vec==0.1.6",
 ]
 
 [project.optional-dependencies]
