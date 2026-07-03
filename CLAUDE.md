@@ -229,7 +229,10 @@ observed running it.
     (`Bash(sudo:*)`, `Bash(gh api:*)`, `Bash(gh auth:*)`, `Bash(gh secret:*)`),
     destructive-by-design (`Bash(rm:*)`, `Bash(dd:*)`, `Bash(shred:*)`).
   - **Workflow gates persist regardless of allowlist** — `gh pr:*` technically
-    includes `gh pr merge`/`close`, but "user is the merge gate" still applies.
+    includes `gh pr merge`/`close`. *(Amended 2026-07-03: the merge gate is
+    delegated to Claude for this repo — see workflow step 5. Merging a clean,
+    reviewed PR is allowed; closing/deleting others' work or any non-merge
+    outward-facing action still isn't.)*
 - **The reviewer runs deterministic tooling, not just its judgment.** LLM review
   is unreliable at exactly what linters/type-checkers/SAST are reliable at; the
   senior-dev review must run the repo's own checks on the diff and fold them in
