@@ -128,6 +128,9 @@ def connect(db_path: Path | None = None) -> sqlite3.Connection:
     conn.enable_load_extension(True)
     sqlite_vec.load(conn)
     conn.enable_load_extension(False)
+    # per-connection pragma (defaults OFF) — must run on EVERY connection, not
+    # only the schema-creating one, or ON DELETE CASCADE silently dies
+    conn.execute("PRAGMA foreign_keys=ON")
     # replay DDL only once per database file (user_version guards it), not on
     # every per-request connection
     if conn.execute("PRAGMA user_version").fetchone()[0] < 1:

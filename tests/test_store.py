@@ -93,6 +93,22 @@ def test_correction_rejects_unknown_field(conn):
         store.apply_correction(conn, a, "status; DROP TABLE documents", "x")
 
 
+def test_cascade_works_on_second_connection(tmp_path):
+    """Round-2 residual: PRAGMA foreign_keys is per-connection; a connection
+    that skips the DDL fast-path must still get working ON DELETE CASCADE."""
+    first = db.connect(tmp_path / "c.db")  # creates schema
+    doc_id = store.create_document(first)
+    store.add_page(first, doc_id, 1, "/tmp/x.jpg")
+    store.enqueue(first, doc_id)
+    first.close()
+
+    second = db.connect(tmp_path / "c.db")  # DDL fast-path connection
+    store.delete_document(second, doc_id)
+    assert second.execute("SELECT COUNT(*) AS n FROM pages").fetchone()["n"] == 0
+    assert second.execute("SELECT COUNT(*) AS n FROM jobs").fetchone()["n"] == 0
+    second.close()
+
+
 def test_vector_only_semantic_hit(conn):
     """A doc with no keyword overlap must still surface via its embedding."""
     emb = [0.5] * 1024
