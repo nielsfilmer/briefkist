@@ -49,7 +49,12 @@ def _thumbnail(src: Path, dest: Path, max_side: int = 480) -> None:
 def process_document(conn: sqlite3.Connection, doc_id: int) -> None:
     from spike.extract import extract
     from spike.preprocess import preprocess
-    from spike.validate import normalize_amount, normalize_date, normalize_iban
+    from spike.validate import (
+        normalize_amount,
+        normalize_date,
+        normalize_iban,
+        reconcile_tags,
+    )
 
     pages = conn.execute(
         "SELECT id, page_no, original_path FROM pages WHERE document_id = ? ORDER BY page_no",
@@ -134,7 +139,12 @@ def process_document(conn: sqlite3.Connection, doc_id: int) -> None:
             doc_id,
         ),
     )
-    store.set_tags(conn, doc_id, list(extraction.tags), source="model")
+    final_tags = reconcile_tags(
+        extraction.doc_type,
+        list(extraction.tags),
+        has_amount=normalized["amount_due"] is not None,
+    )
+    store.set_tags(conn, doc_id, final_tags, source="model")
 
     try:
         vector = embed(full_text[:6000] + "\n" + (title or ""))
