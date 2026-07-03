@@ -26,8 +26,11 @@ def _make_doc(conn, title, ocr_text, tags=(), doc_type="invoice", embedding=None
     return doc_id
 
 
-def test_create_enqueues_job(conn):
+def test_create_then_enqueue(conn):
     doc_id = store.create_document(conn)
+    # no job until pages are safely on disk and enqueue() is called explicitly
+    assert conn.execute("SELECT * FROM jobs WHERE document_id=?", (doc_id,)).fetchone() is None
+    store.enqueue(conn, doc_id)
     job = conn.execute("SELECT * FROM jobs WHERE document_id=?", (doc_id,)).fetchone()
     assert job["state"] == "queued"
 

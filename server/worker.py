@@ -34,14 +34,32 @@ class Worker:
         """Called after an enqueue so uploads start processing immediately."""
         self._wake.set()
 
-    def _run(self) -> None:
-        conn = db.connect()  # thread-local connection, lives with the thread
-        # crash recovery: jobs stuck 'running' from a previous process
+    @staticmethod
+    def recover_stale_jobs(conn) -> None:
+        """Crash recovery: jobs left 'running' by a dead process either get
+        requeued (attempts remaining) or marked failed (final attempt died) —
+        never left dangling as running/processing forever."""
+        conn.execute(
+            "UPDATE documents SET status='failed', error='worker died mid-processing' "
+            "WHERE id IN (SELECT document_id FROM jobs WHERE state='running' "
+            "AND attempts >= ?)",
+            (_MAX_ATTEMPTS,),
+        )
+        conn.execute(
+            "UPDATE jobs SET state='failed', error='worker died mid-processing', "
+            "finished_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') "
+            "WHERE state='running' AND attempts >= ?",
+            (_MAX_ATTEMPTS,),
+        )
         conn.execute(
             "UPDATE jobs SET state='queued' WHERE state='running' AND attempts < ?",
             (_MAX_ATTEMPTS,),
         )
         conn.commit()
+
+    def _run(self) -> None:
+        conn = db.connect()  # thread-local connection, lives with the thread
+        self.recover_stale_jobs(conn)
         while not self._stop.is_set():
             job = conn.execute(
                 "SELECT id, document_id, attempts FROM jobs WHERE state='queued' "
@@ -80,7 +98,7 @@ class Worker:
                 conn.execute(
                     "UPDATE documents SET status=?, error=? WHERE id=?",
                     (
-                        "processing" if retry else "failed",
+                        "queued" if retry else "failed",  # mirror the job state
                         str(exc)[:2000],
                         job["document_id"],
                     ),

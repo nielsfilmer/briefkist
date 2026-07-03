@@ -38,8 +38,19 @@ def ensure_dirs() -> None:
 
 
 def validate_bind_host() -> None:
-    if HOST == "0.0.0.0" and os.environ.get("FLOPY_ALLOW_ANY_BIND") != "1":  # noqa: S104
+    """Refuse wildcard binds (plan.md §5.1: no public exposure) — covers
+    0.0.0.0, ::, and empty-string forms, not just the IPv4 literal. Called from
+    the app lifespan so it also guards direct `uvicorn server.app:app` runs."""
+    import ipaddress
+
+    if os.environ.get("FLOPY_ALLOW_ANY_BIND") == "1":
+        return
+    try:
+        unspecified = ipaddress.ip_address(HOST).is_unspecified
+    except ValueError:
+        unspecified = HOST.strip() == ""  # hostnames like "localhost" are fine
+    if unspecified:
         raise SystemExit(
-            "Refusing to bind 0.0.0.0 (plan.md §5.1: no public exposure). "
+            f"Refusing to bind {HOST!r} (plan.md §5.1: no public exposure). "
             "Set FLOPY_HOST to a specific interface address."
         )

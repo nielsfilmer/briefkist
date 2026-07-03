@@ -87,8 +87,17 @@ def process_document(conn: sqlite3.Connection, doc_id: int) -> None:
     conn.commit()
 
     full_text = "\n\n".join(ocr_texts)
+    # num_ctx is pinned at 4096 (plan decision log #8); ~11k chars ≈ 3k tokens
+    # leaves room for prompt + schema output. Truncation on a huge multi-page
+    # doc is visible (review queue), never silent.
+    extract_text = full_text[:11000]
+    if len(full_text) > 11000:
+        review_reasons.append(
+            f"OCR text truncated for extraction ({len(full_text)} chars > 11000); "
+            "later pages did not inform metadata"
+        )
     first_cleaned = config.CLEANED_DIR / f"{doc_id}_{pages[0]['page_no']}.png"
-    extraction, _stats = extract(first_cleaned, full_text, model=config.VLM_MODEL)
+    extraction, _stats = extract(first_cleaned, extract_text, model=config.VLM_MODEL)
 
     # Deterministic layer: never trust the model on format-critical fields (§6.4)
     normalized = {

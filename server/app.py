@@ -29,6 +29,7 @@ worker = Worker()
 
 @contextlib.asynccontextmanager
 async def _lifespan(app: FastAPI):
+    config.validate_bind_host()  # guards `uvicorn server.app:app` runs too
     config.ensure_dirs()
     worker.start()
     yield
@@ -52,21 +53,64 @@ def _conn(request: Request):
 Conn = Annotated[Any, Depends(_conn)]
 
 
+_ALLOWED_SUFFIXES = (".jpg", ".jpeg", ".png", ".heic", ".webp")
+
+
+def _convert_heic(path: Path) -> Path:
+    """OpenCV can't decode HEIC (default iPhone format); convert to JPEG at
+    ingest so the pipeline never sees one. pillow-heif is registered lazily."""
+    from pillow_heif import register_heif_opener
+
+    register_heif_opener()
+    from PIL import Image
+
+    jpeg_path = path.with_suffix(".jpg")
+    Image.open(path).convert("RGB").save(jpeg_path, "JPEG", quality=95)
+    path.unlink()
+    return jpeg_path
+
+
 @app.post("/api/documents", status_code=202)
 async def upload_document(device: Device, conn: Conn, files: list[UploadFile]) -> dict:
     if not files:
         raise HTTPException(400, "no files")
-    doc_id = store.create_document(conn)
+    # validate everything BEFORE creating any state: a bad page 2 must not
+    # leave a partial document behind
+    suffixes = []
     for page_no, file in enumerate(files, start=1):
-        blob = await file.read()
-        if len(blob) > config.MAX_UPLOAD_BYTES:
-            raise HTTPException(413, f"page {page_no} exceeds size limit")
         suffix = Path(file.filename or "page.jpg").suffix.lower() or ".jpg"
-        if suffix not in (".jpg", ".jpeg", ".png", ".heic", ".webp"):
+        if suffix not in _ALLOWED_SUFFIXES:
             raise HTTPException(415, f"unsupported image type {suffix}")
-        dest = config.ORIGINALS_DIR / f"{doc_id}_{page_no}{suffix}"
-        dest.write_bytes(blob)
-        store.add_page(conn, doc_id, page_no, str(dest))
+        if file.size is not None and file.size > config.MAX_UPLOAD_BYTES:
+            raise HTTPException(413, f"page {page_no} exceeds size limit")
+        suffixes.append(suffix)
+
+    doc_id = store.create_document(conn)
+    written: list[Path] = []
+    try:
+        for page_no, (file, suffix) in enumerate(zip(files, suffixes, strict=True), start=1):
+            dest = config.ORIGINALS_DIR / f"{doc_id}_{page_no}{suffix}"
+            total = 0
+            # stream in chunks: never materialize a whole upload in RAM
+            with dest.open("wb") as out:
+                written.append(dest)
+                while chunk := await file.read(1 << 20):
+                    total += len(chunk)
+                    if total > config.MAX_UPLOAD_BYTES:
+                        raise HTTPException(413, f"page {page_no} exceeds size limit")
+                    out.write(chunk)
+            if total == 0:
+                raise HTTPException(400, f"page {page_no} is empty")
+            if suffix == ".heic":
+                dest = _convert_heic(dest)
+                written[-1] = dest
+            store.add_page(conn, doc_id, page_no, str(dest))
+    except Exception:
+        for path in written:
+            path.unlink(missing_ok=True)
+        store.delete_document(conn, doc_id)
+        raise
+    store.enqueue(conn, doc_id)
     worker.nudge()
     log.info("device %s uploaded document %s (%d pages)", device, doc_id, len(files))
     return {"id": doc_id, "status": "queued"}
@@ -113,7 +157,8 @@ def correct_document(device: Device, conn: Conn, doc_id: int, patch: dict) -> di
         except KeyError as exc:
             raise HTTPException(404) from exc
     doc = store.get_document(conn, doc_id)
-    assert doc is not None
+    if doc is None:  # deleted concurrently between PATCH and re-read
+        raise HTTPException(404)
     return doc
 
 
@@ -127,7 +172,7 @@ def page_image(
     if col is None:
         raise HTTPException(422, "kind must be original|cleaned|thumb")
     row = conn.execute(
-        f"SELECT {col} AS p FROM pages WHERE document_id=? AND page_no=?",  # noqa: S608
+        f"SELECT {col} AS p FROM pages WHERE document_id=? AND page_no=?",  # col dict-gated above
         (doc_id, page_no),
     ).fetchone()
     if row is None or not row["p"] or not Path(row["p"]).exists():

@@ -54,6 +54,59 @@ def test_upload_rejects_weird_extension(client):
     assert r.status_code == 415
 
 
+def test_bad_second_page_leaves_no_partial_document(client):
+    """Review round-1 blocker B4: a rejected page must roll the whole upload back."""
+    r = client.post(
+        "/api/documents",
+        files=[("files", _jpg()), ("files", ("p2.exe", io.BytesIO(b"MZ"), "text/plain"))],
+    )
+    assert r.status_code == 415
+    from server import db
+
+    conn = db.connect()
+    assert conn.execute("SELECT COUNT(*) AS n FROM documents").fetchone()["n"] == 0
+    assert conn.execute("SELECT COUNT(*) AS n FROM jobs").fetchone()["n"] == 0
+    conn.close()
+
+
+def test_oversize_upload_rejected(client, monkeypatch):
+    from server import config
+
+    monkeypatch.setattr(config, "MAX_UPLOAD_BYTES", 1024)
+    big = ("big.jpg", io.BytesIO(b"\xff\xd8" + b"x" * 4096), "image/jpeg")
+    r = client.post("/api/documents", files=[("files", big)])
+    assert r.status_code == 413
+    from server import db
+
+    conn = db.connect()
+    assert conn.execute("SELECT COUNT(*) AS n FROM documents").fetchone()["n"] == 0
+    conn.close()
+
+
+def test_page_image_kind_gate(client):
+    doc_id = client.post("/api/documents", files=[("files", _jpg())]).json()["id"]
+    assert client.get(f"/api/documents/{doc_id}/pages/1/image?kind=../etc").status_code == 422
+    # valid kind but file not yet produced by the (mocked-out) worker
+    assert client.get(f"/api/documents/{doc_id}/pages/1/image?kind=cleaned").status_code == 404
+    assert client.get(f"/api/documents/{doc_id}/pages/9/image?kind=thumb").status_code == 404
+
+
+def test_patch_validates_values(client):
+    doc_id = client.post("/api/documents", files=[("files", _jpg())]).json()["id"]
+    assert client.patch(
+        f"/api/documents/{doc_id}", json={"needs_review": "banana"}
+    ).status_code == 422
+    assert client.patch(
+        f"/api/documents/{doc_id}", json={"document_date": "not-a-date"}
+    ).status_code == 422
+    assert client.patch(
+        f"/api/documents/{doc_id}", json={"amount_due": "12,34"}
+    ).json()["amount_due"] == "12.34"
+    assert client.patch(
+        f"/api/documents/{doc_id}", json={"needs_review": True}
+    ).json()["needs_review"] == 1
+
+
 def test_status_endpoint(client):
     client.post("/api/documents", files=[("files", _jpg())])
     r = client.get("/api/status")

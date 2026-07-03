@@ -3,6 +3,7 @@ Rank Fusion — plan.md §6.5)."""
 
 from __future__ import annotations
 
+import datetime as _dt
 import json
 import sqlite3
 import struct
@@ -19,11 +20,25 @@ def serialize_vector(vector: list[float]) -> bytes:
 
 
 def create_document(conn: sqlite3.Connection, source: str = "photo") -> int:
+    """Creates the document row only — call enqueue() once all pages are safely
+    on disk, so the worker never sees a half-uploaded document."""
     cur = conn.execute("INSERT INTO documents (status, source) VALUES ('queued', ?)", (source,))
     doc_id = cur.lastrowid
-    conn.execute("INSERT INTO jobs (document_id) VALUES (?)", (doc_id,))
     conn.commit()
     return doc_id
+
+
+def enqueue(conn: sqlite3.Connection, doc_id: int) -> None:
+    conn.execute("INSERT INTO jobs (document_id) VALUES (?)", (doc_id,))
+    conn.commit()
+
+
+def delete_document(conn: sqlite3.Connection, doc_id: int) -> None:
+    """Used to roll back a failed multi-file upload (cascades pages/jobs/tags)."""
+    conn.execute("DELETE FROM doc_fts WHERE rowid = ?", (doc_id,))
+    conn.execute("DELETE FROM doc_vec WHERE rowid = ?", (doc_id,))
+    conn.execute("DELETE FROM documents WHERE id = ?", (doc_id,))
+    conn.commit()
 
 
 def add_page(
@@ -76,18 +91,64 @@ def index_document(
     conn.commit()
 
 
+# correctable field -> value normalizer/validator (raises ValueError on junk)
+def _opt_str(value: Any) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ValueError("expected string or null")
+    return value.strip() or None
+
+
+def _opt_iso_date(value: Any) -> str | None:
+    text = _opt_str(value)
+    if text is None:
+        return None
+    return _dt.date.fromisoformat(text).isoformat()  # ValueError on junk
+
+
+def _opt_amount(value: Any) -> str | None:
+    text = _opt_str(value)
+    if text is None:
+        return None
+    return f"{float(text.replace(',', '.')):.2f}"  # ValueError on junk
+
+
+def _bool_int(value: Any) -> int:
+    if isinstance(value, bool | int) and value in (0, 1, True, False):
+        return int(value)
+    raise ValueError("expected boolean")
+
+
+_CORRECTABLE: dict[str, Any] = {
+    "title": _opt_str,
+    "correspondent": _opt_str,
+    "doc_type": _opt_str,
+    "document_date": _opt_iso_date,
+    "due_date": _opt_iso_date,
+    "amount_due": _opt_amount,
+    "iban": _opt_str,
+    "reference": _opt_str,
+    "language": _opt_str,
+    "subject": _opt_str,
+    "needs_review": _bool_int,
+}
+
+
 def apply_correction(
     conn: sqlite3.Connection, doc_id: int, field: str, value: Any
 ) -> None:
-    """User fixes a field: audit the model value, update, mark verified."""
-    allowed = {
-        "title", "correspondent", "doc_type", "document_date", "due_date",
-        "amount_due", "iban", "reference", "language", "subject", "needs_review",
-    }
-    if field not in allowed:
+    """User fixes a field: validate the value, audit the model value, update,
+    mark verified. Field names are allowlisted (never interpolate user input)."""
+    normalizer = _CORRECTABLE.get(field)
+    if normalizer is None:
         raise ValueError(f"field {field!r} is not correctable")
+    try:
+        value = normalizer(value)
+    except (ValueError, TypeError) as exc:
+        raise ValueError(f"invalid value for {field}: {exc}") from exc
     old = conn.execute(
-        f"SELECT {field} AS v FROM documents WHERE id = ?", (doc_id,)  # noqa: S608 — allowlisted
+        f"SELECT {field} AS v FROM documents WHERE id = ?", (doc_id,)  # allowlisted above
     ).fetchone()
     if old is None:
         raise KeyError(doc_id)
@@ -95,7 +156,7 @@ def apply_correction(
         "INSERT INTO corrections (document_id, field, model_value, user_value) VALUES (?,?,?,?)",
         (doc_id, field, json.dumps(old["v"]), json.dumps(value)),
     )
-    conn.execute(f"UPDATE documents SET {field} = ? WHERE id = ?", (value, doc_id))  # noqa: S608
+    conn.execute(f"UPDATE documents SET {field} = ? WHERE id = ?", (value, doc_id))  # allowlisted
     conn.execute(
         "UPDATE extracted_fields SET verified = 1 WHERE document_id = ? AND key = ?",
         (doc_id, field),
@@ -146,6 +207,8 @@ def _filtered_ids(
     needs_review: bool | None,
 ) -> set[int] | None:
     """Pre-filter by structured criteria; None means 'no filter'."""
+    if not (doc_type or status or needs_review is not None or tag):
+        return None  # no filters — skip the scan entirely
     clauses, params = [], []
     if doc_type:
         clauses.append("doc_type = ?")
@@ -170,8 +233,6 @@ def _filtered_ids(
             )
         }
         ids &= tag_ids
-    if not clauses and not tag:
-        return None
     return ids
 
 
@@ -186,6 +247,7 @@ def list_documents(
     limit: int = 50,
 ) -> list[dict]:
     """No query: newest first. With query: hybrid FTS+vector RRF ranking."""
+    limit = max(1, min(limit, 200))
     allowed_ids = _filtered_ids(conn, tag, doc_type, status, needs_review)
 
     if not query:

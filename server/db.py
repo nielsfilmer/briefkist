@@ -128,6 +128,11 @@ def connect(db_path: Path | None = None) -> sqlite3.Connection:
     conn.enable_load_extension(True)
     sqlite_vec.load(conn)
     conn.enable_load_extension(False)
-    conn.executescript(_SCHEMA)
-    conn.executescript(_VEC_SCHEMA)
+    # replay DDL only once per database file (user_version guards it), not on
+    # every per-request connection
+    if conn.execute("PRAGMA user_version").fetchone()[0] < 1:
+        conn.executescript(_SCHEMA)
+        conn.executescript(_VEC_SCHEMA)
+        conn.execute("PRAGMA user_version = 1")
+        conn.commit()
     return conn

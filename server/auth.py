@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import hmac
 import json
+import logging
 import secrets
 
 from fastapi import HTTPException, Request
@@ -27,9 +28,13 @@ def _load() -> dict[str, str]:
 
 
 def _save(tokens: dict[str, str]) -> None:
+    import os
+
     config.TOKENS_PATH.parent.mkdir(parents=True, exist_ok=True)
-    config.TOKENS_PATH.write_text(json.dumps(tokens, indent=2), encoding="utf-8")
-    config.TOKENS_PATH.chmod(0o600)
+    # 0600 from the first byte — no window where the file is world-readable
+    fd = os.open(config.TOKENS_PATH, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as fh:
+        json.dump(tokens, fh, indent=2)
 
 
 def add_device(name: str) -> str:
@@ -66,5 +71,9 @@ def require_token(request: Request) -> str:
         if supplied and hmac.compare_digest(supplied, token):
             return device
     if not tokens and request.client and request.client.host in ("127.0.0.1", "::1"):
+        logging.getLogger("flopy.auth").warning(
+            "bootstrap mode: no device tokens configured — allowing loopback "
+            "request without auth (mint a token with `python -m server.tokens_cli add`)"
+        )
         return "_bootstrap_loopback"
     raise HTTPException(status_code=401, detail="missing or invalid device token")
