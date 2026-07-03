@@ -1,0 +1,63 @@
+# === Secrets & keys (NEVER commit) ===
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.mobileprovision
+wg*.conf
+*.wireguard
+tailscale*.key
+secrets/
+credentials/
+
+# === Captured mail / documents / archive data (privacy) ===
+data/
+archive/
+uploads/
+documents/
+scans/
+*.captured
+consume/
+media/
+
+# === Local ML models & caches (large, not source) ===
+models/
+*.gguf
+*.safetensors
+*.mlpackage
+.ollama/
+
+# === macOS ===
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# === Python (backend) ===
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# === Node / tooling ===
+node_modules/
+
+# === Flutter / Dart (app) ===
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+.pub-cache/
+.pub/
+ios/Pods/
+*.iml
+
+# === Editors / misc ===
+.idea/
+*.swp
+*.log
