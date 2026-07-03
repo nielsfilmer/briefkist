@@ -29,6 +29,7 @@
     },
     "extract_seconds": {
       "mean": 21.9337,
+      "median": 18.93,
       "max": 70.44
     },
     "extraction_failures": [],

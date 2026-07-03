@@ -12,23 +12,18 @@ import re
 
 from testset.entities import iban_is_valid
 
+# month-name -> number, lowercased; nl/de/en overlap freely (same key, same value)
 _MONTHS = {
     # nl
     "januari": 1, "februari": 2, "maart": 3, "april": 4, "mei": 5, "juni": 6,
-    "juli": 7, "augustus": 8, "september": 9, "oktober": 10, "november": 11, "december": 12,
-    # de (lowercased; april/september/november shared with nl)
-    "januar": 1, "februar": 2, "märz": 3, "mai": 5, "oktober_de": 10, "dezember": 12,
-    "august": 8,
-    # en (lowercased; april/september/november shared)
+    "juli": 7, "augustus": 8, "september": 9, "oktober": 10, "november": 11,
+    "december": 12,
+    # de
+    "januar": 1, "februar": 2, "märz": 3, "mai": 5, "august": 8, "dezember": 12,
+    # en
     "january": 1, "february": 2, "march": 3, "may": 5, "june": 6, "july": 7,
-    "october": 10, "december_en": 12,
+    "october": 10,
 }
-# collapse the disambiguation suffixes used above to keep the table readable
-_MONTHS["oktober"] = 10
-_MONTHS["dezember"] = 12
-_MONTHS["december"] = 12
-_MONTHS.pop("oktober_de")
-_MONTHS.pop("december_en")
 
 _NUMERIC_DATE = re.compile(r"\b(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})\b")
 _WRITTEN_DATE = re.compile(r"\b(\d{1,2})\.?\s+([A-Za-zäöüÄÖÜ]+)\s+(\d{4})\b")

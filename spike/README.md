@@ -6,15 +6,17 @@ KPI targets in plan.md §11, on the production host (8 GB M1 Mac mini).
 
 ## Prerequisites
 
-- Ollama running natively (`ollama serve`) with `qwen3-vl:4b` pulled
-  (`qwen3-vl:2b` as the low-RAM fallback).
+- Ollama running natively (`ollama serve`) with `qwen3-vl:4b-instruct` pulled
+  (`qwen3-vl:2b-instruct` as the low-RAM fallback). **Always the `-instruct`
+  tags** — the bare tags are thinking models that return empty JSON under
+  constrained decoding (plan.md decision log #8).
 - The synthetic test set generated: `uv run python -m testset.generate`
   (see `testset/README.md`).
 
 ## Run the benchmark
 
 ```bash
-uv run python -m spike.benchmark --set data/testset --model qwen3-vl:4b
+uv run python -m spike.benchmark --set data/testset --model qwen3-vl:4b-instruct
 # owner's real letters (definitive numbers):
 uv run python -m spike.benchmark --set data/testset-real
 ```

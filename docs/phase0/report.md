@@ -12,7 +12,7 @@ KPI (§11): ≥ 98% well-lit (`clean`/`good`), ≥ 95% average (`poor`).
 - **apple_vision**: clean: 99.87%, good: 99.92%, poor: 99.90%
 - **paddleocr**: clean: 95.43%, good: 94.67%, poor: 92.53%
 
-## Field accuracy (after deterministic normalization)
+## Field accuracy (after deterministic normalization; tag rows are scored on the pipeline output, i.e. after §6.4 reconciliation — raw model tags are in results.json per letter)
 
 - **doc_type**: 100.00% ✅
 - **language**: 100.00%
@@ -27,4 +27,4 @@ KPI (§11): ≥ 98% well-lit (`clean`/`good`), ≥ 95% average (`poor`).
 
 ## Timing
 
-- Extraction per letter: mean 21.9337s, max 70.44s (KPI: full pipeline ≤ 15 s/page)
+- Extraction per letter: mean 21.9337s, median 18.93s, max 70.44s (KPI: full pipeline ≤ 15 s/page)

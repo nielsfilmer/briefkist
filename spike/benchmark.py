@@ -2,7 +2,7 @@
 against ground truth + the KPI targets in plan.md §11.
 
 Usage:
-    uv run python -m spike.benchmark --set data/testset --model qwen3-vl:4b
+    uv run python -m spike.benchmark --set data/testset --model qwen3-vl:4b-instruct
     uv run python -m spike.benchmark --set data/testset-real   # owner's real letters
 
 Writes results JSON + a markdown report to --out (default docs/phase0/).
@@ -80,8 +80,12 @@ class ResourceMonitor:
 
 
 def _clean(text: str) -> str:
-    """Whitespace-insensitive form for character accuracy: OCR reading order and
-    line wrapping legitimately differ from the source text."""
+    """Whitespace- and case-insensitive form for character accuracy. Whitespace:
+    OCR reading order and line wrapping legitimately differ from the source text.
+    Case: deliberate — the archive's uses of the transcript (FTS5 search, VLM
+    extraction input) are case-insensitive, and format-critical fields (IBAN,
+    amounts, dates) are scored separately via exact normalized comparison, so
+    case slips there still count where they matter."""
     return re.sub(r"\s+", " ", text).strip().lower()
 
 
@@ -237,6 +241,11 @@ def summarize(
                            for f, vals in field_totals.items()},
         "extract_seconds": {
             "mean": mean(extract_times),
+            "median": (
+                round(sorted(extract_times)[len(extract_times) // 2], 2)
+                if extract_times
+                else None
+            ),
             "max": max(extract_times) if extract_times else None,
         },
         "extraction_failures": failures,
@@ -269,7 +278,13 @@ def render_report(s: dict, model: str) -> str:
         lines.append("")
         for engine, err in s["engine_errors"].items():
             lines.append(f"- *{engine} unavailable on this host:* `{err}`")
-    lines += ["", "## Field accuracy (after deterministic normalization)", ""]
+    lines += [
+        "",
+        "## Field accuracy (after deterministic normalization; tag rows are "
+        "scored on the pipeline output, i.e. after §6.4 reconciliation — raw "
+        "model tags are in results.json per letter)",
+        "",
+    ]
     targets = {
         "doc_type": 0.95, "sender_name": 0.90, "document_date": 0.95,
         "amount_due": 0.98, "iban": 0.98, "reference": 0.98,
@@ -289,6 +304,7 @@ def render_report(s: dict, model: str) -> str:
         "## Timing",
         "",
         f"- Extraction per letter: mean {s['extract_seconds']['mean']}s, "
+        f"median {s['extract_seconds'].get('median')}s, "
         f"max {s['extract_seconds']['max']}s (KPI: full pipeline ≤ 15 s/page)",
     ]
     if s["extraction_failures"]:
