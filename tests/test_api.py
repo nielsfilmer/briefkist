@@ -94,17 +94,17 @@ def test_page_image_kind_gate(client):
 def test_patch_validates_values(client):
     doc_id = client.post("/api/documents", files=[("files", _jpg())]).json()["id"]
     assert client.patch(
-        f"/api/documents/{doc_id}", json={"needs_review": "banana"}
+        f"/api/documents/{doc_id}", json={"iban": "NL91..."}  # removed field (v0.4)
     ).status_code == 422
     assert client.patch(
         f"/api/documents/{doc_id}", json={"document_date": "not-a-date"}
     ).status_code == 422
     assert client.patch(
-        f"/api/documents/{doc_id}", json={"amount_due": "12,34"}
-    ).json()["amount_due"] == "12.34"
+        f"/api/documents/{doc_id}", json={"keywords": "a, b , ,c"}
+    ).json()["keywords"] == ["a", "b", "c"]
     assert client.patch(
-        f"/api/documents/{doc_id}", json={"needs_review": True}
-    ).json()["needs_review"] == 1
+        f"/api/documents/{doc_id}", json={"summary": "  korte samenvatting  "}
+    ).json()["summary"] == "korte samenvatting"
 
 
 def test_status_endpoint(client):

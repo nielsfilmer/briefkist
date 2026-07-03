@@ -46,13 +46,14 @@
     <form id="search-form" class="row wrap">
       <input id="search-input" type="search" placeholder="Search… (keyword or meaning)"
              aria-label="Search the archive" autocomplete="off">
-      <select id="filter-type">
-        <option value="">any type</option>
-        <option>invoice</option><option>government_tax</option><option>insurance</option>
-        <option>medical</option><option>bank</option><option>subscription</option>
-        <option>other</option>
+      <select id="filter-category" aria-label="Filter by category">
+        <option value="">any category</option>
+        <option>government</option><option>medical</option><option>insurance</option>
+        <option>bank</option><option>utility</option><option>telecom</option>
+        <option>legal</option><option>employment</option><option>education</option>
+        <option>housing</option><option>commercial</option><option>membership</option>
+        <option>personal</option><option>other</option>
       </select>
-      <label class="check"><input type="checkbox" id="filter-review"> needs review</label>
       <button class="primary">Search</button>
     </form>
     <ul id="doc-list" class="cards"></ul>
@@ -65,9 +66,9 @@
       <h2 id="d-title"></h2>
       <button id="d-close">✕</button>
     </div>
-    <p id="d-review" class="review-banner" hidden></p>
+    <p id="d-summary" class="summary"></p>
     <div id="d-fields" class="fields"></div>
-    <div id="d-tags" class="tagrow"></div>
+    <div id="d-keywords" class="tagrow"></div>
     <div id="d-pages" class="pages"></div>
   </dialog>
 

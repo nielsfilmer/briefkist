@@ -10,18 +10,22 @@ def conn(tmp_path):
     c.close()
 
 
-def _make_doc(conn, title, ocr_text, tags=(), doc_type="invoice", embedding=None):
+def _make_doc(
+    conn, title, ocr_text, category="commercial", keywords=(), summary=None, embedding=None
+):
+    import json
+
     doc_id = store.create_document(conn)
     store.add_page(conn, doc_id, 1, f"/tmp/{doc_id}.jpg")
     conn.execute(
         "UPDATE pages SET ocr_text=? WHERE document_id=?", (ocr_text, doc_id)
     )
     conn.execute(
-        "UPDATE documents SET title=?, doc_type=?, status='done' WHERE id=?",
-        (title, doc_type, doc_id),
+        "UPDATE documents SET title=?, category=?, keywords=?, summary=?, status='done' "
+        "WHERE id=?",
+        (title, category, json.dumps(list(keywords)), summary, doc_id),
     )
     conn.commit()
-    store.set_tags(conn, doc_id, list(tags), source="model")
     store.index_document(conn, doc_id, embedding)
     return doc_id
 
@@ -62,27 +66,49 @@ def test_hybrid_rrf_prefers_docs_in_both_legs(conn):
 
 
 def test_filters(conn):
-    a = _make_doc(conn, "a", "text a", tags=["bill"], doc_type="invoice")
-    b = _make_doc(conn, "b", "text b", tags=["insurance"], doc_type="insurance")
-    assert [d["id"] for d in store.list_documents(conn, tag="bill")] == [a]
-    assert [d["id"] for d in store.list_documents(conn, doc_type="insurance")] == [b]
-    assert store.list_documents(conn, tag="bill", doc_type="insurance") == []
+    a = _make_doc(conn, "a", "text a", category="government")
+    b = _make_doc(conn, "b", "text b", category="insurance")
+    assert [d["id"] for d in store.list_documents(conn, category="government")] == [a]
+    assert [d["id"] for d in store.list_documents(conn, category="insurance")] == [b]
+    assert store.list_documents(conn, category="legal") == []
+
+
+def test_keywords_and_summary_are_searchable(conn):
+    """The archive pivot's whole point: curated keywords + summary feed FTS."""
+    a = _make_doc(
+        conn, "brief", "onleesbare scan",
+        keywords=["dakkapel", "vergunning", "gemeente"],
+        summary="Besluit over de aanvraag van een dakkapelvergunning.",
+    )
+    _make_doc(conn, "andere brief", "iets anders")
+    assert [h["id"] for h in store.list_documents(conn, query="dakkapel")] == [a]
+    assert [h["id"] for h in store.list_documents(conn, query="dakkapelvergunning")] == [a]
+
+
+def test_keywords_correction_roundtrip(conn):
+    a = _make_doc(conn, "brief", "tekst", keywords=["oud"])
+    store.apply_correction(conn, a, "keywords", "nieuw, zonnepanelen , ")
+    doc = store.get_document(conn, a)
+    assert doc["keywords"] == ["nieuw", "zonnepanelen"]
+    store.index_document(conn, a, None)
+    assert [h["id"] for h in store.list_documents(conn, query="zonnepanelen")] == [a]
 
 
 def test_correction_audited_and_verified(conn):
     a = _make_doc(conn, "wrong title", "text")
     conn.execute(
         "INSERT INTO extracted_fields (document_id, key, raw_value) VALUES (?,?,?)",
-        (a, "amount_due", "1.00"),
+        (a, "document_date", "3 juli 2026"),
     )
     conn.commit()
-    store.apply_correction(conn, a, "amount_due", "2.00")
+    store.apply_correction(conn, a, "document_date", "2026-07-04")
     doc = store.get_document(conn, a)
-    assert doc["amount_due"] == "2.00"
+    assert doc["document_date"] == "2026-07-04"
     corr = conn.execute("SELECT * FROM corrections WHERE document_id=?", (a,)).fetchone()
-    assert corr["field"] == "amount_due"
+    assert corr["field"] == "document_date"
     field = conn.execute(
-        "SELECT verified FROM extracted_fields WHERE document_id=? AND key='amount_due'", (a,)
+        "SELECT verified FROM extracted_fields WHERE document_id=? AND key='document_date'",
+        (a,),
     ).fetchone()
     assert field["verified"] == 1
 

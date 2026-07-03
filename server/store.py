@@ -63,17 +63,15 @@ def add_page(
     return cur.lastrowid
 
 
-def set_tags(
-    conn: sqlite3.Connection, doc_id: int, names: list[str], source: str, kind: str = "controlled"
-) -> None:
-    for name in names:
-        conn.execute("INSERT OR IGNORE INTO tags (name, kind) VALUES (?,?)", (name, kind))
-        conn.execute(
-            "INSERT OR IGNORE INTO document_tags (document_id, tag_id, source) "
-            "SELECT ?, id, ? FROM tags WHERE name = ?",
-            (doc_id, source, name),
-        )
-    conn.commit()
+def keywords_list(raw: str | None) -> list[str]:
+    """documents.keywords is stored as a JSON array; tolerate legacy nulls."""
+    if not raw:
+        return []
+    try:
+        parsed = json.loads(raw)
+    except ValueError:
+        return []
+    return [str(k) for k in parsed] if isinstance(parsed, list) else []
 
 
 def index_document(
@@ -89,9 +87,18 @@ def index_document(
     )
     conn.execute("DELETE FROM doc_fts WHERE rowid = ?", (doc_id,))
     conn.execute(
-        "INSERT INTO doc_fts (rowid, title, correspondent, subject, reference, ocr_text) "
-        "VALUES (?,?,?,?,?,?)",
-        (doc_id, row["title"], row["correspondent"], row["subject"], row["reference"], ocr_text),
+        "INSERT INTO doc_fts (rowid, title, correspondent, subject, reference, "
+        "keywords, summary, ocr_text) VALUES (?,?,?,?,?,?,?,?)",
+        (
+            doc_id,
+            row["title"],
+            row["correspondent"],
+            row["subject"],
+            row["reference"],
+            " ".join(keywords_list(row["keywords"])),
+            row["summary"],
+            ocr_text,
+        ),
     )
     if embedding is not None:
         conn.execute("DELETE FROM doc_vec WHERE rowid = ?", (doc_id,))
@@ -118,31 +125,41 @@ def _opt_iso_date(value: Any) -> str | None:
     return _dt.date.fromisoformat(text).isoformat()  # ValueError on junk
 
 
-def _opt_amount(value: Any) -> str | None:
+def _opt_keywords(value: Any) -> str:
+    """UI sends keywords as a comma-separated string; store as a JSON array."""
+    if value is None:
+        return json.dumps([])
+    if isinstance(value, list):
+        items = [str(k).strip() for k in value]
+    elif isinstance(value, str):
+        items = [k.strip() for k in value.split(",")]
+    else:
+        raise ValueError("expected a comma-separated string or a list")
+    return json.dumps([k for k in items if k], ensure_ascii=False)
+
+
+def _opt_category(value: Any) -> str | None:
     text = _opt_str(value)
     if text is None:
         return None
-    return f"{float(text.replace(',', '.')):.2f}"  # ValueError on junk
+    from spike.extract import CATEGORIES  # lazy: avoids import cycle at module load
 
-
-def _bool_int(value: Any) -> int:
-    if isinstance(value, bool | int) and value in (0, 1, True, False):
-        return int(value)
-    raise ValueError("expected boolean")
+    if text not in CATEGORIES:
+        raise ValueError(f"must be one of: {', '.join(CATEGORIES)}")
+    return text
 
 
 _CORRECTABLE: dict[str, Any] = {
     "title": _opt_str,
     "correspondent": _opt_str,
-    "doc_type": _opt_str,
+    "correspondent_place": _opt_str,
+    "category": _opt_category,
     "document_date": _opt_iso_date,
-    "due_date": _opt_iso_date,
-    "amount_due": _opt_amount,
-    "iban": _opt_str,
     "reference": _opt_str,
     "language": _opt_str,
     "subject": _opt_str,
-    "needs_review": _bool_int,
+    "summary": _opt_str,
+    "keywords": _opt_keywords,
 }
 
 
@@ -191,14 +208,7 @@ def get_document(conn: sqlite3.Connection, doc_id: int) -> dict | None:
             (doc_id,),
         )
     ]
-    doc["tags"] = [
-        r["name"]
-        for r in conn.execute(
-            "SELECT t.name FROM tags t JOIN document_tags dt ON dt.tag_id = t.id "
-            "WHERE dt.document_id = ? ORDER BY t.name",
-            (doc_id,),
-        )
-    ]
+    doc["keywords"] = keywords_list(doc.get("keywords"))
     doc["fields"] = [
         dict(r)
         for r in conn.execute(
@@ -212,54 +222,34 @@ def get_document(conn: sqlite3.Connection, doc_id: int) -> dict | None:
 
 def _filtered_ids(
     conn: sqlite3.Connection,
-    tag: str | None,
-    doc_type: str | None,
+    category: str | None,
     status: str | None,
-    needs_review: bool | None,
 ) -> set[int] | None:
     """Pre-filter by structured criteria; None means 'no filter'."""
-    if not (doc_type or status or needs_review is not None or tag):
+    if not (category or status):
         return None  # no filters — skip the scan entirely
     clauses, params = [], []
-    if doc_type:
-        clauses.append("doc_type = ?")
-        params.append(doc_type)
+    if category:
+        clauses.append("category = ?")
+        params.append(category)
     if status:
         clauses.append("status = ?")
         params.append(status)
-    if needs_review is not None:
-        clauses.append("needs_review = ?")
-        params.append(int(needs_review))
-    sql = "SELECT id FROM documents"
-    if clauses:
-        sql += " WHERE " + " AND ".join(clauses)
-    ids = {r["id"] for r in conn.execute(sql, params)}
-    if tag:
-        tag_ids = {
-            r["document_id"]
-            for r in conn.execute(
-                "SELECT dt.document_id FROM document_tags dt "
-                "JOIN tags t ON t.id = dt.tag_id WHERE t.name = ?",
-                (tag,),
-            )
-        }
-        ids &= tag_ids
-    return ids
+    sql = "SELECT id FROM documents WHERE " + " AND ".join(clauses)
+    return {r["id"] for r in conn.execute(sql, params)}
 
 
 def list_documents(
     conn: sqlite3.Connection,
     query: str | None = None,
     query_embedding: list[float] | None = None,
-    tag: str | None = None,
-    doc_type: str | None = None,
+    category: str | None = None,
     status: str | None = None,
-    needs_review: bool | None = None,
     limit: int = 50,
 ) -> list[dict]:
     """No query: newest first. With query: hybrid FTS+vector RRF ranking."""
     limit = max(1, min(limit, 200))
-    allowed_ids = _filtered_ids(conn, tag, doc_type, status, needs_review)
+    allowed_ids = _filtered_ids(conn, category, status)
 
     if not query:
         sql = "SELECT id FROM documents"
@@ -318,20 +308,14 @@ def list_documents(
     docs = []
     for doc_id in ids:
         row = conn.execute(
-            "SELECT id, title, correspondent, doc_type, document_date, due_date, amount_due, "
-            "currency, language, status, needs_review, created_at FROM documents WHERE id = ?",
+            "SELECT id, title, correspondent, correspondent_place, category, document_date, "
+            "reference, language, summary, keywords, status, created_at "
+            "FROM documents WHERE id = ?",
             (doc_id,),
         ).fetchone()
         if row:
             d = dict(row)
-            d["tags"] = [
-                r["name"]
-                for r in conn.execute(
-                    "SELECT t.name FROM tags t JOIN document_tags dt ON dt.tag_id = t.id "
-                    "WHERE dt.document_id = ?",
-                    (doc_id,),
-                )
-            ]
+            d["keywords"] = keywords_list(d.get("keywords"))
             docs.append(d)
     return docs
 

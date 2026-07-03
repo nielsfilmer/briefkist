@@ -53,10 +53,11 @@ the Tailscale cert in Phase 3 (plan.md §10).
 ## Daily operation
 
 - Capture: photograph → upload → processing is async (~20–30 s/page on this
-  host); the Recent uploads list live-updates and flags **needs review**.
-- Review queue: Archive tab → tick **needs review**. Correct any field inline;
-  corrections are audited (they feed the §12 improvement loop) and immediately
-  searchable.
+  host); the Recent uploads list live-updates until the letter is filed.
+- Every letter files directly with a category, summary and curated keywords
+  (no review queue — decision log v0.4). Correct any field inline in the
+  detail view; corrections are audited (they feed the §12 improvement loop)
+  and immediately searchable.
 - Failed ingests show a **✕ remove** button (only failed documents can be
   deleted — archive deletion/retention is deliberately out of v1 scope).
 

@@ -29,6 +29,11 @@ DOC_TYPES = ["invoice", "government_tax", "insurance", "medical", "bank", "subsc
 # Controlled tag vocabulary from plan.md §6.4, mapped per doc type.
 # Every template composes a payment block (amount + due date + IBAN), so every
 # synthetic letter genuinely IS a bill — 'bill' belongs in each truth set.
+# NOTE (v0.4 archive pivot): the app no longer EXTRACTS financial fields or
+# tags, but the synthetic LETTERS deliberately keep that content — real mail
+# contains amounts and IBANs, and the OCR benchmark must read such pages.
+# Truth keys the benchmark no longer scores (amounts, ibans, tags) are simply
+# unused; do not "clean them up".
 CONTROLLED_TAGS = {
     "invoice": ["bill"],
     "government_tax": ["government", "bill"],

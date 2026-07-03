@@ -1,9 +1,14 @@
-"""VLM extraction (plan.md §6.4): image + OCR text → schema-constrained JSON.
+"""VLM extraction (plan.md §6.4, amended by decision log v0.4): OCR text →
+schema-constrained archive metadata.
 
 Schema enforcement happens at the decoding layer — the Pydantic model's JSON
 Schema is passed as Ollama's `format`, so the model *cannot* emit non-schema
-output. Structural validity ≠ correct values: everything format-critical is
-re-validated deterministically in validate.py afterwards.
+output. Structural validity ≠ correct values: format-critical fields (dates)
+are still re-validated deterministically in validate.py afterwards.
+
+This is a pure snail-mail ARCHIVE, not an invoicing tool (decision log v0.4):
+no financial fields. The metadata exists so a letter can be found again years
+later — hence the summary and curated keywords.
 """
 
 from __future__ import annotations
@@ -25,74 +30,94 @@ OLLAMA_URL = "http://127.0.0.1:11434"
 # the instruct variant.
 DEFAULT_MODEL = "qwen3-vl:4b-instruct"
 
-DOC_TYPES = ["invoice", "government_tax", "insurance", "medical", "bank", "subscription", "other"]
-CONTROLLED_VOCAB = [
-    "bill", "insurance", "government", "bank", "medical", "subscription", "legal", "personal",
+CATEGORIES = [
+    "government", "medical", "insurance", "bank", "utility", "telecom",
+    "legal", "employment", "education", "housing", "commercial",
+    "membership", "personal", "other",
 ]
 
 
 class LetterExtraction(BaseModel):
-    """What the VLM must return for every letter.
+    """Archive metadata the VLM must return for every letter.
 
-    Every field is REQUIRED but nullable: with constrained decoding, an optional
-    field lets the grammar skip the key entirely — and small models then omit
-    fields that are plainly on the page (observed with the dates). Forcing every
+    Every field is REQUIRED but nullable where sensible: with constrained
+    decoding, an optional field lets the grammar skip the key entirely — and
+    small models then omit fields that are plainly on the page. Forcing every
     key makes the model decide null-vs-value per field.
     """
 
-    doc_type: Literal[
-        "invoice", "government_tax", "insurance", "medical", "bank", "subscription", "other"
+    category: Literal[
+        "government", "medical", "insurance", "bank", "utility", "telecom",
+        "legal", "employment", "education", "housing", "commercial",
+        "membership", "personal", "other",
     ] = Field(
-        description="The SENDER'S DOMAIN decides, not whether money is requested: "
-        "tax office/municipality assessment → government_tax; hospital/clinic/dentist "
-        "(even a bill) → medical; insurer → insurance; bank → bank; telecom/utility "
-        "recurring service → subscription; a general business invoice fitting none of "
-        "the above → invoice"
+        description="The SENDER'S DOMAIN decides: tax office/municipality → "
+        "government; hospital/clinic/dentist → medical; insurer → insurance; "
+        "bank → bank; energy/water → utility; phone/internet → telecom; "
+        "lawyer/court/notary → legal; employer/pension fund → employment; "
+        "school/university → education; landlord/housing corporation → "
+        "housing; a business selling or billing something (including "
+        "accountants, tax advisers, shops, contractors) → commercial; "
+        "club/association → membership; a private person → personal. "
+        "The sender's own business decides, not the letter's topic — a tax "
+        "adviser writing about taxes is commercial, not government."
     )
     language: Literal["nl", "de", "en", "other"] = Field(
         description="Language of the letter text"
     )
     sender_name: str | None
+    sender_place: str | None = Field(
+        description="The sender's city/town name ONLY (e.g. 'Utrecht') — "
+        "no street, no postcode"
+    )
     recipient_name: str | None
     document_date: str | None = Field(description="Date on the letter, as printed")
-    due_date: str | None = Field(description="Payment/response deadline, as printed")
-    amount_due: str | None = Field(description="Amount to pay, as printed")
-    iban: str | None = Field(description="IBAN exactly as printed")
     reference: str | None = Field(
-        description="Reference / customer / invoice number — the identifier only, "
-        "without label words like 'Kenmerk' or 'Factuur'"
+        description="Reference / dossier / customer number — the identifier "
+        "only, without label words like 'Kenmerk' or 'Betreft'"
     )
     subject: str | None
-    tags: list[
-        Literal[
-            "bill", "insurance", "government", "bank", "medical",
-            "subscription", "legal", "personal",
-        ]
-    ] = Field(
-        max_length=2,
-        description="The letter's domain tag (matching doc_type), plus 'bill' "
-        "only if it requests a payment. Nothing speculative.",
+    summary: str = Field(
+        description="2-4 sentences, in the letter's own language, saying who "
+        "sent it, what it is, and what it says or asks. Written so the letter "
+        "can be recognized from the summary alone years later."
+    )
+    keywords: list[str] = Field(
+        max_length=8,
+        description="3-8 specific, salient search terms someone would type to "
+        "find this letter later: organizations, people, topics, case names, "
+        "years. Specific beats generic — never filler like 'letter', "
+        "'document' or 'post', and never raw numbers such as amounts, IBANs, "
+        "account or phone numbers: nobody searches an archive by those.",
     )
 
 
-_PROMPT = """You are extracting metadata from a letter that arrived in the post.
+_PROMPT = """You are extracting archive metadata from a letter that arrived in the post.
 
 Below is the OCR transcript of the letter (it may contain small character errors).
-Trust it for exact strings: numbers, IBAN, references, amounts, dates.
+Trust it for exact strings: names, references, dates.
 
 OCR transcript:
 ---
 {ocr_text}
 ---
 
-Fill EVERY schema field from the letter. Copy dates, amounts and the IBAN exactly
-as printed — do not reformat, translate or invent values. Look carefully for a
-payment amount, a due/pay-by date and an IBAN; letters about money almost always
-have them. Use null only for fields genuinely absent from the letter.
-For doc_type, the sender's domain decides — a hospital bill is medical, a tax
-assessment is government_tax, even though both ask for money.
-For reference, give the bare identifier only (e.g. "525808631", never
-"Factuur 525808631")."""
+Fill EVERY schema field from the letter. Copy dates and references exactly as
+printed — do not reformat, translate or invent values. Use null only for fields
+genuinely absent. Rules:
+- category follows the SENDER'S OWN BUSINESS, not the letter's topic: a tax
+  adviser or accountant writing about taxes is commercial, not government; a
+  hospital bill is medical. Pick from the schema's category list.
+- sender_place is the sender's city/town name ONLY (e.g. "Utrecht") — no
+  street, no postcode.
+- reference is the bare identifier only, without label words.
+- summary: 2-4 sentences in the letter's own language saying who sent it, what
+  it is, and what it says or asks — so the letter is recognizable from the
+  summary alone years later.
+- keywords: 3-8 specific search terms someone would type to find this letter
+  later: organizations, people, topics, case names, years. NEVER raw numbers
+  (amounts, IBANs, account or phone numbers), NEVER plain dates or postcodes,
+  NEVER filler like "letter" or "document"."""
 
 
 def _image_b64(image_path: Path, max_side: int) -> str:
@@ -121,7 +146,7 @@ def extract(
     the page image DEGRADED structured extraction (fields the OCR text plainly
     contains came back null) and added ~50 s of vision encode per page. Default
     is therefore text-only over the OCR transcript; `use_image=True` remains for
-    benchmarking and for a later escalation path when OCR confidence is low.
+    benchmarking and for a later escalation path when OCR quality is low.
     """
     message: dict = {"role": "user", "content": _PROMPT.format(ocr_text=ocr_text)}
     if use_image:

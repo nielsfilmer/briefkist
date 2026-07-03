@@ -108,7 +108,7 @@ function renderUploads() {
     item.innerHTML = `
       <div class="card-main">
         <div class="card-title">#${id} ${escapeHtml(doc.title || "")}</div>
-        <div class="card-sub">${doc.needs_review ? "⚠ needs review — " : ""}${escapeHtml(doc.status)}</div>
+        <div class="card-sub">${escapeHtml(doc.status)}</div>
       </div>
       <span class="badge status-${escapeHtml(doc.status)}">${escapeHtml(doc.status)}</span>`;
     if (doc.status === "failed") {
@@ -143,9 +143,7 @@ async function trackUpload(id) {
       if (doc.status === "queued" || doc.status === "processing") {
         setTimeout(poll, 3000);
       } else if (doc.status === "done") {
-        toast(doc.needs_review
-          ? `#${id} filed — needs review`
-          : `#${id} filed: ${doc.title || "done"}`);
+        toast(`#${id} filed: ${doc.title || "done"}`);
       } else if (doc.status === "failed") {
         toast(`#${id} processing failed — see Recent uploads`);
       }
@@ -167,9 +165,8 @@ async function runSearch() {
   const params = new URLSearchParams();
   const query = $("#search-input").value.trim();
   if (query) params.set("query", query);
-  const docType = $("#filter-type").value;
-  if (docType) params.set("doc_type", docType);
-  if ($("#filter-review").checked) params.set("needs_review", "true");
+  const category = $("#filter-category").value;
+  if (category) params.set("category", category);
   try {
     const docs = await api(`/api/documents?${params}`);
     const list = $("#doc-list");
@@ -181,29 +178,22 @@ async function runSearch() {
   }
 }
 
-function currencyPrefix(doc) {
-  return !doc.currency || doc.currency === "EUR" ? "€ " : `${doc.currency} `;
-}
-
 function docCard(doc) {
   const item = document.createElement("li");
-  const badges = (doc.tags || []).map((t) => `<span class="badge">${escapeHtml(t)}</span>`).join("");
-  const review = doc.needs_review ? '<span class="badge review">review</span>' : "";
+  const categoryBadge = doc.category
+    ? `<span class="badge">${escapeHtml(doc.category)}</span>` : "";
+  const keywordBadges = (doc.keywords || []).slice(0, 4)
+    .map((k) => `<span class="badge kw">${escapeHtml(k)}</span>`).join("");
   const statusBadge = doc.status !== "done"
     ? `<span class="badge status-${escapeHtml(doc.status)}">${escapeHtml(doc.status)}</span>` : "";
-  const subtitle = [doc.correspondent, doc.document_date].filter(Boolean)
-    .map(escapeHtml).join(" · ");
+  const subtitle = [doc.correspondent, doc.correspondent_place, doc.document_date]
+    .filter(Boolean).map(escapeHtml).join(" · ");
   item.innerHTML = `
     <img class="thumb" alt="">
     <div class="card-main">
       <div class="card-title">${escapeHtml(doc.title || `#${doc.id}`)}</div>
       <div class="card-sub">${subtitle}</div>
-      <div>${review}${statusBadge}${badges}</div>
-    </div>
-    <div class="card-side">
-      ${doc.amount_due
-        ? `<div class="amount">${escapeHtml(currencyPrefix(doc) + doc.amount_due)}</div>` : ""}
-      ${doc.due_date ? `<div>due ${escapeHtml(doc.due_date)}</div>` : ""}
+      <div>${statusBadge}${categoryBadge}${keywordBadges}</div>
     </div>`;
   loadThumb(item.querySelector("img"), doc.id);
   item.onclick = () => openDetail(doc.id);
@@ -228,37 +218,44 @@ async function loadThumb(img, docId) {
 // ---------------------------------------------------------------- detail
 
 const EDITABLE = [
-  "title", "correspondent", "doc_type", "document_date", "due_date",
-  "amount_due", "iban", "reference",
+  "title", "correspondent", "correspondent_place", "category",
+  "document_date", "reference", "summary", "keywords",
 ];
 
 async function openDetail(docId) {
   let doc;
   try { doc = await api(`/api/documents/${docId}`); } catch (error) { toast(error.message); return; }
   $("#d-title").textContent = doc.title || `Document #${doc.id}`;
-  const banner = $("#d-review");
-  banner.hidden = !doc.needs_review;
-  banner.textContent = doc.needs_review ? `⚠ Needs review: ${doc.review_reasons || ""}` : "";
+  $("#d-summary").textContent = doc.summary || "";
 
   const fields = $("#d-fields");
   fields.innerHTML = "";
   EDITABLE.forEach((key) => {
     const wrap = document.createElement("div");
     wrap.className = "field";
+    if (key === "summary" || key === "keywords") wrap.classList.add("wide");
     const label = document.createElement("label");
-    label.textContent = key.replace("_", " ");
+    label.textContent = key === "keywords"
+      ? "keywords (comma-separated)"
+      : key.replaceAll("_", " ");
     label.htmlFor = `field-${key}`;
     const input = document.createElement("input");
     input.id = `field-${key}`;
-    input.value = doc[key] ?? "";
+    input.value = key === "keywords" ? (doc.keywords || []).join(", ") : (doc[key] ?? "");
     input.onchange = async () => {
       input.classList.add("dirty");
       try {
-        await api(`/api/documents/${doc.id}`, {
+        const updated = await api(`/api/documents/${doc.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ [key]: input.value || null }),
         });
+        if (key === "summary") $("#d-summary").textContent = updated.summary || "";
+        if (key === "keywords") {
+          $("#d-keywords").innerHTML = (updated.keywords || [])
+            .map((k) => `<span class="badge kw">${escapeHtml(k)}</span>`)
+            .join("");
+        }
         input.classList.remove("dirty");
         input.classList.add("saved");
         setTimeout(() => input.classList.remove("saved"), 1500);
@@ -270,8 +267,8 @@ async function openDetail(docId) {
     fields.appendChild(wrap);
   });
 
-  $("#d-tags").innerHTML = (doc.tags || [])
-    .map((t) => `<span class="badge">${escapeHtml(t)}</span>`)
+  $("#d-keywords").innerHTML = (doc.keywords || [])
+    .map((k) => `<span class="badge kw">${escapeHtml(k)}</span>`)
     .join("");
 
   const pages = $("#d-pages");

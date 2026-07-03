@@ -1,4 +1,4 @@
-"""FastAPI app: ingest, browse/search, correct, review queue, static web UI.
+"""FastAPI app: ingest, browse/search, correct, static web UI.
 
 Run:  uv run python -m server.app
 Bind/auth posture: see config.py and auth.py (plan.md §5.1).
@@ -122,10 +122,8 @@ def list_documents(
     conn: Conn,
     query: str | None = None,
     semantic: bool = True,
-    tag: str | None = None,
-    doc_type: str | None = None,
+    category: str | None = None,
     status: str | None = None,
-    needs_review: bool | None = None,
     limit: int = 50,
 ) -> list[dict]:
     query_embedding = None
@@ -135,7 +133,7 @@ def list_documents(
         except Exception:  # noqa: BLE001 — degrade to keyword-only search
             log.warning("query embedding unavailable; keyword-only")
     return store.list_documents(
-        conn, query, query_embedding, tag, doc_type, status, needs_review, min(limit, 200)
+        conn, query, query_embedding, category, status, min(limit, 200)
     )
 
 
@@ -172,7 +170,13 @@ def correct_document(device: Device, conn: Conn, doc_id: int, patch: dict) -> di
                     (doc_id,),
                 )
             )
-            embedding = embed(ocr_text[:6000] + "\n" + (doc.get("title") or ""))
+            # same composition as the pipeline: summary + keywords lead
+            embedding = embed(
+                (doc.get("summary") or "")
+                + "\n" + " ".join(doc.get("keywords") or [])
+                + "\n" + (doc.get("title") or "")
+                + "\n" + ocr_text[:6000]
+            )
         except Exception:  # noqa: BLE001 — degrade: FTS reindex still happens
             log.warning("re-embed after correction failed for doc %s", doc_id)
         store.index_document(conn, doc_id, embedding)
@@ -227,10 +231,7 @@ def status(device: Device, conn: Conn) -> dict:
         r["status"]: r["n"]
         for r in conn.execute("SELECT status, COUNT(*) AS n FROM documents GROUP BY status")
     }
-    review = conn.execute(
-        "SELECT COUNT(*) AS n FROM documents WHERE needs_review = 1"
-    ).fetchone()["n"]
-    return {"jobs": queue, "documents": docs, "needs_review": review}
+    return {"jobs": queue, "documents": docs}
 
 
 @app.exception_handler(413)

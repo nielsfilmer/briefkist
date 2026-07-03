@@ -47,14 +47,11 @@ def _thumbnail(src: Path, dest: Path, max_side: int = 480) -> None:
 
 
 def process_document(conn: sqlite3.Connection, doc_id: int) -> None:
+    import json
+
     from spike.extract import extract
     from spike.preprocess import preprocess
-    from spike.validate import (
-        normalize_amount,
-        normalize_date,
-        normalize_iban,
-        reconcile_tags,
-    )
+    from spike.validate import curate_keywords, normalize_date, normalize_place
 
     pages = conn.execute(
         "SELECT id, page_no, original_path FROM pages WHERE document_id = ? ORDER BY page_no",
@@ -63,9 +60,7 @@ def process_document(conn: sqlite3.Connection, doc_id: int) -> None:
     if not pages:
         raise ValueError(f"document {doc_id} has no pages")
 
-    review_reasons: list[str] = []
     ocr_texts: list[str] = []
-
     for page in pages:
         original = Path(page["original_path"])
         cleaned = config.CLEANED_DIR / f"{doc_id}_{page['page_no']}.png"
@@ -75,10 +70,6 @@ def process_document(conn: sqlite3.Connection, doc_id: int) -> None:
 
         ocr = _ocr().recognize(cleaned)
         ocr_texts.append(ocr.text)
-        if ocr.mean_confidence < config.MIN_OCR_CONFIDENCE:
-            review_reasons.append(
-                f"page {page['page_no']}: OCR confidence {ocr.mean_confidence:.2f}"
-            )
         conn.execute(
             "UPDATE pages SET cleaned_path=?, thumbnail_path=?, ocr_text=?, "
             "ocr_confidence=?, ocr_engine=? WHERE id=?",
@@ -88,75 +79,60 @@ def process_document(conn: sqlite3.Connection, doc_id: int) -> None:
 
     full_text = "\n\n".join(ocr_texts)
     # num_ctx is pinned at 4096 (plan decision log #8); ~11k chars ≈ 3k tokens
-    # leaves room for prompt + schema output. Truncation on a huge multi-page
-    # doc is visible (review queue), never silent.
+    # leaves room for prompt + schema output on huge multi-page documents
     extract_text = full_text[:11000]
-    if len(full_text) > 11000:
-        review_reasons.append(
-            f"OCR text truncated for extraction ({len(full_text)} chars > 11000); "
-            "later pages did not inform metadata"
-        )
     first_cleaned = config.CLEANED_DIR / f"{doc_id}_{pages[0]['page_no']}.png"
     extraction, _stats = extract(first_cleaned, extract_text, model=config.VLM_MODEL)
 
-    # Deterministic layer: never trust the model on format-critical fields (§6.4)
-    normalized = {
-        "document_date": normalize_date(extraction.document_date),
-        "due_date": normalize_date(extraction.due_date),
-        "amount_due": normalize_amount(extraction.amount_due),
-        "iban": normalize_iban(extraction.iban),
-    }
-    for key, raw in (
-        ("document_date", extraction.document_date),
-        ("due_date", extraction.due_date),
-        ("amount_due", extraction.amount_due),
-        ("iban", extraction.iban),
-    ):
-        norm = normalized[key]
-        conn.execute(
-            "INSERT INTO extracted_fields (document_id, key, raw_value, normalized_value, valid) "
-            "VALUES (?,?,?,?,?) ON CONFLICT(document_id, key) DO UPDATE SET "
-            "raw_value=excluded.raw_value, normalized_value=excluded.normalized_value, "
-            "valid=excluded.valid",
-            (doc_id, key, raw, norm, None if raw is None else int(norm is not None)),
-        )
-        if raw is not None and norm is None:
-            review_reasons.append(f"{key}: model value {raw!r} failed validation")
+    # Deterministic layer (§6.4): dates are the remaining format-critical field
+    date_norm = normalize_date(extraction.document_date)
+    conn.execute(
+        "INSERT INTO extracted_fields (document_id, key, raw_value, normalized_value, valid) "
+        "VALUES (?,?,?,?,?) ON CONFLICT(document_id, key) DO UPDATE SET "
+        "raw_value=excluded.raw_value, normalized_value=excluded.normalized_value, "
+        "valid=excluded.valid",
+        (
+            doc_id,
+            "document_date",
+            extraction.document_date,
+            date_norm,
+            None if extraction.document_date is None else int(date_norm is not None),
+        ),
+    )
 
     title = extraction.subject or (
-        f"{extraction.doc_type} — {extraction.sender_name}" if extraction.sender_name else None
+        f"{extraction.category} — {extraction.sender_name}" if extraction.sender_name else None
     )
+    keywords = curate_keywords(extraction.keywords)
     conn.execute(
-        "UPDATE documents SET title=?, correspondent=?, doc_type=?, document_date=?, "
-        "due_date=?, amount_due=?, iban=?, reference=?, language=?, subject=?, "
-        "needs_review=?, review_reasons=?, status='done', processed_at=?, error=NULL "
-        "WHERE id=?",
+        "UPDATE documents SET title=?, correspondent=?, correspondent_place=?, category=?, "
+        "document_date=?, reference=?, language=?, subject=?, summary=?, keywords=?, "
+        "status='done', processed_at=?, error=NULL WHERE id=?",
         (
             title,
             extraction.sender_name,
-            extraction.doc_type,
-            normalized["document_date"],
-            normalized["due_date"],
-            normalized["amount_due"],
-            normalized["iban"],
+            normalize_place(extraction.sender_place),
+            extraction.category,
+            date_norm,
             extraction.reference,
             extraction.language,
             extraction.subject,
-            int(bool(review_reasons)),
-            "; ".join(review_reasons) or None,
+            extraction.summary,
+            json.dumps(keywords, ensure_ascii=False),
             dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
             doc_id,
         ),
     )
-    final_tags = reconcile_tags(
-        extraction.doc_type,
-        list(extraction.tags),
-        has_amount=normalized["amount_due"] is not None,
-    )
-    store.set_tags(conn, doc_id, final_tags, source="model")
 
+    # summary + keywords lead the embedding text: they are the densest
+    # semantic anchor for "find it again years later" queries
     try:
-        vector = embed(full_text[:6000] + "\n" + (title or ""))
+        vector = embed(
+            (extraction.summary or "")
+            + "\n" + " ".join(keywords)
+            + "\n" + (title or "")
+            + "\n" + full_text[:6000]
+        )
     except Exception as exc:  # noqa: BLE001 — search degrades to keyword-only
         log.warning("embedding failed for doc %s: %s", doc_id, exc)
         vector = None

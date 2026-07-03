@@ -23,7 +23,7 @@ from rapidfuzz.distance import Levenshtein
 from .extract import DEFAULT_MODEL, extract
 from .ocr_engines import available_engines
 from .preprocess import preprocess
-from .validate import normalize_amount, normalize_date, normalize_iban, reconcile_tags
+from .validate import normalize_date
 
 # ---------------------------------------------------------------- monitors
 
@@ -83,8 +83,8 @@ def _clean(text: str) -> str:
     """Whitespace- and case-insensitive form for character accuracy. Whitespace:
     OCR reading order and line wrapping legitimately differ from the source text.
     Case: deliberate — the archive's uses of the transcript (FTS5 search, VLM
-    extraction input) are case-insensitive, and format-critical fields (IBAN,
-    amounts, dates) are scored separately via exact normalized comparison, so
+    extraction input) are case-insensitive, and format-critical fields (dates,
+    references) are scored separately via exact normalized comparison, so
     case slips there still count where they matter."""
     return re.sub(r"\s+", " ", text).strip().lower()
 
@@ -101,10 +101,21 @@ def _norm_str(value: str | None) -> str:
     return re.sub(r"\s+", " ", (value or "")).strip().lower()
 
 
+# the synthetic truth labels predate the v0.4 archive pivot; map them onto the
+# broader category vocabulary the extractor now uses
+_TRUTH_CATEGORY = {
+    "invoice": "commercial",
+    "government_tax": "government",
+    "subscription": "telecom",
+}
+
+
 def score_fields(extraction: dict, truth: dict) -> dict:
-    """Per-field correctness after deterministic normalization."""
+    """Per-field correctness after deterministic normalization (v0.4 archive
+    schema: financial fields and tags are no longer extracted or scored)."""
     scores: dict[str, bool | None] = {}
-    scores["doc_type"] = extraction.get("doc_type") == truth["doc_type"]
+    expected_category = _TRUTH_CATEGORY.get(truth["doc_type"], truth["doc_type"])
+    scores["category"] = extraction.get("category") == expected_category
     scores["language"] = extraction.get("language") == truth["language"]
     scores["sender_name"] = _norm_str(extraction.get("sender_name")) == _norm_str(
         truth["sender_name"]
@@ -112,24 +123,14 @@ def score_fields(extraction: dict, truth: dict) -> dict:
     scores["document_date"] = normalize_date(extraction.get("document_date")) == truth[
         "document_date"
     ]
-    scores["due_date"] = normalize_date(extraction.get("due_date")) == truth["due_date"]
-    scores["amount_due"] = normalize_amount(extraction.get("amount_due")) == truth["amount_due"]
-    scores["iban"] = normalize_iban(extraction.get("iban")) == truth["iban"]
     scores["reference"] = _norm_str(extraction.get("reference")) == _norm_str(truth["reference"])
-    truth_tags = set(truth["controlled_tags"])
-    # score the PIPELINE's tags: model suggestion + §6.4 reconciliation
-    final_tags = set(
-        reconcile_tags(
-            extraction.get("doc_type") or "",
-            extraction.get("tags") or [],
-            has_amount=normalize_amount(extraction.get("amount_due")) is not None,
-        )
-    )
-    scores["tags_hit"] = bool(final_tags & truth_tags)
-    # KPI §11 asks for tag PRECISION ≥ 90% on the controlled vocabulary
-    scores["tags_precision"] = (
-        len(final_tags & truth_tags) / len(final_tags) if final_tags else 0.0
-    )
+    # keywords have no synthetic ground truth; sanity-check what the PIPELINE
+    # would store, i.e. after deterministic curation (raw model output may
+    # legitimately contain junk that curation removes)
+    from .validate import curate_keywords
+
+    curated = curate_keywords(extraction.get("keywords") or [])
+    scores["keywords_curated"] = 3 <= len(curated) <= 8
     return scores
 
 
@@ -280,15 +281,14 @@ def render_report(s: dict, model: str) -> str:
             lines.append(f"- *{engine} unavailable on this host:* `{err}`")
     lines += [
         "",
-        "## Field accuracy (after deterministic normalization; tag rows are "
-        "scored on the pipeline output, i.e. after §6.4 reconciliation — raw "
-        "model tags are in results.json per letter)",
+        "## Field accuracy (after deterministic normalization; v0.4 archive "
+        "schema — keywords_curated is a curation sanity check, not a truth "
+        "comparison)",
         "",
     ]
     targets = {
-        "doc_type": 0.95, "sender_name": 0.90, "document_date": 0.95,
-        "amount_due": 0.98, "iban": 0.98, "reference": 0.98,
-        "tags_hit": 0.90, "tags_precision": 0.90,
+        "category": 0.95, "sender_name": 0.90, "document_date": 0.95,
+        "reference": 0.98, "keywords_curated": 0.90,
     }
     for field, acc in s["field_accuracy"].items():
         if acc is None:
