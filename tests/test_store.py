@@ -115,3 +115,56 @@ def test_vector_only_semantic_hit(conn):
     a = _make_doc(conn, "brief", "polis wagen schade", embedding=emb)
     hits = store.list_documents(conn, query="zzzznomatch", query_embedding=emb)
     assert a in [h["id"] for h in hits]
+
+
+def _emb_at_distance(distance):
+    """Unit vector at a chosen cosine distance from the all-[1,0,...] query."""
+    import math
+
+    cos = 1.0 - distance
+    return [cos, math.sqrt(max(0.0, 1 - cos * cos))] + [0.0] * 1022
+
+
+_QUERY_EMB = [1.0, 0.0] + [0.0] * 1022
+
+
+def test_semantic_only_far_hit_rejected_when_better_hit_exists(conn):
+    """The 'Inkomstenbelasting' case: a semantic-only doc at distance ~0.6 must
+    not ride in behind a clearly better hit (>solo bar, outside the margin)."""
+    good = _make_doc(conn, "tax letter", "aangifte inkomstenbelasting",
+                     embedding=_emb_at_distance(0.45))
+    far = _make_doc(conn, "invoice", "plumbing work", embedding=_emb_at_distance(0.60))
+    hits = store.list_documents(conn, query="zzzznomatch", query_embedding=_QUERY_EMB)
+    ids = [h["id"] for h in hits]
+    assert good in ids
+    assert far not in ids
+
+
+def test_semantic_only_near_tie_admitted(conn):
+    """Two semantic-only docs within the margin of each other both surface
+    (relative rule), even above the solo absolute bar."""
+    a = _make_doc(conn, "a", "xxa", embedding=_emb_at_distance(0.56))
+    b = _make_doc(conn, "b", "xxb", embedding=_emb_at_distance(0.58))
+    hits = store.list_documents(conn, query="zzzznomatch", query_embedding=_QUERY_EMB)
+    ids = [h["id"] for h in hits]
+    assert a in ids and b in ids
+
+
+def test_keyword_confirmed_hit_keeps_lenient_cap(conn):
+    """A doc the keyword leg confirms stays admitted at the sanity cap even
+    when a semantically closer competitor exists."""
+    close = _make_doc(conn, "other", "unrelated text", embedding=_emb_at_distance(0.45))
+    confirmed = _make_doc(conn, "match", "findme please",
+                          embedding=_emb_at_distance(0.60))
+    hits = store.list_documents(conn, query="findme", query_embedding=_QUERY_EMB)
+    ids = [h["id"] for h in hits]
+    assert confirmed in ids
+    assert ids[0] == confirmed  # in both legs -> ranked first by RRF
+    assert close in ids  # semantic-only but under the solo absolute bar
+
+
+def test_sanity_cap_still_applies(conn):
+    """Nothing beyond the 0.65 cap surfaces, even as the best available hit."""
+    a = _make_doc(conn, "a", "yya", embedding=_emb_at_distance(0.70))
+    hits = store.list_documents(conn, query="zzzznomatch", query_embedding=_QUERY_EMB)
+    assert a not in [h["id"] for h in hits]

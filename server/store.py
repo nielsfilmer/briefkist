@@ -11,6 +11,17 @@ from typing import Any
 
 _RRF_K = 60  # standard RRF constant
 
+# Semantic-leg admission (cosine distance; see db.py schema). Tuned on the
+# first real letter + synthetic demo (measurements in issue #20): wrong-doc
+# distances (0.50-0.61) overlap paraphrase-hit distances (0.53-0.55), so a
+# single absolute bar cannot separate them — but the right doc was closer than
+# the wrong doc for every measured query. Hence: keyword-confirmed hits get
+# the lenient sanity cap; semantic-ONLY hits additionally need strong absolute
+# evidence OR to sit within a small margin of the best semantic hit.
+_VEC_MAX_DISTANCE = 0.65  # sanity cap for any semantic hit (nonsense filter)
+_VEC_SOLO_MAX_DISTANCE = 0.50  # semantic-only: strong absolute evidence...
+_VEC_SOLO_MARGIN = 0.04  # ...or within this of the best semantic distance
+
 
 def serialize_vector(vector: list[float]) -> bytes:
     return struct.pack(f"{len(vector)}f", *vector)
@@ -270,21 +281,30 @@ def list_documents(
                 (_fts_query(query),),
             )
         ]
-        # semantic leg. Cosine distance (see db.py schema) with a relevance
-        # cutoff so nonsense queries don't return the whole archive; 0.65
-        # (cos-sim ≈ 0.35) is a bge-m3 rule of thumb — tune on real letters
-        # (issue #6's real-set work).
+        # semantic leg: hits the keyword leg already confirmed pass at the
+        # sanity cap; semantic-only hits must clear the stricter solo rule
+        # (constants + rationale at the top of this module, data in issue #20)
         vec_ranked: list[int] = []
         if query_embedding is not None:
-            vec_ranked = [
-                r["rowid"]
+            candidates = [
+                (r["rowid"], r["distance"])
                 for r in conn.execute(
                     "SELECT rowid, distance FROM doc_vec WHERE embedding MATCH ? "
                     "AND k = 100 ORDER BY distance",
                     (serialize_vector(query_embedding),),
                 )
-                if r["distance"] <= 0.65
+                if r["distance"] <= _VEC_MAX_DISTANCE
             ]
+            if candidates:
+                best_distance = candidates[0][1]  # ordered by distance
+                confirmed = set(fts_ranked)
+                vec_ranked = [
+                    doc_id
+                    for doc_id, distance in candidates
+                    if doc_id in confirmed
+                    or distance <= _VEC_SOLO_MAX_DISTANCE
+                    or distance <= best_distance + _VEC_SOLO_MARGIN
+                ]
         scores: dict[int, float] = {}
         for rank, doc_id in enumerate(fts_ranked):
             scores[doc_id] = scores.get(doc_id, 0.0) + 1.0 / (_RRF_K + rank + 1)
