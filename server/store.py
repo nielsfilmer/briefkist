@@ -286,14 +286,21 @@ def list_documents(
                 if r["distance"] <= _VEC_MAX_DISTANCE
             ]
             if candidates:
-                best_distance = candidates[0][1]  # ordered by distance
+                best_doc, best_distance = candidates[0]  # ordered by distance
                 confirmed = set(fts_ranked)
+                # The margin rule exists for PURE-semantic queries, where
+                # relative ranking is the only signal. When the best candidate
+                # is itself keyword-confirmed, the query is keyword-shaped and
+                # semantic-only stragglers near it are exactly the
+                # false-positive class (measured twice on 'Inkomstenbelasting',
+                # issue #20) — they must show strong absolute evidence instead.
+                margin_applies = best_doc not in confirmed
                 vec_ranked = [
                     doc_id
                     for doc_id, distance in candidates
                     if doc_id in confirmed
                     or distance <= _VEC_SOLO_MAX_DISTANCE
-                    or distance <= best_distance + _VEC_SOLO_MARGIN
+                    or (margin_applies and distance <= best_distance + _VEC_SOLO_MARGIN)
                 ]
         scores: dict[int, float] = {}
         for rank, doc_id in enumerate(fts_ranked):
