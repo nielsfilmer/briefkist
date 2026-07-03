@@ -25,6 +25,7 @@ async function api(path, options = {}) {
     try { detail = (await response.json()).detail || detail; } catch { /* keep statusText */ }
     throw new Error(detail);
   }
+  if (response.status === 204) return null;
   return response.json();
 }
 
@@ -102,12 +103,28 @@ function renderUploads() {
   list.innerHTML = "";
   [...tracked.entries()].sort((a, b) => b[0] - a[0]).forEach(([id, doc]) => {
     const item = document.createElement("li");
+    // every dynamic string is escaped — titles come from model-extracted
+    // letter content, which is attacker-influenceable by definition
     item.innerHTML = `
       <div class="card-main">
-        <div class="card-title">#${id} ${doc.title || ""}</div>
-        <div class="card-sub">${doc.needs_review ? "⚠ needs review — " : ""}${doc.status}</div>
+        <div class="card-title">#${id} ${escapeHtml(doc.title || "")}</div>
+        <div class="card-sub">${doc.needs_review ? "⚠ needs review — " : ""}${escapeHtml(doc.status)}</div>
       </div>
-      <span class="badge status-${doc.status}">${doc.status}</span>`;
+      <span class="badge status-${escapeHtml(doc.status)}">${escapeHtml(doc.status)}</span>`;
+    if (doc.status === "failed") {
+      const del = document.createElement("button");
+      del.className = "secondary";
+      del.textContent = "✕ remove";
+      del.onclick = async (event) => {
+        event.stopPropagation();
+        try {
+          await api(`/api/documents/${id}`, { method: "DELETE" });
+          tracked.delete(id);
+          renderUploads();
+        } catch (error) { toast(error.message); }
+      };
+      item.appendChild(del);
+    }
     item.onclick = () => openDetail(id);
     list.appendChild(item);
   });
@@ -116,9 +133,11 @@ function renderUploads() {
 async function trackUpload(id) {
   tracked.set(id, { status: "queued" });
   renderUploads();
+  let misses = 0;
   const poll = async () => {
     try {
       const doc = await api(`/api/documents/${id}`);
+      misses = 0;
       tracked.set(id, doc);
       renderUploads();
       if (doc.status === "queued" || doc.status === "processing") {
@@ -127,8 +146,15 @@ async function trackUpload(id) {
         toast(doc.needs_review
           ? `#${id} filed — needs review`
           : `#${id} filed: ${doc.title || "done"}`);
+      } else if (doc.status === "failed") {
+        toast(`#${id} processing failed — see Recent uploads`);
       }
-    } catch { /* transient; give up silently, list shows last state */ }
+    } catch {
+      // transient network blips are normal on a phone — retry with backoff
+      misses += 1;
+      if (misses <= 5) setTimeout(poll, 3000 * misses);
+      else toast(`#${id}: lost connection while tracking — check the archive later`);
+    }
   };
   setTimeout(poll, 3000);
 }
@@ -155,26 +181,38 @@ async function runSearch() {
   }
 }
 
+function currencyPrefix(doc) {
+  return !doc.currency || doc.currency === "EUR" ? "€ " : `${doc.currency} `;
+}
+
 function docCard(doc) {
   const item = document.createElement("li");
   const badges = (doc.tags || []).map((t) => `<span class="badge">${escapeHtml(t)}</span>`).join("");
   const review = doc.needs_review ? '<span class="badge review">review</span>' : "";
   const statusBadge = doc.status !== "done"
-    ? `<span class="badge status-${doc.status}">${doc.status}</span>` : "";
+    ? `<span class="badge status-${escapeHtml(doc.status)}">${escapeHtml(doc.status)}</span>` : "";
+  const subtitle = [doc.correspondent, doc.document_date].filter(Boolean)
+    .map(escapeHtml).join(" · ");
   item.innerHTML = `
-    <img class="thumb" loading="lazy" alt="">
+    <img class="thumb" alt="">
     <div class="card-main">
       <div class="card-title">${escapeHtml(doc.title || `#${doc.id}`)}</div>
-      <div class="card-sub">${escapeHtml(doc.correspondent || "")} ${doc.document_date || ""}</div>
+      <div class="card-sub">${subtitle}</div>
       <div>${review}${statusBadge}${badges}</div>
     </div>
     <div class="card-side">
-      ${doc.amount_due ? `<div class="amount">€ ${escapeHtml(doc.amount_due)}</div>` : ""}
-      ${doc.due_date ? `<div>due ${doc.due_date}</div>` : ""}
+      ${doc.amount_due
+        ? `<div class="amount">${escapeHtml(currencyPrefix(doc) + doc.amount_due)}</div>` : ""}
+      ${doc.due_date ? `<div>due ${escapeHtml(doc.due_date)}</div>` : ""}
     </div>`;
   loadThumb(item.querySelector("img"), doc.id);
   item.onclick = () => openDetail(doc.id);
   return item;
+}
+
+function attachBlob(img, blob) {
+  img.src = URL.createObjectURL(blob);
+  img.onload = () => URL.revokeObjectURL(img.src);
 }
 
 async function loadThumb(img, docId) {
@@ -182,7 +220,7 @@ async function loadThumb(img, docId) {
     const response = await fetch(`/api/documents/${docId}/pages/1/image?kind=thumb`, {
       headers: authHeaders(),
     });
-    if (response.ok) img.src = URL.createObjectURL(await response.blob());
+    if (response.ok) attachBlob(img, await response.blob());
     else img.remove();
   } catch { img.remove(); }
 }
@@ -209,7 +247,9 @@ async function openDetail(docId) {
     wrap.className = "field";
     const label = document.createElement("label");
     label.textContent = key.replace("_", " ");
+    label.htmlFor = `field-${key}`;
     const input = document.createElement("input");
+    input.id = `field-${key}`;
     input.value = doc[key] ?? "";
     input.onchange = async () => {
       input.classList.add("dirty");
@@ -236,18 +276,20 @@ async function openDetail(docId) {
 
   const pages = $("#d-pages");
   pages.innerHTML = "";
-  (doc.pages || []).forEach(async (page) => {
-    try {
-      const response = await fetch(
-        `/api/documents/${doc.id}/pages/${page.page_no}/image?kind=cleaned`,
-        { headers: authHeaders() },
-      );
-      if (!response.ok) return;
-      const img = document.createElement("img");
-      img.src = URL.createObjectURL(await response.blob());
-      pages.appendChild(img);
-    } catch { /* page image unavailable */ }
-  });
+  // placeholders keep page order stable regardless of fetch completion order
+  for (const page of doc.pages || []) {
+    const img = document.createElement("img");
+    img.alt = `page ${page.page_no}`;
+    pages.appendChild(img);
+    fetch(`/api/documents/${doc.id}/pages/${page.page_no}/image?kind=cleaned`, {
+      headers: authHeaders(),
+    })
+      .then(async (response) => {
+        if (response.ok) attachBlob(img, await response.blob());
+        else img.remove();
+      })
+      .catch(() => img.remove());
+  }
 
   $("#detail").showModal();
 }

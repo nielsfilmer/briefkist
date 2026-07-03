@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>my-flopy</title>
 <link rel="stylesheet" href="style.css">
@@ -44,7 +45,7 @@
   <section id="view-archive" hidden>
     <form id="search-form" class="row wrap">
       <input id="search-input" type="search" placeholder="Search… (keyword or meaning)"
-             autocomplete="off">
+             aria-label="Search the archive" autocomplete="off">
       <select id="filter-type">
         <option value="">any type</option>
         <option>invoice</option><option>government_tax</option><option>insurance</option>
