@@ -163,6 +163,44 @@ def test_keyword_confirmed_hit_keeps_lenient_cap(conn):
     assert close in ids  # semantic-only but under the solo absolute bar
 
 
+def test_confirmed_clause_boosts_vec_leg_ranking(conn):
+    """Pins the `doc_id in confirmed` clause itself: doc C is keyword rank 1 and
+    only outranks keyword rank 0 through its (confirmed-admitted) vec-leg RRF
+    contribution — without the clause its 0.60 hit is rejected (a 0.45 anchor
+    holds the margin window down) and C drops to last."""
+    x = _make_doc(conn, "findme findme findme", "aaa")  # fts rank 0, no vector
+    c = _make_doc(conn, "findme", "bbb", embedding=_emb_at_distance(0.60))
+    _make_doc(conn, "unrelated", "ccc", embedding=_emb_at_distance(0.45))  # anchor
+    hits = store.list_documents(conn, query="findme", query_embedding=_QUERY_EMB)
+    ids = [h["id"] for h in hits]
+    assert ids[0] == c
+    assert x in ids
+
+
+def test_solo_absolute_bar_boundary(conn):
+    """0.49 passes the solo bar, 0.51 fails it (anchored well away so the
+    margin rule can't mask the absolute check)."""
+    anchor = _make_doc(conn, "anchor", "zz1", embedding=_emb_at_distance(0.30))
+    just_under = _make_doc(conn, "under", "zz2", embedding=_emb_at_distance(0.49))
+    just_over = _make_doc(conn, "over", "zz3", embedding=_emb_at_distance(0.51))
+    ids = [h["id"] for h in store.list_documents(conn, query="zzzznomatch",
+                                                 query_embedding=_QUERY_EMB)]
+    assert anchor in ids and just_under in ids
+    assert just_over not in ids
+
+
+def test_solo_margin_boundary(conn):
+    """Gap 0.035 from the best hit is inside the 0.04 margin, 0.045 is outside
+    (both above the absolute bar so only the margin rule decides)."""
+    best = _make_doc(conn, "best", "yy1", embedding=_emb_at_distance(0.52))
+    inside = _make_doc(conn, "inside", "yy2", embedding=_emb_at_distance(0.555))
+    outside = _make_doc(conn, "outside", "yy3", embedding=_emb_at_distance(0.565))
+    ids = [h["id"] for h in store.list_documents(conn, query="zzzznomatch",
+                                                 query_embedding=_QUERY_EMB)]
+    assert best in ids and inside in ids
+    assert outside not in ids
+
+
 def test_sanity_cap_still_applies(conn):
     """Nothing beyond the 0.65 cap surfaces, even as the best available hit."""
     a = _make_doc(conn, "a", "yya", embedding=_emb_at_distance(0.70))
