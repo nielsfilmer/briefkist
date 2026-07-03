@@ -312,6 +312,10 @@ Status: **executing — Phase 0 complete (GO, `docs/phase0/VERDICT.md`); Phase 1
   worker, §9 pipeline (imports spike/ components), per-device token auth.
 - `web/` — the v1 web app served by the backend: phone capture page + archive
   browse/search/correct (vanilla JS, mobile-first, dark-mode aware).
+- [docs/RUNBOOK.md](docs/RUNBOOK.md) — operations: services, phone setup,
+  backup, model knobs, known limitations. **The owner-facing doc.**
+- `deploy/` — launchd agent template + `install.sh` (installs/updates the
+  server as a login service bound to a specific LAN IP).
 - `tests/` — pytest suite (`uv run pytest`).
 - `data/` — generated/captured data, **gitignored** (synthetic set under
   `data/testset/`, real letters under `data/testset-real/`).
