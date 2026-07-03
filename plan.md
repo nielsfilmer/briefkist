@@ -63,7 +63,32 @@ benchmark of record is `docs/phase0/` (see `VERDICT.md` there).
    tag follows doc_type, `bill` follows a validated payment amount, and model
    judgment is trusted only for `legal`/`personal`. Small models fill
    grammar-constrained tag lists with plausible junk otherwise (measured 60%
-   precision raw → reconciliation fixes it).
+   precision raw → reconciliation fixes it). *(Superseded by #10 — tags were
+   replaced by category + keywords in the archive pivot.)*
+
+## Decision log — 2026-07-04 (v0.4, archive pivot — owner directive)
+
+The owner, after testing with real mail: *"This is not an invoicing
+application, this is genuinely just an archive for snail mail."*
+
+10. **All financial fields removed**: IBAN, due date, amount due (and currency)
+    are gone from extraction, storage, API and UI. Deterministic validation
+    (§6.4) now covers dates and references — the remaining format-critical
+    fields. The `bill`-oriented tag system (decision #9) went with them:
+    **category + curated keywords replace tags** entirely.
+11. **The review queue is removed** (§9 step 8 superseded): documents always
+    file directly; the user corrects anything wrong when browsing (corrections
+    stay audited for the §12 loop). No confidence thresholds, no review flags.
+12. **Metadata is redesigned for long-term findability**: `category` (broadened
+    controlled vocabulary: government, medical, insurance, bank, utility,
+    telecom, legal, employment, education, housing, commercial, membership,
+    personal, other), `summary` (2-4 sentences in the letter's language),
+    `keywords` (3-8 curated, salient search terms — specific over generic,
+    hard-capped in the schema so the data can't bloat), plus sender place.
+    Summary + keywords lead the embedding text and are FTS-indexed.
+13. **Existing documents migrate + reprocess automatically** (schema v2:
+    columns swapped, categories remapped, FTS rebuilt, done-documents requeued
+    so the new pipeline fills summary/keywords from the stored pages).
 
 ---
 
@@ -531,19 +556,19 @@ outbound internet request in normal operation.
 
 ---
 
-## 8. Data Model (initial sketch)
+## 8. Data Model (as built — amended 2026-07-04, decision log v0.4)
 
-- **Document**: id, title, correspondent_id, document_type, document_date, received_date,
-  language, page_count, source (photo/scan/import), status, created_at.
+- **Document**: id, title, correspondent (name + place), category, document_date,
+  reference, language, subject, **summary**, **keywords** (curated JSON array),
+  source (photo/scan/import), status, created_at, processed_at.
 - **Page**: id, document_id, page_no, original_image_path, cleaned_image_path,
   ocr_text, ocr_confidence, ocr_engine, thumbnail_path.
-- **Correspondent**: id, name, aliases, address, default_tags.
-- **Tag**: id, name, kind (`controlled` | `free`), color.
-- **DocumentTag**: document_id, tag_id, source (`model` | `user`), confidence.
-- **ExtractedField**: document_id, key (e.g. `iban`, `amount_due`, `due_date`,
-  `reference`), value, normalized_value, confidence, verified (bool).
-- **Embedding**: document_id, vector, model, created_at.
+- **ExtractedField**: document_id, key (format-critical fields, e.g.
+  `document_date`), raw_value, normalized_value, valid, verified (bool).
+- **Embedding**: document_id, vector (summary + keywords lead the embedded text).
 - **Audit/Correction**: what the model produced vs. what the user changed (feeds §12).
+- *(v0.4 removed: financial fields (iban/due_date/amount_due), tags tables,
+  review flags. A separate Correspondent entity with aliases stays a v2 idea.)*
 
 ---
 
@@ -552,16 +577,18 @@ outbound internet request in normal operation.
 1. **Ingest** — receive image(s) + client metadata (timestamp, GPS optional/off).
 2. **Preprocess** — OpenCV: detect page, deskew, dewarp, enhance, split multi-page.
 3. **OCR** — PaddleOCR → verbatim text + word boxes + confidence; detect language.
-4. **Understand** — Qwen-VL(image + OCR text) → strict-JSON: type, sender, recipient,
-   dates, amounts, references, summary, suggested tags.
-5. **Validate & normalize** — regex/checksum for IBAN, dates, amounts, postcodes;
-   reconcile suggested tags against existing vocabulary; resolve correspondent.
-6. **Embed** — bge-m3 over OCR text (+ summary) → vector for semantic search.
-7. **Persist** — store images, text, metadata, tags, embedding; index for FTS.
-8. **Notify** — push status to the client; flag low-confidence docs for user review.
+4. **Understand** *(v0.4)* — Qwen-VL(OCR text) → strict-JSON: category, sender
+   (+place), recipient, date, reference, subject, **summary, curated keywords**.
+5. **Validate & normalize** *(v0.4)* — deterministic date normalization
+   (NL/DE/EN forms → ISO); keyword list capped in-schema against bloat.
+6. **Embed** — bge-m3 over summary + keywords + OCR text → vector for semantic search.
+7. **Persist** — store images, text, metadata, embedding; index for FTS.
+8. **Notify** — push status to the client.
 
-Every stage logs confidence; anything below threshold routes to a **review queue**
-instead of silently guessing.
+~~Every stage logs confidence; anything below threshold routes to a **review
+queue** instead of silently guessing.~~ *(Superseded 2026-07-04, decision log
+#11: no review queue — documents always file; the user corrects while browsing
+and corrections are audited for §12.)*
 
 ---
 
@@ -596,13 +623,16 @@ instead of silently guessing.
   the tunnel (`tailscale cert` / local CA) — do that in Phase 3 hardening.
 
 ### Phase 2 — Understanding & search
-- Full metadata schema + validation, hybrid tagging, correspondent resolution.
+- Full metadata schema + validation, ~~hybrid tagging~~ *(v0.4: category +
+  curated keywords)*, correspondent resolution.
 - FTS + semantic search (SQLite FTS5 + sqlite-vec + bge-m3) with a real search UI.
-- Review queue for low-confidence documents.
+- ~~Review queue for low-confidence documents.~~ *(Removed 2026-07-04, decision
+  log #11.)*
 
 ### Phase 3 — Polish & daily-driver
 - Multi-page robustness, duplicate detection, bulk edit, retention rules.
-- Push notifications, offline capture queue, reminders for due dates.
+- Push notifications, offline capture queue~~, reminders for due dates~~
+  *(v0.4: no due-date tracking — pure archive)*.
 - Backup/restore; **Tailscale remote access + full leak-hardening (§5.1)**: host-level
   egress lockdown on the native VLM process, no public ports, per-device tokens/mTLS,
   FileVault + at-rest blob encryption, phone thumbnail-only caching + remote revocation.
@@ -624,13 +654,14 @@ Concrete, testable targets. Establish a labeled test set of ~100 real documents
 
 ### Accuracy
 - **OCR character accuracy ≥ 98%** on well-lit captures; **≥ 95%** on average phone photos.
-- **Correct document type** classification **≥ 95%**.
+- **Correct category** classification **≥ 95%**.
 - **Sender/correspondent correct ≥ 90%** (exact or alias match).
-- **Document date correct ≥ 95%**; **amount/IBAN/reference exact-match ≥ 98%** on
-  documents where the field is present (format-critical fields must be near-perfect via
-  deterministic validation).
-- **Auto-tags:** ≥ 90% precision on the controlled vocabulary; ≤ 10% of documents need
-  tag correction.
+- **Document date correct ≥ 95%**; **reference exact-match ≥ 98%** where present
+  (format-critical fields must be near-perfect via deterministic validation).
+  *(v0.4: amount/IBAN targets removed with the fields.)*
+- **Keywords stay curated:** 3–8 per document, specific terms only *(replaces
+  the v0.3 tag-precision target — decision log #10/#12)*; ≤ 10% of documents
+  need keyword correction.
 - **Search:** top-5 recall ≥ 95% for keyword queries; ≥ 85% for semantic ("about X")
   queries on the test set.
 
@@ -671,7 +702,7 @@ model or prompt changes actually improve real-world results — all locally.
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| VLM hallucinates exact strings (IBAN, amounts) | Wrong financial data | Trust OCR layer + deterministic validation for format-critical fields; never the VLM alone |
+| VLM hallucinates exact strings (dates, references) | Wrong archive metadata | Trust OCR layer + deterministic validation for format-critical fields; never the VLM alone *(v0.4: financial fields no longer exist to hallucinate)* |
 | Photographed docs are skewed/low-light | OCR errors | Strong on-device + backend preprocessing; capture UX nudges (guides, retake) |
 | Local runtime bugs (Qwen3-VL Metal crash, llama-server OCR regression) | Broken vision / silent accuracy loss | Pin known-good versions; prefer Ollama/MLX; test image path end to end before upgrading |
 | Model too big for hardware | Slow / won't run | Start at 4B Q4 (fits the 8 GB host — decision log #2); scale up only if hardware grows |

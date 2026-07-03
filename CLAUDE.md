@@ -145,8 +145,10 @@ deviations are worth flagging. Load-bearing constraints for this project:
 - **Model/dependency licences must be EU-usable and (ideally) Apache-2.0/MIT.**
   NEVER introduce Llama Vision weights (not licensed to EU parties) or
   Qwen2.5-VL-3B (research-only). See plan.md §6.3.
-- **OCR layer, not the VLM, is trusted for exact strings** (IBAN, amounts, dates);
-  format-critical fields get deterministic validation (§6.4).
+- **OCR layer, not the VLM, is trusted for exact strings** (dates, references);
+  format-critical fields get deterministic validation (§6.4). *(v0.4: this is a
+  pure archive — financial fields don't exist; NEVER reintroduce IBAN/amount/
+  due-date extraction without an owner decision, see decision log v0.4.)*
 - **No public ports / no port-forwarding**; remote access is overlay-only (§5.1).
 
 Output: PR review comments via `gh pr review N -R nielsfilmer/my-flopy --comment`
@@ -268,13 +270,15 @@ observed running it.
 
 ## What this project is
 
-A fully local, self-hosted system to photograph, read, tag, archive, and search
-physical (snail) mail. You capture a letter with a phone; a self-hosted backend on
-an always-on Apple Silicon **Mac mini** cleans the image, OCRs it, and uses a local
-vision-language model to extract structured metadata (sender, recipient, dates,
-amounts, references, document type) + tags, then files it into a searchable archive
-(full-text + semantic). **Nothing leaves hardware the owner controls** — remote
-("on the road") access is via a private WireGuard/Tailscale overlay, not the public
+A fully local, self-hosted **archive** for physical (snail) mail — the owner is
+explicit that it is NOT an invoicing/financial tool (decision log v0.4). You
+capture a letter with a phone; a self-hosted backend on an always-on Apple
+Silicon **Mac mini** cleans the image, OCRs it, and uses a local vision-language
+model to extract archive metadata (category, sender + place, recipient, date,
+reference, subject, a 2-4 sentence summary and 3-8 curated keywords), then files
+it into a searchable archive (full-text + semantic). **Nothing leaves hardware
+the owner controls** — remote ("on the road") access is via a private
+WireGuard/Tailscale overlay, not the public
 internet. Stack (v0.2, amended 2026-07-03 — see plan.md decision log): **web app**
 (mobile capture page + desktop browse, served by the backend; Flutter deferred),
 **FastAPI** backend, **Ollama** running **Qwen3-VL-4B** (2B fallback) + OCR (Apple

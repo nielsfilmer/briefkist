@@ -3,6 +3,9 @@ keyword index, sqlite-vec vector index, and the job queue (plan.md §6.5).
 
 sqlite-vec is pre-v1 (pinned in pyproject); its vec0 virtual table stores one
 embedding per document keyed by rowid = documents.id.
+
+Schema v2 (decision log v0.4): pure archive — no financial columns, no review
+queue; summary + keywords are first-class, indexed metadata.
 """
 
 from __future__ import annotations
@@ -14,27 +17,25 @@ import sqlite_vec
 
 from . import config
 
+_SCHEMA_VERSION = 2
+
 _SCHEMA = """
 PRAGMA journal_mode=WAL;
-PRAGMA foreign_keys=ON;
 
 CREATE TABLE IF NOT EXISTS documents (
     id INTEGER PRIMARY KEY,
     title TEXT,
     correspondent TEXT,
-    doc_type TEXT,
+    correspondent_place TEXT,
+    category TEXT,
     document_date TEXT,
-    due_date TEXT,
-    amount_due TEXT,
-    currency TEXT NOT NULL DEFAULT 'EUR',
-    iban TEXT,
     reference TEXT,
     language TEXT,
     subject TEXT,
+    summary TEXT,
+    keywords TEXT,  -- JSON array of curated search terms
     status TEXT NOT NULL DEFAULT 'queued'
         CHECK (status IN ('queued','processing','done','failed')),
-    needs_review INTEGER NOT NULL DEFAULT 0,
-    review_reasons TEXT,
     source TEXT NOT NULL DEFAULT 'photo',
     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
     processed_at TEXT,
@@ -52,19 +53,6 @@ CREATE TABLE IF NOT EXISTS pages (
     ocr_confidence REAL,
     ocr_engine TEXT,
     UNIQUE (document_id, page_no)
-);
-
-CREATE TABLE IF NOT EXISTS tags (
-    id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL UNIQUE,
-    kind TEXT NOT NULL DEFAULT 'controlled' CHECK (kind IN ('controlled','free'))
-);
-
-CREATE TABLE IF NOT EXISTS document_tags (
-    document_id INTEGER NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
-    tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
-    source TEXT NOT NULL DEFAULT 'model' CHECK (source IN ('model','user')),
-    UNIQUE (document_id, tag_id)
 );
 
 CREATE TABLE IF NOT EXISTS extracted_fields (
@@ -101,10 +89,10 @@ CREATE TABLE IF NOT EXISTS jobs (
 
 CREATE INDEX IF NOT EXISTS idx_jobs_state ON jobs(state, id);
 CREATE INDEX IF NOT EXISTS idx_documents_status ON documents(status);
-CREATE INDEX IF NOT EXISTS idx_documents_due ON documents(due_date);
+CREATE INDEX IF NOT EXISTS idx_documents_category ON documents(category);
 
 CREATE VIRTUAL TABLE IF NOT EXISTS doc_fts USING fts5(
-    title, correspondent, subject, reference, ocr_text,
+    title, correspondent, subject, reference, keywords, summary, ocr_text,
     tokenize = 'unicode61 remove_diacritics 2'
 );
 """
@@ -114,6 +102,54 @@ CREATE VIRTUAL TABLE IF NOT EXISTS doc_vec USING vec0(
     embedding float[{config.EMBED_DIM}] distance_metric=cosine
 );
 """
+
+# v1 -> v2: drop the financial + review columns, rename doc_type -> category,
+# add archive metadata, rebuild the FTS table with the new column set, and
+# requeue existing documents so the new pipeline fills summary/keywords.
+_MIGRATE_V1_TO_V2 = """
+DROP INDEX IF EXISTS idx_documents_due;
+ALTER TABLE documents DROP COLUMN iban;
+ALTER TABLE documents DROP COLUMN due_date;
+ALTER TABLE documents DROP COLUMN amount_due;
+ALTER TABLE documents DROP COLUMN currency;
+ALTER TABLE documents DROP COLUMN needs_review;
+ALTER TABLE documents DROP COLUMN review_reasons;
+ALTER TABLE documents RENAME COLUMN doc_type TO category;
+ALTER TABLE documents ADD COLUMN correspondent_place TEXT;
+ALTER TABLE documents ADD COLUMN summary TEXT;
+ALTER TABLE documents ADD COLUMN keywords TEXT;
+
+UPDATE documents SET category = CASE category
+    WHEN 'invoice' THEN 'commercial'
+    WHEN 'government_tax' THEN 'government'
+    WHEN 'subscription' THEN 'telecom'
+    ELSE category END;
+
+DROP TABLE IF EXISTS document_tags;
+DROP TABLE IF EXISTS tags;
+DROP TABLE IF EXISTS doc_fts;
+
+DELETE FROM extracted_fields WHERE key IN ('iban','amount_due','due_date');
+
+CREATE INDEX IF NOT EXISTS idx_documents_category ON documents(category);
+
+-- requeue processed documents so the new pipeline fills summary/keywords and
+-- rebuilds their index rows (pages/images are still on disk)
+INSERT INTO jobs (document_id)
+    SELECT id FROM documents WHERE status = 'done' AND summary IS NULL;
+UPDATE documents SET status = 'queued'
+    WHERE status = 'done' AND summary IS NULL;
+"""
+
+
+def _migrate(conn: sqlite3.Connection, from_version: int) -> None:
+    if from_version == 1:
+        conn.executescript(_MIGRATE_V1_TO_V2)
+        # recreate the FTS table with the v2 column set (executescript above
+        # dropped it); vec table is shape-compatible and left in place
+        conn.executescript(
+            _SCHEMA[_SCHEMA.index("CREATE VIRTUAL TABLE IF NOT EXISTS doc_fts") :]
+        )
 
 
 def connect(db_path: Path | None = None) -> sqlite3.Connection:
@@ -131,11 +167,15 @@ def connect(db_path: Path | None = None) -> sqlite3.Connection:
     # per-connection pragma (defaults OFF) — must run on EVERY connection, not
     # only the schema-creating one, or ON DELETE CASCADE silently dies
     conn.execute("PRAGMA foreign_keys=ON")
-    # replay DDL only once per database file (user_version guards it), not on
+    # DDL/migrations run once per database file (user_version-guarded), not on
     # every per-request connection
-    if conn.execute("PRAGMA user_version").fetchone()[0] < 1:
-        conn.executescript(_SCHEMA)
-        conn.executescript(_VEC_SCHEMA)
-        conn.execute("PRAGMA user_version = 1")
+    version = conn.execute("PRAGMA user_version").fetchone()[0]
+    if version < _SCHEMA_VERSION:
+        if version == 0:
+            conn.executescript(_SCHEMA)
+            conn.executescript(_VEC_SCHEMA)
+        else:
+            _migrate(conn, version)
+        conn.execute(f"PRAGMA user_version = {_SCHEMA_VERSION}")
         conn.commit()
     return conn

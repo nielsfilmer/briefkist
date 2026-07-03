@@ -25,10 +25,6 @@ EMBED_MODEL = os.environ.get("FLOPY_EMBED_MODEL", "bge-m3")
 EMBED_DIM = 1024  # bge-m3
 OLLAMA_URL = os.environ.get("FLOPY_OLLAMA_URL", "http://127.0.0.1:11434")
 
-# Documents whose extraction confidence trips any of these route to the review
-# queue instead of silently guessing (plan.md §9 step 8).
-MIN_OCR_CONFIDENCE = float(os.environ.get("FLOPY_MIN_OCR_CONFIDENCE", "0.5"))
-
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024  # per image; capture photos are ~2-6 MB
 
 

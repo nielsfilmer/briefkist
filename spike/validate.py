@@ -1,16 +1,14 @@
-"""Deterministic post-validation and normalization (plan.md §6.4): never trust
-the model on format-critical fields. Parsers accept the display formats the
-letters actually use (NL/DE/EN month names, dd-mm-yyyy, EU amount formats) and
-emit the normalized forms the archive stores (ISO dates, decimal amounts,
-compact IBAN).
+"""Deterministic post-validation and normalization (plan.md §6.4, v0.4): never
+trust the model on format-critical fields. Dates are the remaining
+format-critical field after the archive pivot (decision log v0.4 removed the
+financial fields); the parser accepts the display formats letters actually use
+(NL/DE/EN month names, dd-mm-yyyy) and emits the ISO form the archive stores.
 """
 
 from __future__ import annotations
 
 import datetime as dt
 import re
-
-from testset.entities import iban_is_valid
 
 # month-name -> number, lowercased; nl/de/en overlap freely (same key, same value)
 _MONTHS = {
@@ -27,10 +25,64 @@ _MONTHS = {
 
 _NUMERIC_DATE = re.compile(r"\b(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})\b")
 _WRITTEN_DATE = re.compile(r"\b(\d{1,2})\.?\s+([A-Za-zäöüÄÖÜ]+)\s+(\d{4})\b")
-_IBAN_PATTERN = re.compile(r"\b([A-Z]{2}\d{2}(?:\s?[A-Z0-9]{1,4})+)\b")
-_AMOUNT_PATTERN = re.compile(
-    r"(?:€\s*|EUR\s*)?(\d{1,3}(?:[.,]\d{3})*|\d+)([.,]\d{2})?(?:\s*€)?"
-)
+
+
+# --- keyword curation (decision log v0.4) -----------------------------------
+# The 4B model does not reliably obey "no raw numbers" prompt rules (measured:
+# IBANs, amounts and postcodes kept appearing), so curation is deterministic —
+# same §6.4 philosophy as date validation: never trust the model on it.
+
+_KW_IBANISH = re.compile(r"\b[A-Z]{2}\d{2}[A-Z0-9 ]{8,}")
+_KW_DATEISH = re.compile(r"\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}")
+# NL (1234 AB) and UK (BS1 4QD) postcodes
+_KW_POSTCODEISH = re.compile(r"\b\d{4}\s?[A-Z]{2}\b|\b[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}\b")
+_KW_YEAR = re.compile(r"(19|20)\d{2}")
+
+
+def curate_keywords(raw: list[str] | None, limit: int = 8) -> list[str]:
+    """Keep only keywords someone would actually search an archive by:
+    no amounts/IBANs/phone numbers, no bare dates, no postcodes, no dupes.
+    Standalone years are explicitly allowed ('belasting 2023' is a real query).
+    """
+    out: list[str] = []
+    seen: set[str] = set()
+    for keyword in raw or []:
+        keyword = keyword.strip()
+        if len(keyword) < 3:
+            continue
+        if not _KW_YEAR.fullmatch(keyword):
+            digits = sum(c.isdigit() for c in keyword)
+            if digits / len(keyword) > 0.4:
+                continue  # amounts, phone numbers, bare identifiers
+            if "€" in keyword or "$" in keyword:
+                continue
+            if (
+                _KW_IBANISH.search(keyword)
+                or _KW_DATEISH.search(keyword)
+                or _KW_POSTCODEISH.search(keyword)
+            ):
+                continue
+        lowered = keyword.lower()
+        if lowered in seen:
+            continue
+        seen.add(lowered)
+        out.append(keyword)
+    return out[:limit]
+
+
+def normalize_place(raw: str | None) -> str | None:
+    """Reduce a sender place to the bare city/town name: the model tends to
+    return full address lines despite instructions. Take the last
+    comma-separated segment and drop postcode-ish tokens."""
+    if not raw:
+        return None
+    segment = raw.split(",")[-1]
+    words = [
+        w
+        for w in segment.split()
+        if not any(c.isdigit() for c in w) and not (w.isupper() and len(w) <= 3)
+    ]
+    return " ".join(words).strip(" .") or None
 
 
 def normalize_date(raw: str | None) -> str | None:
@@ -59,60 +111,3 @@ def normalize_date(raw: str | None) -> str | None:
         return dt.date.fromisoformat(raw).isoformat()
     except ValueError:
         return None
-
-
-def normalize_amount(raw: str | None) -> str | None:
-    """Printed amount ('€ 1.234,56', '1.234,56 €', '€1,234.56') → '1234.56'."""
-    if not raw:
-        return None
-    m = _AMOUNT_PATTERN.search(raw.strip())
-    if not m:
-        return None
-    whole, cents = m.group(1), m.group(2)
-    digits = re.sub(r"[.,]", "", whole)
-    cents_digits = cents[1:] if cents else "00"
-    try:
-        return f"{int(digits)}.{cents_digits}"
-    except ValueError:
-        return None
-
-
-DOMAIN_TAG = {
-    "invoice": "bill",
-    "government_tax": "government",
-    "insurance": "insurance",
-    "medical": "medical",
-    "bank": "bank",
-    "subscription": "subscription",
-}
-
-# tags with no deterministic doc_type mapping; kept only if the model chose them
-_FREE_JUDGMENT_TAGS = {"legal", "personal"}
-
-
-def reconcile_tags(doc_type: str, model_tags: list[str], has_amount: bool) -> list[str]:
-    """The §6.4 reconciliation step: tags are anchored to deterministic facts —
-    the domain tag follows doc_type, 'bill' follows the presence of a payment
-    amount — and the model's judgment is only trusted for tags that have no
-    deterministic source (legal/personal). Kills the small-model habit of
-    filling the tag list with plausible-sounding vocabulary.
-    """
-    tags = set()
-    domain = DOMAIN_TAG.get(doc_type)
-    if domain:
-        tags.add(domain)
-    if has_amount:
-        tags.add("bill")
-    tags |= _FREE_JUDGMENT_TAGS & set(model_tags)
-    return sorted(tags)
-
-
-def normalize_iban(raw: str | None) -> str | None:
-    """Extract, compact and checksum-validate an IBAN; None if invalid."""
-    if not raw:
-        return None
-    m = _IBAN_PATTERN.search(raw.upper())
-    if not m:
-        return None
-    compact = m.group(1).replace(" ", "")
-    return compact if iban_is_valid(compact) else None

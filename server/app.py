@@ -122,10 +122,8 @@ def list_documents(
     conn: Conn,
     query: str | None = None,
     semantic: bool = True,
-    tag: str | None = None,
-    doc_type: str | None = None,
+    category: str | None = None,
     status: str | None = None,
-    needs_review: bool | None = None,
     limit: int = 50,
 ) -> list[dict]:
     query_embedding = None
@@ -135,7 +133,7 @@ def list_documents(
         except Exception:  # noqa: BLE001 — degrade to keyword-only search
             log.warning("query embedding unavailable; keyword-only")
     return store.list_documents(
-        conn, query, query_embedding, tag, doc_type, status, needs_review, min(limit, 200)
+        conn, query, query_embedding, category, status, min(limit, 200)
     )
 
 
@@ -227,10 +225,7 @@ def status(device: Device, conn: Conn) -> dict:
         r["status"]: r["n"]
         for r in conn.execute("SELECT status, COUNT(*) AS n FROM documents GROUP BY status")
     }
-    review = conn.execute(
-        "SELECT COUNT(*) AS n FROM documents WHERE needs_review = 1"
-    ).fetchone()["n"]
-    return {"jobs": queue, "documents": docs, "needs_review": review}
+    return {"jobs": queue, "documents": docs}
 
 
 @app.exception_handler(413)

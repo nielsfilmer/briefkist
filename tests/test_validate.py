@@ -1,4 +1,4 @@
-from spike.validate import normalize_amount, normalize_date, normalize_iban
+from spike.validate import normalize_date
 
 
 def test_numeric_dates():
@@ -23,21 +23,41 @@ def test_date_garbage():
     assert normalize_date("no date here") is None
 
 
-def test_amounts_eu_and_en():
-    assert normalize_amount("€ 1.234,56") == "1234.56"
-    assert normalize_amount("1.234,56 €") == "1234.56"
-    assert normalize_amount("€1,234.56") == "1234.56"
-    assert normalize_amount("EUR 123,45") == "123.45"
-    assert normalize_amount("997.87") == "997.87"
-    assert normalize_amount("5,00") == "5.00"
-    assert normalize_amount(None) is None
-    assert normalize_amount("free") is None
+def test_curate_keywords_drops_financial_noise():
+    from spike.validate import curate_keywords
+
+    raw = [
+        "Brightside Plumbing Ltd",   # keep
+        "Mr A. Whitfield",           # keep
+        "€1,294.29",                 # amount -> drop
+        "IBAN NL38 RABO 8964 5819 40",  # drop
+        "Payment due by 13-04-2026",    # date -> drop
+        "Bristol BS1 4QD",           # UK postcode -> drop
+        "1234 AB",                   # NL postcode -> drop
+        "857640111",                 # digit-heavy -> drop
+        "2023",                      # standalone year -> KEEP
+        "Inkomstenbelasting",        # keep
+        "inkomstenbelasting",        # dupe (case) -> drop
+        "ab",                        # too short -> drop
+    ]
+    assert curate_keywords(raw) == [
+        "Brightside Plumbing Ltd", "Mr A. Whitfield", "2023", "Inkomstenbelasting",
+    ]
 
 
-def test_iban_normalization():
-    # NL91ABNA0417164300 is the canonical example IBAN with a valid checksum
-    assert normalize_iban("NL91 ABNA 0417 1643 00") == "NL91ABNA0417164300"
-    assert normalize_iban("IBAN: NL91 ABNA 0417 1643 00") == "NL91ABNA0417164300"
-    assert normalize_iban("NL92 ABNA 0417 1643 00") is None  # bad checksum
-    assert normalize_iban(None) is None
-    assert normalize_iban("not an iban") is None
+def test_curate_keywords_caps_at_limit():
+    from spike.validate import curate_keywords
+
+    raw = [f"onderwerp{i}" for i in range(12)]
+    assert len(curate_keywords(raw)) == 8
+
+
+def test_normalize_place():
+    from spike.validate import normalize_place
+
+    assert normalize_place("Utrecht") == "Utrecht"
+    assert normalize_place("14 Harbour Road, Bristol BS1 4QD") == "Bristol"
+    assert normalize_place("3542 AD Utrecht") == "Utrecht"
+    assert normalize_place("Den Haag") == "Den Haag"
+    assert normalize_place(None) is None
+    assert normalize_place("1234 AB") is None
