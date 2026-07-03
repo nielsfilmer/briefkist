@@ -283,6 +283,14 @@ Status: **executing — Phase 0 (feasibility spike) in build**.
   GitHub milestones/issues/PRs (backs `/status`).
 - `.claude/settings.json` — project permission allowlist (aggressive git/gh
   patterns + the status-script wrapper).
+- [pyproject.toml](pyproject.toml) / `uv.lock` — Python project (managed with `uv`;
+  run things via `uv run …` from the repo root).
+- [testset/](testset/README.md) — Phase 0 synthetic test-set generator (NL/DE/EN
+  letters + ground truth + photo degradation) and the real-photo drop-folder
+  convention. See its README for usage.
+- `tests/` — pytest suite (`uv run pytest`).
+- `data/` — generated/captured data, **gitignored** (synthetic set under
+  `data/testset/`, real letters under `data/testset-real/`).
 
 ## Decision log / source of truth
 
