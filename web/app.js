@@ -46,6 +46,7 @@ function showView(name) {
   $("#view-archive").hidden = name !== "archive";
   $("#tab-capture").classList.toggle("active", name === "capture");
   $("#tab-archive").classList.toggle("active", name === "archive");
+  if (location.hash !== `#${name}`) history.replaceState(null, "", `#${name}`);
   if (name === "archive") runSearch();
 }
 $("#tab-capture").onclick = () => showView("capture");
@@ -273,5 +274,5 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-// initial view
-showView("capture");
+// initial view (deep-linkable: #archive opens the archive tab)
+showView(location.hash === "#archive" ? "archive" : "capture");
