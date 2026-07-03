@@ -28,8 +28,9 @@ the committed report of record lives there).
 
 - **OCR character accuracy** per engine (Apple Vision; PaddleOCR when
   installable — `uv sync --extra paddle`) per degradation tier, against
-  `truth/*.json` `full_text` (whitespace-normalized: OCR reading order and
-  line wrapping legitimately differ).
+  `truth/*.json` `full_text` (whitespace- and case-normalized — see the
+  rationale in `benchmark._clean`; format-critical fields are scored exactly,
+  separately).
 - **Field accuracy** after deterministic normalization (`spike/validate.py`):
   ISO dates from NL/DE/EN display forms, decimal amounts from EU formats,
   checksum-validated IBANs. Structural JSON validity is enforced at the
