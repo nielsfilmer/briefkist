@@ -187,6 +187,9 @@ def compose(rng: random.Random, letter_id: str, lang: str, doc_type: str) -> Let
     due_date = doc_date + dt.timedelta(days=rng.choice([14, 21, 30]))
     lo, hi = _AMOUNT_RANGES[doc_type]
     amount = round(rng.uniform(lo, hi), 2)
+    # en letters deliberately get NL IBANs: the archive is for a Dutch household,
+    # where UK senders billing in EUR to a Dutch account is the realistic case
+    # (and GB IBAN generation isn't worth the extra format).
     iban_country = {"nl": "NL", "de": "DE", "en": "NL"}[lang]
     iban = make_iban(rng, iban_country)
     ref = make_reference(rng)
@@ -197,7 +200,15 @@ def compose(rng: random.Random, letter_id: str, lang: str, doc_type: str) -> Let
     doc_date_str = format_date(doc_date, lang, rng)
     due_date_str = format_date(due_date, lang, rng)
     amount_str = format_amount(amount, lang)
-    sender_city_short = sender.city.split(" ", 1)[1] if lang != "en" else sender.city
+    # City name for the dateline: strip the postcode. NL postcodes are two tokens
+    # ("3542 AD Utrecht"), DE one token ("50667 Köln"). EN letters conventionally
+    # carry only the date on the dateline.
+    if lang == "nl":
+        sender_city_short = sender.city.split(" ", 2)[2]
+    elif lang == "de":
+        sender_city_short = sender.city.split(" ", 1)[1]
+    else:
+        sender_city_short = None
 
     lines = [
         sender.name,
@@ -208,7 +219,11 @@ def compose(rng: random.Random, letter_id: str, lang: str, doc_type: str) -> Let
         recipient.street,
         recipient.city,
         "",
-        f"{sender_city_short}, {s['date_prefix']}{doc_date_str}",
+        (
+            f"{sender_city_short}, {s['date_prefix']}{doc_date_str}"
+            if sender_city_short
+            else doc_date_str
+        ),
         "",
         f"{s['subject']}: {subject}",
         f"{s['reference']}: {ref}",

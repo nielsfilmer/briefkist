@@ -28,7 +28,12 @@ def _load_font(size: int) -> ImageFont.FreeTypeFont:
 
 def _wrap(draw: ImageDraw.ImageDraw, line: str, font: ImageFont.FreeTypeFont) -> list[str]:
     """Greedy word-wrap to the body width; the letter text stays the ground truth,
-    wrapping only changes where line breaks fall on the page."""
+    wrapping only changes where line breaks fall on the page.
+
+    Contract: input lines must not contain consecutive spaces — rejoining would
+    collapse them and silently break `full_text` == rendered-text. Enforced by a
+    test on the templates rather than handled here.
+    """
     if draw.textlength(line, font=font) <= BODY_WRAP_WIDTH:
         return [line]
     words, out, cur = line.split(" "), [], ""

@@ -13,11 +13,7 @@ import string
 from dataclasses import dataclass
 
 # ---------------------------------------------------------------- IBAN
-
-_IBAN_FORMATS = {
-    "NL": ("NL", 4, 10),  # NLkk BANK cccccccccc
-    "DE": ("DE", 0, 18),  # DEkk bbbbbbbb cccccccccc (all digits)
-}
+# Formats: NL = NLkk + 4-letter bank code + 10 digits; DE = DEkk + 18 digits.
 
 _NL_BANK_CODES = ["INGB", "RABO", "ABNA", "TRIO", "BUNQ", "SNSB", "ASNB"]
 
@@ -40,9 +36,13 @@ def make_iban(rng: random.Random, country: str) -> str:
 
 
 def iban_is_valid(iban: str) -> bool:
-    """Full mod-97 validation (used by tests and later by the pipeline validator)."""
+    """Full mod-97 validation (used by tests and later by the pipeline validator).
+
+    Tolerant of arbitrary (e.g. OCR-mangled) input: anything non-alphanumeric
+    after removing spaces is simply invalid, never an exception.
+    """
     iban = iban.replace(" ", "")
-    if len(iban) < 15:
+    if len(iban) < 15 or not iban.isalnum() or not iban.isascii():
         return False
     rearranged = iban[4:] + iban[:4]
     digits = "".join(str(int(c, 36)) for c in rearranged)
