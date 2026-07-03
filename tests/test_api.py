@@ -140,6 +140,65 @@ def test_auth_enforced(client):
     assert gone.status_code == 401
 
 
+def test_correction_is_searchable(client, monkeypatch):
+    """QA blocker: corrected metadata must be findable via keyword search."""
+    from server import app as app_module
+
+    monkeypatch.setattr(app_module, "embed", lambda _t: (_ for _ in ()).throw(RuntimeError))
+    doc_id = client.post("/api/documents", files=[("files", _jpg())]).json()["id"]
+    client.patch(f"/api/documents/{doc_id}", json={"title": "zonnepanelen offerte"})
+    hits = client.get(
+        "/api/documents", params={"query": "zonnepanelen", "semantic": "false"}
+    ).json()
+    assert [h["id"] for h in hits] == [doc_id]
+
+
+def test_delete_failed_document_only(client):
+    doc_id = client.post("/api/documents", files=[("files", _jpg())]).json()["id"]
+    # still queued -> refuse
+    assert client.delete(f"/api/documents/{doc_id}").status_code == 409
+    from server import db
+
+    conn = db.connect()
+    conn.execute("UPDATE documents SET status='failed' WHERE id=?", (doc_id,))
+    conn.commit()
+    conn.close()
+    assert client.delete(f"/api/documents/{doc_id}").status_code == 204
+    assert client.get(f"/api/documents/{doc_id}").status_code == 404
+    assert client.delete("/api/documents/999").status_code == 404
+
+
+def test_bootstrap_rejects_wrong_token_even_with_no_tokens(tmp_path, monkeypatch):
+    """QA finding: a presented-but-wrong token must 401 even in bootstrap mode."""
+    monkeypatch.setenv("FLOPY_DATA_DIR", str(tmp_path / "fresh"))
+    import importlib
+
+    from server import auth, config
+
+    importlib.reload(config)
+    importlib.reload(auth)
+
+    class StubClient:
+        host = "127.0.0.1"
+
+    class StubRequest:
+        client = StubClient()
+        headers = {"authorization": "Bearer wrong-token"}
+
+    import pytest as _pytest
+    from fastapi import HTTPException
+
+    with _pytest.raises(HTTPException) as exc:
+        auth.require_token(StubRequest())
+    assert exc.value.status_code == 401
+    # and with NO header at all, loopback bootstrap still works
+    class BareRequest:
+        client = StubClient()
+        headers = {}
+
+    assert auth.require_token(BareRequest()) == "_bootstrap_loopback"
+
+
 def test_search_keyword_only_without_ollama(client, monkeypatch):
     """If the embedding service is down, search degrades instead of failing."""
     from server import app as app_module

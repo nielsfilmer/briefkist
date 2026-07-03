@@ -70,6 +70,10 @@ def require_token(request: Request) -> str:
     for device, token in tokens.items():
         if supplied and hmac.compare_digest(supplied, token):
             return device
+    if supplied:
+        # a token was presented and matched nothing — always reject, even in
+        # bootstrap mode (a wrong token must never look like success)
+        raise HTTPException(status_code=401, detail="invalid device token")
     if not tokens and request.client and request.client.host in ("127.0.0.1", "::1"):
         logging.getLogger("flopy.auth").warning(
             "bootstrap mode: no device tokens configured — allowing loopback "

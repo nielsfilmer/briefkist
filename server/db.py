@@ -111,7 +111,7 @@ CREATE VIRTUAL TABLE IF NOT EXISTS doc_fts USING fts5(
 
 _VEC_SCHEMA = f"""
 CREATE VIRTUAL TABLE IF NOT EXISTS doc_vec USING vec0(
-    embedding float[{config.EMBED_DIM}]
+    embedding float[{config.EMBED_DIM}] distance_metric=cosine
 );
 """
 

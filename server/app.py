@@ -159,6 +159,23 @@ def correct_document(device: Device, conn: Conn, doc_id: int, patch: dict) -> di
     doc = store.get_document(conn, doc_id)
     if doc is None:  # deleted concurrently between PATCH and re-read
         raise HTTPException(404)
+    if patch:
+        # corrected metadata must be findable — rebuild the FTS row, and
+        # refresh the embedding opportunistically (keyword index is the
+        # guarantee; the old vector stays if Ollama is down)
+        embedding = None
+        try:
+            ocr_text = "\n".join(
+                r["ocr_text"] or ""
+                for r in conn.execute(
+                    "SELECT ocr_text FROM pages WHERE document_id=? ORDER BY page_no",
+                    (doc_id,),
+                )
+            )
+            embedding = embed(ocr_text[:6000] + "\n" + (doc.get("title") or ""))
+        except Exception:  # noqa: BLE001 — degrade: FTS reindex still happens
+            log.warning("re-embed after correction failed for doc %s", doc_id)
+        store.index_document(conn, doc_id, embedding)
     return doc
 
 
@@ -178,6 +195,26 @@ def page_image(
     if row is None or not row["p"] or not Path(row["p"]).exists():
         raise HTTPException(404)
     return FileResponse(row["p"])
+
+
+@app.delete("/api/documents/{doc_id}", status_code=204)
+def delete_failed_document(device: Device, conn: Conn, doc_id: int) -> None:
+    """Cleanup for failed ingests only. Deleting archived documents is a
+    retention/product decision (plan.md v2 scope) and deliberately not exposed."""
+    row = conn.execute("SELECT status FROM documents WHERE id=?", (doc_id,)).fetchone()
+    if row is None:
+        raise HTTPException(404)
+    if row["status"] != "failed":
+        raise HTTPException(409, "only failed documents can be deleted")
+    for page in conn.execute(
+        "SELECT original_path, cleaned_path, thumbnail_path FROM pages WHERE document_id=?",
+        (doc_id,),
+    ):
+        for key in ("original_path", "cleaned_path", "thumbnail_path"):
+            if page[key]:
+                Path(page[key]).unlink(missing_ok=True)
+    store.delete_document(conn, doc_id)
+    log.info("device %s deleted failed document %s", device, doc_id)
 
 
 @app.get("/api/status")

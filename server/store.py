@@ -270,16 +270,20 @@ def list_documents(
                 (_fts_query(query),),
             )
         ]
-        # semantic leg
+        # semantic leg. Cosine distance (see db.py schema) with a relevance
+        # cutoff so nonsense queries don't return the whole archive; 0.65
+        # (cos-sim ≈ 0.35) is a bge-m3 rule of thumb — tune on real letters
+        # (issue #6's real-set work).
         vec_ranked: list[int] = []
         if query_embedding is not None:
             vec_ranked = [
                 r["rowid"]
                 for r in conn.execute(
-                    "SELECT rowid FROM doc_vec WHERE embedding MATCH ? AND k = 100 "
-                    "ORDER BY distance",
+                    "SELECT rowid, distance FROM doc_vec WHERE embedding MATCH ? "
+                    "AND k = 100 ORDER BY distance",
                     (serialize_vector(query_embedding),),
                 )
+                if r["distance"] <= 0.65
             ]
         scores: dict[int, float] = {}
         for rank, doc_id in enumerate(fts_ranked):
