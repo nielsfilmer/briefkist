@@ -27,12 +27,14 @@ LANGUAGES = ["nl", "de", "en"]
 DOC_TYPES = ["invoice", "government_tax", "insurance", "medical", "bank", "subscription"]
 
 # Controlled tag vocabulary from plan.md §6.4, mapped per doc type.
+# Every template composes a payment block (amount + due date + IBAN), so every
+# synthetic letter genuinely IS a bill — 'bill' belongs in each truth set.
 CONTROLLED_TAGS = {
     "invoice": ["bill"],
-    "government_tax": ["government"],
-    "insurance": ["insurance"],
+    "government_tax": ["government", "bill"],
+    "insurance": ["insurance", "bill"],
     "medical": ["medical", "bill"],
-    "bank": ["bank"],
+    "bank": ["bank", "bill"],
     "subscription": ["subscription", "bill"],
 }
 
