@@ -78,8 +78,13 @@ Every task ends with a pull request. Do **not** push directly to `main`.
      notification.
    Push follow-up commits to the same PR branch; don't open a second PR for
    review fixes on this PR's stated concern.
-5. **Notify the user** when the PR is clean and ready for human review + merge.
-   **Do not merge the PR yourself — the user is the merge gate.**
+5. **Merge the PR yourself once it is clean.** *(Amended 2026-07-03: the user
+   removed themselves as merge gate for this repo — "divide the phases into as many
+   PRs as you need, but only return to me when you have the actual deliverables from
+   the plan for me to test." So: merge clean PRs after the review loop without
+   waiting, and notify the user in batch when a testable deliverable exists, not per
+   PR. Outward-facing gates unrelated to merging — publishing, deleting remote
+   resources, spending — still require the user.)*
 
 ### Review-prompt template
 
@@ -253,12 +258,17 @@ vision-language model to extract structured metadata (sender, recipient, dates,
 amounts, references, document type) + tags, then files it into a searchable archive
 (full-text + semantic). **Nothing leaves hardware the owner controls** — remote
 ("on the road") access is via a private WireGuard/Tailscale overlay, not the public
-internet. Planned stack: **Flutter** app (mobile + desktop), **FastAPI** backend,
-**Ollama/MLX** running **Qwen3-VL-8B** + **PaddleOCR**, **Postgres + pgvector**
-(or fork **Paperless-ngx** for the archive core), **bge-m3** embeddings. Full detail
-in [plan.md](plan.md).
+internet. Stack (v0.2, amended 2026-07-03 — see plan.md decision log): **web app**
+(mobile capture page + desktop browse, served by the backend; Flutter deferred),
+**FastAPI** backend, **Ollama** running **Qwen3-VL-4B** (2B fallback) + OCR (Apple
+Vision vs PaddleOCR, benchmarked in Phase 0), **SQLite FTS5 + sqlite-vec**, **bge-m3**
+embeddings — all **native processes, no Docker**. Full detail in [plan.md](plan.md).
 
-Status: **planning → Phase 0 (feasibility spike)**. No application code yet.
+**The production host is this machine**: the owner's existing always-on **M1 Mac mini
+with 8 GB RAM**, macOS 14.4 (it also runs Plex/Sonarr — leave those alone). Every
+sizing choice assumes 8 GB; an upgrade to a 32 GB mini restores the 8B-model path.
+
+Status: **executing — Phase 0 (feasibility spike) in build**.
 
 ## File map
 
