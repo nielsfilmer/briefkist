@@ -2,6 +2,8 @@
 // eyeballing parity against design/ (the Claude Design mirror). Not part of
 // the product UI; reachable as the home screen until the app shell lands.
 
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 
 import '../design/mf_icons.dart';
@@ -40,6 +42,13 @@ class GalleryScreen extends StatefulWidget {
 }
 
 class _GalleryScreenState extends State<GalleryScreen> {
+  // Dev-only: lets simctl relaunches screenshot deeper gallery sections
+  // (the simulator can't be scrolled programmatically).
+  final ScrollController _scroll = ScrollController(
+    initialScrollOffset:
+        double.tryParse(Platform.environment['GALLERY_SCROLL'] ?? '') ??
+        const int.fromEnvironment('GALLERY_SCROLL').toDouble(),
+  );
   String _tab = 'archive';
   bool _chipSelected = true;
   String? _select = 'insurance';
@@ -86,6 +95,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
             ),
             Expanded(
               child: ListView(
+                controller: _scroll,
                 children: [
                   _section('Brand', [
                     const MfWordmark(),
