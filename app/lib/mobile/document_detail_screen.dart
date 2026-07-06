@@ -231,21 +231,14 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
       ),
       child: Column(
         children: [
-          // The kit shows 'name · place' merged in one row; here the merged
-          // string is display-only (child) while the inline edit prefills and
-          // saves the name alone, keeping place a separate server field
-          // (edited on its own row below).
+          // The kit merges 'name · place' into one row; since place is a
+          // separate, separately-edited server field (its own row below),
+          // the merged display duplicated it — QA (PR #36) → name only here.
           MfMetaRow(
             label: 'correspondent',
             value: name,
             corrected: d.isVerified('correspondent'),
             onSave: (v) => _save({'correspondent': v}),
-            child: name != null && place != null
-                ? Text(
-                    '$name · $place',
-                    style: MfType.base.copyWith(color: mf.text1),
-                  )
-                : null,
           ),
           MfMetaRow(
             label: 'place',

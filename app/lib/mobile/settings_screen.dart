@@ -81,7 +81,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      configured ? config.serverUrl : 'Not configured',
+                      configured ? config.serverHost : 'Not configured',
                       style: MfType.base.copyWith(
                         color: mf.text1,
                         fontWeight: FontWeight.w600,

@@ -12,8 +12,10 @@ void main() {
     final config = await AppConfig.load();
     await tester.pumpWidget(MyFlopyApp(config: config));
     await tester.pump();
-    // Unconfigured: the shell must land on settings/pairing guidance.
-    expect(find.textContaining('server'), findsWidgets);
+    // Which shell renders depends on the host platform (a macOS test runner
+    // boots the desktop shell); unconfigured, both land on settings, which
+    // has exactly one Save button.
+    expect(find.text('Save'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

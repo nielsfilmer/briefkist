@@ -45,6 +45,15 @@ happen; don't wait.
    ISO in editable rows, or spec the display/edit swap explicitly.
    (App-shell PR.)
 
+8. **Mobile category chip row shows all 14 categories** (horizontally
+   scrolling); the kit's quick-row samples 6. With a closed 14-item list a
+   curated quick-row is arbitrary — the app scrolls the full set. Design
+   could bless this or spec a "top categories by count" rule. (PR #36 QA.)
+9. **Correspondent and place are separate rows in detail** (they're separate,
+   separately-corrected fields); the kit merges "name · place" into one
+   editable row, which double-displayed place once a place row exists.
+   Suggest the design split them as built. (PR #36 QA.)
+
 ## Content / sample-data
 
 5. **"Phone · Jasmijn"** (desktop kit, Settings → paired devices) may be a

@@ -58,15 +58,6 @@ class _SettingsContentState extends State<SettingsContent> {
     showMfToast(context, 'Connection saved.');
   }
 
-  /// Host part of the configured server URL for the server card.
-  static String _host(String url) {
-    var u = url.trim();
-    if (u.isEmpty) return 'not configured yet';
-    if (!u.contains('://')) u = 'http://$u';
-    final host = Uri.tryParse(u)?.host ?? '';
-    return host.isEmpty ? url.trim() : host;
-  }
-
   @override
   Widget build(BuildContext context) {
     final mf = context.mf;
@@ -132,7 +123,9 @@ class _SettingsContentState extends State<SettingsContent> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _host(config.serverUrl),
+                            config.isConfigured
+                                ? config.serverHost
+                                : 'not configured yet',
                             style: MfType.base.copyWith(
                               fontWeight: FontWeight.w600,
                               color: mf.text1,

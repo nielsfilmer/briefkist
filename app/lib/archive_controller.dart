@@ -1,6 +1,6 @@
 // my-flopy — shared archive browse/search state for the mobile and desktop
-// layouts: filters, debounced querying, and the four content states of the
-// design (populated / loading / empty / offline, plus no-matches).
+// layouts: filters, debounced querying, and the content states of the design
+// (populated / loading / empty / offline / error, plus no-matches).
 
 import 'dart:async';
 
@@ -9,7 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'api/client.dart';
 import 'api/models.dart';
 
-enum ArchiveState { loading, populated, empty, offline, noMatches }
+enum ArchiveState { loading, populated, empty, offline, noMatches, error }
 
 class ArchiveController extends ChangeNotifier {
   ArchiveController(this._client) {
@@ -22,6 +22,9 @@ class ArchiveController extends ChangeNotifier {
 
   List<DocumentSummary> docs = const [];
   ArchiveState state = ArchiveState.loading;
+
+  /// Set alongside [ArchiveState.error]; null in every other state.
+  String? errorMessage;
 
   String query = '';
   String? category;
@@ -81,6 +84,7 @@ class ArchiveController extends ChangeNotifier {
       );
       if (generation != _generation) return; // superseded by a newer request
       docs = result;
+      errorMessage = null;
       state = result.isNotEmpty
           ? ArchiveState.populated
           : hasFilters
@@ -89,11 +93,18 @@ class ArchiveController extends ChangeNotifier {
     } on ServerUnreachable {
       if (generation != _generation) return;
       docs = const [];
+      errorMessage = null;
       state = ArchiveState.offline;
-    } on ApiError {
+    } on ApiError catch (e) {
+      // The server answered but refused: distinct from offline, so the UI
+      // can say what happened and what to do next.
       if (generation != _generation) return;
       docs = const [];
-      state = ArchiveState.offline;
+      errorMessage = (e.status == 401 || e.status == 403)
+          ? "Your server didn't accept this device's token. Check the "
+                'device token in settings.'
+          : 'Your server returned an error (HTTP ${e.status}).';
+      state = ArchiveState.error;
     }
     notifyListeners();
   }

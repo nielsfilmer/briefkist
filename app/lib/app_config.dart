@@ -27,6 +27,14 @@ class AppConfig extends ChangeNotifier {
 
   bool get isConfigured => serverUrl.isNotEmpty;
 
+  /// Host part of the configured server URL, for the connection captions;
+  /// empty when no server is configured.
+  String get serverHost {
+    if (serverUrl.isEmpty) return '';
+    final u = Uri.tryParse(_normalize(serverUrl));
+    return (u == null || u.host.isEmpty) ? serverUrl : u.host;
+  }
+
   /// The API client for the configured server; rebuilt when config changes.
   FlopyClient? get client {
     if (!isConfigured) return null;

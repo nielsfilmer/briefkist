@@ -59,7 +59,13 @@ class FlopyClient {
     if (resp.statusCode ~/ 100 != 2) {
       throw ApiError(resp.statusCode, resp.body);
     }
-    return jsonDecode(utf8.decode(resp.bodyBytes));
+    try {
+      return jsonDecode(utf8.decode(resp.bodyBytes));
+    } on FormatException catch (e) {
+      // A 200 that isn't JSON means something between us and the server
+      // answered — captive portal, wrong host — treat as unreachable.
+      throw ServerUnreachable(e);
+    }
   }
 
   Future<List<DocumentSummary>> listDocuments({
@@ -113,9 +119,15 @@ class FlopyClient {
     if (resp.statusCode ~/ 100 != 2) {
       throw ApiError(resp.statusCode, resp.body);
     }
-    return DocumentDetail.fromJson(
-      jsonDecode(utf8.decode(resp.bodyBytes)) as Map<String, dynamic>,
-    );
+    final dynamic json;
+    try {
+      json = jsonDecode(utf8.decode(resp.bodyBytes));
+    } on FormatException catch (e) {
+      // A 200 that isn't JSON means something between us and the server
+      // answered — captive portal, wrong host — treat as unreachable.
+      throw ServerUnreachable(e);
+    }
+    return DocumentDetail.fromJson(json as Map<String, dynamic>);
   }
 
   Future<List<Correspondent>> listCorrespondents() async {

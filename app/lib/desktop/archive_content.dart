@@ -15,7 +15,7 @@ import '../design/widgets/mf_empty_state.dart';
 import '../design/widgets/mf_status_badge.dart';
 import '../design/widgets/mf_toast.dart';
 
-/// The archive main content: offline/empty states, the count + density
+/// The archive main content: offline/error/empty states, the count + density
 /// toolbar, and the document grid or table.
 class ArchiveContent extends StatefulWidget {
   const ArchiveContent({
@@ -83,6 +83,19 @@ class _ArchiveContentState extends State<ArchiveContent> {
                   variant: MfButtonVariant.secondary,
                   label: 'Try again',
                   onPressed: _retry,
+                ),
+              ),
+            );
+          case ArchiveState.error:
+            return Center(
+              child: MfEmptyState(
+                icon: MfIcon(MfGlyphs.alert, size: 44, color: mf.err),
+                title: 'Your server said no',
+                body: controller.errorMessage,
+                action: MfButton(
+                  variant: MfButtonVariant.secondary,
+                  label: 'Try again',
+                  onPressed: controller.refresh,
                 ),
               ),
             );
@@ -185,9 +198,10 @@ class _ArchiveContentState extends State<ArchiveContent> {
         child: Center(
           child: MfEmptyState(
             title: 'No matches',
-            body:
-                'Nothing matches “${controller.query}”. Try describing the '
-                'letter instead — search also looks at meaning.',
+            body: controller.query.isEmpty
+                ? 'Nothing in your archive matches these filters.'
+                : 'Nothing matches “${controller.query}”. Try describing the '
+                      'letter instead — search also looks at meaning.',
           ),
         ),
       );

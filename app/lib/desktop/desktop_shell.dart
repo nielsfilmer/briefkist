@@ -45,6 +45,8 @@ class _DesktopShellState extends State<DesktopShell> {
   final _searchController = TextEditingController();
   final _dateFromController = TextEditingController();
   final _dateToController = TextEditingController();
+  bool _dateFromInvalid = false;
+  bool _dateToInvalid = false;
 
   @override
   void didChangeDependencies() {
@@ -63,6 +65,8 @@ class _DesktopShellState extends State<DesktopShell> {
       _searchController.clear();
       _dateFromController.clear();
       _dateToController.clear();
+      _dateFromInvalid = false;
+      _dateToInvalid = false;
       _loadCorrespondents();
     } else {
       // Connection settings changed: keep the filters, swap the client.
@@ -111,7 +115,8 @@ class _DesktopShellState extends State<DesktopShell> {
   // ── date-range input ─────────────────────────────────────────────
   // MfTextField has no onSubmitted, so a change applies as soon as both
   // fields hold either nothing or a complete YYYY-MM-DD date — never while
-  // a date is still being typed.
+  // a date is still being typed. A non-empty field that isn't a full ISO
+  // date shows the error tone instead of being silently ignored.
   static final _isoDate = RegExp(r'^\d{4}-\d{2}-\d{2}$');
 
   ({bool ok, String? value}) _parseDateInput(String text) {
@@ -128,6 +133,12 @@ class _DesktopShellState extends State<DesktopShell> {
     if (controller == null) return;
     final from = _parseDateInput(_dateFromController.text);
     final to = _parseDateInput(_dateToController.text);
+    if (_dateFromInvalid != !from.ok || _dateToInvalid != !to.ok) {
+      setState(() {
+        _dateFromInvalid = !from.ok;
+        _dateToInvalid = !to.ok;
+      });
+    }
     if (!from.ok || !to.ok) return;
     if (from.value == controller.dateFrom && to.value == controller.dateTo) {
       return;
@@ -143,15 +154,6 @@ class _DesktopShellState extends State<DesktopShell> {
 
   void _openDocument(DocumentSummary doc) => setState(() => _docId = doc.id);
 
-  /// Host part of the configured server URL, for the connection captions.
-  static String serverHost(String url) {
-    var u = url.trim();
-    if (u.isEmpty) return 'your server';
-    if (!u.contains('://')) u = 'http://$u';
-    final host = Uri.tryParse(u)?.host ?? '';
-    return host.isEmpty ? url.trim() : host;
-  }
-
   @override
   Widget build(BuildContext context) {
     final config = AppConfigScope.of(context);
@@ -161,14 +163,15 @@ class _DesktopShellState extends State<DesktopShell> {
     final docId = configured ? _docId : null;
     final state = _controller?.state;
     final offline = state == ArchiveState.offline;
-    final host = serverHost(config.serverUrl);
+    final host = config.serverHost;
 
     final showSearch =
         configured &&
         docId == null &&
         nav == 'archive' &&
         state != ArchiveState.empty &&
-        state != ArchiveState.offline;
+        state != ArchiveState.offline &&
+        state != ArchiveState.error;
     // Kit behavior: no sidebar on the detail and settings screens.
     final showSidebar = configured && docId == null && nav != 'settings';
 
@@ -231,6 +234,8 @@ class _DesktopShellState extends State<DesktopShell> {
                     onCorrespondent: controller.setCorrespondent,
                     dateFromController: _dateFromController,
                     dateToController: _dateToController,
+                    dateFromInvalid: _dateFromInvalid,
+                    dateToInvalid: _dateToInvalid,
                     onDateChanged: _maybeApplyDateRange,
                     host: host,
                     offline: offline,
@@ -347,6 +352,8 @@ class _Sidebar extends StatelessWidget {
     required this.onCorrespondent,
     required this.dateFromController,
     required this.dateToController,
+    required this.dateFromInvalid,
+    required this.dateToInvalid,
     required this.onDateChanged,
     required this.host,
     required this.offline,
@@ -361,6 +368,8 @@ class _Sidebar extends StatelessWidget {
   final ValueChanged<String?> onCorrespondent;
   final TextEditingController dateFromController;
   final TextEditingController dateToController;
+  final bool dateFromInvalid;
+  final bool dateToInvalid;
   final VoidCallback onDateChanged;
   final String host;
   final bool offline;
@@ -422,14 +431,20 @@ class _Sidebar extends StatelessWidget {
                   MfTextField(
                     controller: dateFromController,
                     mono: true,
-                    message: 'from · YYYY-MM-DD',
+                    error: dateFromInvalid,
+                    message: dateFromInvalid
+                        ? 'Use YYYY-MM-DD'
+                        : 'from · YYYY-MM-DD',
                     onChanged: (_) => onDateChanged(),
                   ),
                   const SizedBox(height: 8),
                   MfTextField(
                     controller: dateToController,
                     mono: true,
-                    message: 'to · YYYY-MM-DD',
+                    error: dateToInvalid,
+                    message: dateToInvalid
+                        ? 'Use YYYY-MM-DD'
+                        : 'to · YYYY-MM-DD',
                     onChanged: (_) => onDateChanged(),
                   ),
                 ],

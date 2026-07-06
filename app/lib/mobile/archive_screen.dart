@@ -17,8 +17,9 @@ import '../design/widgets/mf_sheet.dart';
 import '../design/widgets/mf_status_badge.dart';
 import '../design/widgets/mf_text_field.dart';
 
-/// The archive tab: search + category chips over a card list, with the four
-/// content states of the design (loading / offline / empty / no matches).
+/// The archive tab: search + category chips over a card list, with the
+/// content states of the design (loading / offline / error / empty /
+/// no matches).
 class ArchiveScreen extends StatefulWidget {
   const ArchiveScreen({
     super.key,
@@ -68,9 +69,12 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
       listenable: widget.controller,
       builder: (context, _) {
         final c = widget.controller;
-        // The kit hides the search chrome on the empty and offline states.
+        // The kit hides the search chrome on the empty, offline and error
+        // states.
         final hideChrome =
-            c.state == ArchiveState.empty || c.state == ArchiveState.offline;
+            c.state == ArchiveState.empty ||
+            c.state == ArchiveState.offline ||
+            c.state == ArchiveState.error;
         return Column(
           children: [
             if (!hideChrome) ...[_searchRow(), _categoryRow()],
@@ -172,6 +176,22 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
             ),
           ],
         );
+      case ArchiveState.error:
+        return ListView(
+          padding: pad,
+          children: [
+            MfEmptyState(
+              icon: MfIcon(MfGlyphs.alert, size: 44, color: context.mf.err),
+              title: 'Your server said no',
+              body: c.errorMessage,
+              action: MfButton(
+                variant: MfButtonVariant.secondary,
+                label: 'Try again',
+                onPressed: c.refresh,
+              ),
+            ),
+          ],
+        );
       case ArchiveState.empty:
         return ListView(
           padding: pad,
@@ -194,10 +214,11 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
           children: [
             MfEmptyState(
               title: 'No matches',
-              body:
-                  'Nothing in your archive matches “${c.query}”. Search '
-                  'looks at words and meaning — try describing the letter '
-                  'instead.',
+              body: c.query.isEmpty
+                  ? 'Nothing in your archive matches these filters.'
+                  : 'Nothing in your archive matches “${c.query}”. Search '
+                        'looks at words and meaning — try describing the '
+                        'letter instead.',
             ),
           ],
         );
@@ -259,6 +280,8 @@ class _FilterSheetState extends State<_FilterSheet> {
   late final TextEditingController _to = TextEditingController(
     text: widget.controller.dateTo ?? '',
   );
+  bool _fromError = false;
+  bool _toError = false;
 
   @override
   void dispose() {
@@ -267,16 +290,31 @@ class _FilterSheetState extends State<_FilterSheet> {
     super.dispose();
   }
 
-  /// Lenient: empty clears the bound, anything else passes through to the
-  /// server as-is. (The kit's "Jan 2026"-style inputs are non-functional
-  /// sample copy; plain ISO YYYY-MM-DD fields are the pragmatic v1.)
-  String? _bound(TextEditingController field) {
+  static final _isoDate = RegExp(r'^\d{4}-\d{2}-\d{2}$');
+
+  /// Same rule as the desktop sidebar: a bound applies only when the field
+  /// is empty (clears it) or holds a complete valid YYYY-MM-DD date —
+  /// anything else is invalid and the range is not applied.
+  ({bool ok, String? value}) _bound(TextEditingController field) {
     final t = field.text.trim();
-    return t.isEmpty ? null : t;
+    if (t.isEmpty) return (ok: true, value: null);
+    if (_isoDate.hasMatch(t) && DateTime.tryParse(t) != null) {
+      return (ok: true, value: t);
+    }
+    return (ok: false, value: null);
   }
 
   void _apply() {
-    widget.controller.setDateRange(_bound(_from), _bound(_to));
+    final from = _bound(_from);
+    final to = _bound(_to);
+    if (!from.ok || !to.ok) {
+      setState(() {
+        _fromError = !from.ok;
+        _toError = !to.ok;
+      });
+      return;
+    }
+    widget.controller.setDateRange(from.value, to.value);
     Navigator.of(context).pop();
   }
 
@@ -328,7 +366,13 @@ class _FilterSheetState extends State<_FilterSheet> {
                         label: 'From',
                         controller: _from,
                         mono: true,
-                        message: 'e.g. 2026-01-31',
+                        error: _fromError,
+                        message: _fromError
+                            ? 'Use YYYY-MM-DD'
+                            : 'e.g. 2026-01-31',
+                        onChanged: (_) {
+                          if (_fromError) setState(() => _fromError = false);
+                        },
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -337,7 +381,13 @@ class _FilterSheetState extends State<_FilterSheet> {
                         label: 'To',
                         controller: _to,
                         mono: true,
-                        message: 'e.g. 2026-01-31',
+                        error: _toError,
+                        message: _toError
+                            ? 'Use YYYY-MM-DD'
+                            : 'e.g. 2026-01-31',
+                        onChanged: (_) {
+                          if (_toError) setState(() => _toError = false);
+                        },
                       ),
                     ),
                   ],

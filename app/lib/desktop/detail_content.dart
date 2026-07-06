@@ -124,17 +124,21 @@ class _DetailContentState extends State<DetailContent> {
     final picked = await showMfDialog<String>(
       context,
       title: 'Category',
-      body: Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          for (final c in kCategories)
-            MfChip(
-              label: c,
-              selected: c == current,
-              onTap: () => Navigator.of(context).pop(c),
-            ),
-        ],
+      // Builder so the pop uses the dialog route's own context, not the
+      // screen's.
+      body: Builder(
+        builder: (dialogContext) => Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final c in kCategories)
+              MfChip(
+                label: c,
+                selected: c == current,
+                onTap: () => Navigator.of(dialogContext).pop(c),
+              ),
+          ],
+        ),
       ),
     );
     if (picked != null && picked != current) await _patch('category', picked);
