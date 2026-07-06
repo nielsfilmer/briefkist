@@ -26,6 +26,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>my-flopy photographs your letters. Images go only to your own archive server.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>my-flopy lets you pick letter photos to file. Images go only to your own archive server.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>my-flopy talks only to your own archive server on your home network.</string>
 	<key>UIApplicationSceneManifest</key>

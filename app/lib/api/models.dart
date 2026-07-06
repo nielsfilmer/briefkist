@@ -169,3 +169,20 @@ String formatDate(String? isoDate) {
   ];
   return '${d.day} ${months[d.month - 1]} ${d.year}';
 }
+
+/// "just now" / "N min ago" / "N h ago" / "12 Mar 2026". The server sends
+/// created_at as ISO UTC (Z-suffixed); zone-less 'YYYY-MM-DD HH:MM:SS'
+/// values are pinned to UTC too.
+String relativeTime(String? createdAt) {
+  if (createdAt == null || createdAt.isEmpty) return '';
+  var text = createdAt.replaceFirst(' ', 'T');
+  if (!text.endsWith('Z') && !text.contains('+')) text = '${text}Z';
+  final utc = DateTime.tryParse(text);
+  if (utc == null) return '';
+  final local = utc.toLocal();
+  final diff = DateTime.now().difference(local);
+  if (diff.inSeconds < 60) return 'just now'; // covers small clock skew too
+  if (diff.inMinutes < 60) return '${diff.inMinutes} min ago';
+  if (diff.inHours < 24) return '${diff.inHours} h ago';
+  return formatDate(local.toIso8601String());
+}

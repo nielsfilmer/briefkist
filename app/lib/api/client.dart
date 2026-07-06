@@ -141,6 +141,39 @@ class FlopyClient {
   Future<Map<String, dynamic>> status() async =>
       (await _getJson('/api/status')) as Map<String, dynamic>;
 
+  /// Upload one document (all pages, in order) — POST /api/documents.
+  /// Returns the new document id; the server queues processing (202).
+  Future<int> uploadDocument(List<String> pagePaths) async {
+    final req = http.MultipartRequest('POST', _uri('/api/documents'))
+      ..headers.addAll(authHeaders);
+    final http.Response resp;
+    try {
+      // Reading the page files can fail too (the OS may purge picker tmp
+      // files) — keep ALL I/O inside the taxonomy so callers always see
+      // ServerUnreachable/ApiError (review #39 blocking 1).
+      for (final path in pagePaths) {
+        req.files.add(await http.MultipartFile.fromPath('files', path));
+      }
+      // Generous timeout: a multi-page HEIC upload over WiFi takes a while.
+      final streamed = await _http
+          .send(req)
+          .timeout(const Duration(minutes: 2));
+      resp = await http.Response.fromStream(streamed);
+    } on Exception catch (e) {
+      throw ServerUnreachable(e);
+    }
+    if (resp.statusCode ~/ 100 != 2) {
+      throw ApiError(resp.statusCode, resp.body);
+    }
+    final dynamic json;
+    try {
+      json = jsonDecode(utf8.decode(resp.bodyBytes));
+    } on FormatException catch (e) {
+      throw ServerUnreachable(e);
+    }
+    return (json as Map<String, dynamic>)['id'] as int;
+  }
+
   /// URL of a page image; pass [authHeaders] to Image.network.
   Uri imageUri(int docId, int pageNo, {String kind = 'thumb'}) =>
       _uri('/api/documents/$docId/pages/$pageNo/image', {'kind': kind});
