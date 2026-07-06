@@ -38,6 +38,13 @@ happen; don't wait.
    Suggest the design adopt `.mfChip--selected:hover` styling explicitly.
    (Senior review finding, PR #32.)
 
+7. **Detail meta rows show the document date as ISO (`2026-03-12`), not
+   "12 Mar 2026".** The row is inline-editable and the server only accepts
+   ISO on save; a display/edit split would need a two-value MetaRow. Lists
+   and cards keep the design's "12 Mar 2026". Options for the design: bless
+   ISO in editable rows, or spec the display/edit swap explicitly.
+   (App-shell PR.)
+
 ## Content / sample-data
 
 5. **"Phone · Jasmijn"** (desktop kit, Settings → paired devices) may be a

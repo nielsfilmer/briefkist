@@ -1,40 +1,40 @@
 // my-flopy — private, local-first snail-mail archive (iOS + macOS client).
-// Currently boots the design-system gallery; the app shell replaces it in the
-// next PR (archive/search/detail).
+// Adaptive shell: phone gets the tab-bar layout (design/ui_kits/mobile),
+// desktop gets the topbar + sidebar layout (design/ui_kits/desktop).
+
+import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 
+import 'app_config.dart';
 import 'design/mf_theme.dart';
-import 'dev/gallery.dart';
+import 'desktop/desktop_shell.dart';
+import 'mobile/mobile_shell.dart';
 
-void main() => runApp(const MyFlopyApp());
-
-class MyFlopyApp extends StatefulWidget {
-  const MyFlopyApp({super.key});
-
-  @override
-  State<MyFlopyApp> createState() => _MyFlopyAppState();
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final config = await AppConfig.load();
+  runApp(MyFlopyApp(config: config));
 }
 
-class _MyFlopyAppState extends State<MyFlopyApp> {
-  ThemeMode _mode = ThemeMode.system;
+class MyFlopyApp extends StatelessWidget {
+  const MyFlopyApp({super.key, required this.config});
+
+  final AppConfig config;
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'my-flopy',
-      debugShowCheckedModeBanner: false,
-      theme: mfThemeData(Brightness.light),
-      darkTheme: mfThemeData(Brightness.dark),
-      themeMode: _mode,
-      home: Builder(
-        builder: (context) => GalleryScreen(
-          dark: Theme.of(context).brightness == Brightness.dark,
-          onToggleDark: () => setState(() {
-            _mode = Theme.of(context).brightness == Brightness.dark
-                ? ThemeMode.light
-                : ThemeMode.dark;
-          }),
+    return AppConfigScope(
+      config: config,
+      child: ListenableBuilder(
+        listenable: config,
+        builder: (context, _) => MaterialApp(
+          title: 'my-flopy',
+          debugShowCheckedModeBanner: false,
+          theme: mfThemeData(Brightness.light),
+          darkTheme: mfThemeData(Brightness.dark),
+          themeMode: config.themeMode,
+          home: Platform.isMacOS ? const DesktopShell() : const MobileShell(),
         ),
       ),
     );
