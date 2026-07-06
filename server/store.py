@@ -224,9 +224,12 @@ def _filtered_ids(
     conn: sqlite3.Connection,
     category: str | None,
     status: str | None,
+    correspondent: str | None = None,
+    date_from: str | None = None,
+    date_to: str | None = None,
 ) -> set[int] | None:
     """Pre-filter by structured criteria; None means 'no filter'."""
-    if not (category or status):
+    if not (category or status or correspondent or date_from or date_to):
         return None  # no filters — skip the scan entirely
     clauses, params = [], []
     if category:
@@ -235,8 +238,32 @@ def _filtered_ids(
     if status:
         clauses.append("status = ?")
         params.append(status)
+    if correspondent:
+        clauses.append("correspondent = ?")
+        params.append(correspondent)
+    # document_date is ISO (YYYY-MM-DD, deterministic validation §6.4), so
+    # string comparison IS date comparison; NULL dates never match a range.
+    if date_from:
+        clauses.append("document_date >= ?")
+        params.append(date_from)
+    if date_to:
+        clauses.append("document_date <= ?")
+        params.append(date_to)
     sql = "SELECT id FROM documents WHERE " + " AND ".join(clauses)
     return {r["id"] for r in conn.execute(sql, params)}
+
+
+def list_correspondents(conn: sqlite3.Connection) -> list[dict]:
+    """Distinct correspondents with document counts, busiest first — feeds
+    the desktop sidebar filter."""
+    return [
+        dict(r)
+        for r in conn.execute(
+            "SELECT correspondent AS name, COUNT(*) AS count FROM documents "
+            "WHERE correspondent IS NOT NULL AND correspondent != '' "
+            "GROUP BY correspondent ORDER BY count DESC, name"
+        )
+    ]
 
 
 def list_documents(
@@ -246,10 +273,13 @@ def list_documents(
     category: str | None = None,
     status: str | None = None,
     limit: int = 50,
+    correspondent: str | None = None,
+    date_from: str | None = None,
+    date_to: str | None = None,
 ) -> list[dict]:
     """No query: newest first. With query: hybrid FTS+vector RRF ranking."""
     limit = max(1, min(limit, 200))
-    allowed_ids = _filtered_ids(conn, category, status)
+    allowed_ids = _filtered_ids(conn, category, status, correspondent, date_from, date_to)
 
     if not query:
         sql = "SELECT id FROM documents"
@@ -316,7 +346,8 @@ def list_documents(
     for doc_id in ids:
         row = conn.execute(
             "SELECT id, title, correspondent, correspondent_place, category, document_date, "
-            "reference, language, summary, keywords, status, created_at "
+            "reference, language, summary, keywords, status, created_at, "
+            "(SELECT COUNT(*) FROM pages WHERE document_id = documents.id) AS page_count "
             "FROM documents WHERE id = ?",
             (doc_id,),
         ).fetchone()

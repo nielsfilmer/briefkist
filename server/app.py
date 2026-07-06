@@ -125,6 +125,9 @@ def list_documents(
     category: str | None = None,
     status: str | None = None,
     limit: int = 50,
+    correspondent: str | None = None,
+    date_from: str | None = None,
+    date_to: str | None = None,
 ) -> list[dict]:
     query_embedding = None
     if query and semantic:
@@ -133,8 +136,21 @@ def list_documents(
         except Exception:  # noqa: BLE001 — degrade to keyword-only search
             log.warning("query embedding unavailable; keyword-only")
     return store.list_documents(
-        conn, query, query_embedding, category, status, min(limit, 200)
+        conn,
+        query,
+        query_embedding,
+        category,
+        status,
+        min(limit, 200),
+        correspondent,
+        date_from,
+        date_to,
     )
+
+
+@app.get("/api/correspondents")
+def list_correspondents(device: Device, conn: Conn) -> list[dict]:
+    return store.list_correspondents(conn)
 
 
 @app.get("/api/documents/{doc_id}")
