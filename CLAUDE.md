@@ -40,11 +40,10 @@ Every task ends with a pull request. Do **not** push directly to `main`.
      drives that instance (hit its endpoints / drive it with a browser if the QA
      agent has one) and reads the screenshot, confirming the change **visually +
      functionally**, not just by reading the diff:
-     - **Frontend:** pixel-perfect against the design reference (none yet — no
-       Figma/design system is set up; the Flutter UI in plan.md §6.7 is not built
-       yet, so the pixel-perfect pass does not apply until one exists): spacing,
-       colour, type, the right states — and that it actually works: the happy path
-       plus the specific change.
+     - **Frontend:** pixel-perfect against the design reference — **the mirror in
+       `design/`** (brand + tokens in `design/readme.md` + `design/tokens/`, screen
+       truth in `design/ui_kits/`): spacing, colour, type, the right states — and
+       that it actually works: the happy path plus the specific change.
      - **Plus what a QAer normally tests:** edge cases, empty/loading/error
        states, invalid input + boundaries, and regressions in adjacent features
        — plus responsive/mobile, keyboard + a11y, and reconnect *where a live
@@ -173,9 +172,9 @@ pass. Read `gh pr diff N -R nielsfilmer/my-flopy` and CLAUDE.md to learn what ch
 
 Verify:
 - It works: the happy path + the specific change behaves as intended.
-- Frontend → pixel-perfect against the design reference (none yet — no Figma/design
-  system is set up; skip the pixel-perfect pass until one exists): spacing, colour,
-  type, and the correct states.
+- Frontend → pixel-perfect against the design reference — the mirror in `design/`
+  (tokens in `design/tokens/`, screen truth in `design/ui_kits/`, brand rules in
+  `design/readme.md`): spacing, colour, type, and the correct states.
 - What a QAer normally tests: edge cases, empty/loading/error states, invalid
   input + boundaries, and regressions in adjacent features. Checks that need a
   live browser you may not have (responsive/mobile resize, keyboard + a11y,

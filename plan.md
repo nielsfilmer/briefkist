@@ -661,6 +661,17 @@ and corrections are audited for §12.)*
 - ~~Review queue for low-confidence documents.~~ *(Removed 2026-07-04, decision
   log #11.)*
 
+### Phase — Native apps *(inserted 2026-07-06, decision log v0.5)*
+- **Flutter iOS + macOS apps** (one codebase, `app/`) built against the design
+  system mirrored in `design/`: archive browse/search/detail with inline
+  correction, mobile capture (VisionKit scanner; photo-library fallback) +
+  desktop drag-and-drop upload, onboarding, settings.
+- **Device pairing UX**: backend QR/token mint + device list + revoke endpoints
+  on top of the existing per-device token auth (CLI path stays).
+- Fonts (OFL) + Lucide icons **bundled in the binaries** — no CDN (v0.5 #16).
+- Web app stays as the zero-install fallback; restyle = follow-up #30.
+- Live state: milestone "Native apps" + tracker issue #29.
+
 ### Phase 3 — Polish & daily-driver
 - Multi-page robustness, duplicate detection, bulk edit, retention rules.
 - Push notifications, offline capture queue~~, reminders for due dates~~
