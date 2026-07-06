@@ -48,7 +48,7 @@ def _save(tokens: dict[str, dict]) -> None:
     # Atomic replace: a concurrent _load must never see a half-written file
     # (review #40). 0600 from the first byte; os.replace also normalizes
     # perms on files created before this hardening.
-    tmp = config.TOKENS_PATH.with_suffix(".json.tmp")
+    tmp = config.TOKENS_PATH.with_suffix(f".json.{os.getpid()}.tmp")
     fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
     with os.fdopen(fd, "w", encoding="utf-8") as fh:
         json.dump(tokens, fh, indent=2)
@@ -77,7 +77,10 @@ def validate_name(name: object) -> str:
         raise BadDeviceName("device name too long (max 64)")
     if name.startswith("_"):
         raise BadDeviceName("device names may not start with '_'")
-    if any(ch == "/" or ord(ch) < 32 or ord(ch) == 127 for ch in name):
+    if any(
+        ch == "/" or ord(ch) < 32 or 127 <= ord(ch) <= 159 or ch in "\u2028\u2029"
+        for ch in name
+    ):
         raise BadDeviceName("device names may not contain '/' or control characters")
     return name
 
