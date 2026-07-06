@@ -26,7 +26,7 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setattr(app_module.worker, "nudge", lambda: None)
     # TestClient's request host is "testclient" (not loopback), so the
     # no-tokens bootstrap exception doesn't apply — authenticate like a device
-    token = auth.add_device("test-device")
+    token, _ = auth.add_device("test-device")
     with TestClient(app_module.app) as c:
         c.headers.update({"Authorization": f"Bearer {token}"})
         yield c
@@ -132,7 +132,7 @@ def test_auth_enforced(client):
     assert bad.status_code == 401
     assert client.get("/api/documents", headers={"Authorization": ""}).status_code == 401
     # a second device can be added and revoked
-    token2 = auth_module.add_device("second-phone")
+    token2, _ = auth_module.add_device("second-phone")
     ok = client.get("/api/documents", headers={"Authorization": f"Bearer {token2}"})
     assert ok.status_code == 200
     assert auth_module.revoke_device("second-phone")
@@ -244,3 +244,93 @@ def test_malformed_date_params_rejected_at_edge(client):
         "/api/documents", params={"date_from": "2026-01-03", "semantic": "false"}
     )
     assert r.status_code == 200
+
+
+def test_device_pairing_lifecycle(client):
+    # list: only the fixture device, no tokens exposed
+    r = client.get("/api/devices")
+    assert r.status_code == 200
+    devices = r.json()
+    assert [d["name"] for d in devices] == ["test-device"]
+    assert all("token" not in d for d in devices)
+
+    # mint: token shown exactly once
+    r = client.post("/api/devices", json={"name": "kitchen-ipad"})
+    assert r.status_code == 201
+    minted = r.json()
+    assert minted["name"] == "kitchen-ipad" and len(minted["token"]) > 20
+    assert minted["created"]  # ISO date
+
+    # the minted token authenticates
+    r = client.get(
+        "/api/devices", headers={"Authorization": f"Bearer {minted['token']}"}
+    )
+    assert r.status_code == 200
+    assert [d["name"] for d in r.json()] == ["kitchen-ipad", "test-device"]
+
+    # duplicate name → 409; junk names → 422
+    assert client.post("/api/devices", json={"name": "kitchen-ipad"}).status_code == 409
+    assert client.post("/api/devices", json={"name": "  "}).status_code == 422
+    assert client.post("/api/devices", json={"name": "x" * 65}).status_code == 422
+    # review #40: '/' would be irrevocable via the path param; control chars
+    # would allow log injection; leading '_' collides with the bootstrap
+    # sentinel namespace; non-strings must not 500
+    assert client.post("/api/devices", json={"name": "a/b"}).status_code == 422
+    assert client.post("/api/devices", json={"name": "a\nb"}).status_code == 422
+    assert client.post("/api/devices", json={"name": "_shadow"}).status_code == 422
+    assert client.post("/api/devices", json={"name": 42}).status_code == 422
+
+    # can't revoke yourself; revoking the other device works and kills its token
+    assert client.delete("/api/devices/test-device").status_code == 409
+    assert client.delete("/api/devices/kitchen-ipad").status_code == 204
+    assert client.delete("/api/devices/kitchen-ipad").status_code == 404
+    r = client.get(
+        "/api/devices", headers={"Authorization": f"Bearer {minted['token']}"}
+    )
+    assert r.status_code == 401
+
+
+def test_legacy_flat_token_file_still_authenticates(client, tmp_path):
+    """Pre-pairing tokens.json stored name -> bare token string."""
+    from server import auth, config
+
+    config.TOKENS_PATH.write_text('{"old-phone": "legacy-token-value"}')
+    r = client.get(
+        "/api/devices", headers={"Authorization": "Bearer legacy-token-value"}
+    )
+    assert r.status_code == 200
+    assert r.json() == [{"name": "old-phone", "created": None}]
+    # a save (via add) rewrites the file in the new shape without breaking auth
+    auth.add_device("new-phone")  # returns (token, created)
+    r = client.get(
+        "/api/devices", headers={"Authorization": "Bearer legacy-token-value"}
+    )
+    assert r.status_code == 200
+
+
+def test_bootstrap_loopback_can_mint_first_token(tmp_path, monkeypatch):
+    """First-run: with NO tokens configured, a loopback caller may mint the
+    first device; that immediately closes bootstrap (review #40 test gap)."""
+    monkeypatch.setenv("FLOPY_DATA_DIR", str(tmp_path / "archive"))
+    import importlib
+
+    from fastapi.testclient import TestClient
+
+    from server import app as app_module
+    from server import auth, config, db
+
+    importlib.reload(config)
+    importlib.reload(db)
+    importlib.reload(auth)
+    importlib.reload(app_module)
+    monkeypatch.setattr(app_module.worker, "start", lambda: None)
+    monkeypatch.setattr(app_module.worker, "stop", lambda: None)
+    with TestClient(app_module.app, client=("127.0.0.1", 50000)) as c:
+        r = c.post("/api/devices", json={"name": "first-phone"})
+        assert r.status_code == 201
+        token = r.json()["token"]
+        # bootstrap is now closed: unauthenticated loopback is rejected...
+        assert c.get("/api/devices").status_code == 401
+        # ...and the minted token works
+        r = c.get("/api/devices", headers={"Authorization": f"Bearer {token}"})
+        assert r.status_code == 200

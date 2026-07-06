@@ -23,14 +23,22 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.cmd == "add":
-        token = auth.add_device(args.name)
+        try:
+            token, _created = auth.add_device(args.name)
+        except auth.BadDeviceName as exc:
+            raise SystemExit(str(exc)) from None
+        except auth.DeviceExists:
+            raise SystemExit(
+                f"device {args.name!r} already exists (revoke first to rotate)"
+            ) from None
         print(f"device {args.name!r} added; token (store it in the app, shown once):")
         print(token)
     elif args.cmd == "revoke":
         print("revoked" if auth.revoke_device(args.name) else "no such device")
     else:
-        for name in auth.list_devices():
-            print(name)
+        for entry in auth.list_devices():
+            created = entry["created"] or "?"
+            print(f"{entry['name']}\t(paired {created})")
 
 
 if __name__ == "__main__":
