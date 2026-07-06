@@ -129,9 +129,10 @@ class _CaptureScreenState extends State<CaptureScreen> {
     try {
       await widget.uploads.upload(pages);
       if (mounted) setState(_pendingPages.clear);
-    } on ServerUnreachable {
-      _toastUploadFailure();
-    } on ApiError {
+    } catch (_) {
+      // The controller already classified the failure (honest failureDetail
+      // on the pending entry) — every failure type gets the same toast
+      // (review #39 round-2 nit 3: Error subtypes were silent).
       _toastUploadFailure();
     } finally {
       if (mounted) setState(() => _uploading = false);

@@ -405,8 +405,6 @@ class _RecentRowState extends State<_RecentRow> {
   }
 }
 
-/// Relative time from the server's UTC 'YYYY-MM-DD HH:MM:SS' timestamps.
-
 /// 1.5px dashed rounded border, matching the kit's CSS `1.5px dashed`.
 class _DashedBorderPainter extends CustomPainter {
   _DashedBorderPainter({required this.color, required this.radius});

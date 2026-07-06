@@ -71,10 +71,11 @@ class UploadsController extends ChangeNotifier {
           : 'Your server rejected the upload (HTTP ${e.status}).';
       _notify();
       rethrow;
-    } on Exception {
-      // Anything escaping the client's taxonomy must still fail the entry —
-      // otherwise the row is stuck on "Uploading…" and the poll never stops
-      // (review #39 blocking 1).
+    } catch (_) {
+      // Anything escaping the client's taxonomy — Exception OR Error (e.g. a
+      // cast failure on a malformed 2xx body) — must still fail the entry,
+      // or the row is stuck on "Uploading…" and the poll never stops
+      // (review #39 blocking 1 + round-2 nit 3). Rethrown for the caller.
       entry.failed = true;
       entry.failureDetail = 'The upload failed before reaching your server.';
       _notify();
