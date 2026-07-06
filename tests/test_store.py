@@ -247,3 +247,79 @@ def test_sanity_cap_still_applies(conn):
     a = _make_doc(conn, "a", "yya", embedding=_emb_at_distance(0.70))
     hits = store.list_documents(conn, query="zzzznomatch", query_embedding=_QUERY_EMB)
     assert a not in [h["id"] for h in hits]
+
+
+def _set_meta(conn, doc_id, correspondent=None, document_date=None):
+    conn.execute(
+        "UPDATE documents SET correspondent=?, document_date=? WHERE id=?",
+        (correspondent, document_date, doc_id),
+    )
+    conn.commit()
+
+
+def test_list_filters_correspondent_and_date_range(conn):
+    a = _make_doc(conn, "polis", "verzekering")
+    b = _make_doc(conn, "jaaropgave", "belasting")
+    c = _make_doc(conn, "afspraak", "cardiologie")
+    _set_meta(conn, a, "Zilveren Kruis", "2026-03-12")
+    _set_meta(conn, b, "Belastingdienst", "2026-01-28")
+    _set_meta(conn, c, "UMC Utrecht", None)  # NULL date: never matches a range
+
+    hits = store.list_documents(conn, correspondent="Belastingdienst")
+    assert [h["id"] for h in hits] == [b]
+
+    hits = store.list_documents(conn, date_from="2026-02-01")
+    assert [h["id"] for h in hits] == [a]
+
+    hits = store.list_documents(conn, date_from="2026-01-01", date_to="2026-01-31")
+    assert [h["id"] for h in hits] == [b]
+
+    # range filters compose with a query (hybrid path)
+    hits = store.list_documents(conn, query="belasting", date_to="2026-12-31")
+    assert [h["id"] for h in hits] == [b]
+
+
+def test_list_projection_includes_page_count(conn):
+    a = _make_doc(conn, "twee paginas", "pagina een")
+    store.add_page(conn, a, 2, f"/tmp/{a}_2.jpg")
+    conn.commit()
+    hits = store.list_documents(conn)
+    assert hits[0]["page_count"] == 2
+
+
+def test_list_correspondents_counts_and_order(conn):
+    a = _make_doc(conn, "a", "x")
+    b = _make_doc(conn, "b", "y")
+    c = _make_doc(conn, "c", "z")
+    _set_meta(conn, a, "Zilveren Kruis", None)
+    _set_meta(conn, b, "Zilveren Kruis", None)
+    _set_meta(conn, c, "Belastingdienst", None)
+    got = store.list_correspondents(conn)
+    assert got == [
+        {"name": "Zilveren Kruis", "count": 2},
+        {"name": "Belastingdienst", "count": 1},
+    ]
+
+
+def test_list_date_to_alone_no_query(conn):
+    a = _make_doc(conn, "vroeg", "januari brief")
+    b = _make_doc(conn, "laat", "december brief")
+    _set_meta(conn, a, None, "2026-01-05")
+    _set_meta(conn, b, None, "2026-11-30")
+    hits = store.list_documents(conn, date_to="2026-06-30")
+    assert [h["id"] for h in hits] == [a]
+
+
+def test_list_correspondents_tiebreak_and_empty_excluded(conn):
+    a = _make_doc(conn, "a", "x")
+    b = _make_doc(conn, "b", "y")
+    c = _make_doc(conn, "c", "z")
+    _set_meta(conn, a, "Ziggo", None)
+    _set_meta(conn, b, "Belastingdienst", None)
+    _set_meta(conn, c, "", None)  # empty string excluded like NULL
+    got = store.list_correspondents(conn)
+    # equal counts -> alphabetical
+    assert got == [
+        {"name": "Belastingdienst", "count": 1},
+        {"name": "Ziggo", "count": 1},
+    ]

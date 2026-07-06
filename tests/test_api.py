@@ -209,3 +209,38 @@ def test_search_keyword_only_without_ollama(client, monkeypatch):
     monkeypatch.setattr(app_module, "embed", boom)
     r = client.get("/api/documents", params={"query": "anything"})
     assert r.status_code == 200
+
+
+def test_list_filter_params_and_correspondents_endpoint(client):
+    """The list filters + /api/correspondents wiring (store logic is covered
+    in test_store.py; here: params reach the store and auth applies)."""
+    r = client.get(
+        "/api/documents",
+        params={
+            "correspondent": "Zilveren Kruis",
+            "date_from": "2026-01-01",
+            "date_to": "2026-12-31",
+            "semantic": "false",
+        },
+    )
+    assert r.status_code == 200
+    assert r.json() == []
+
+    r = client.get("/api/correspondents")
+    assert r.status_code == 200
+    assert r.json() == []
+
+    # auth still required
+    r = client.get("/api/correspondents", headers={"Authorization": "Bearer wrong"})
+    assert r.status_code == 401
+
+
+def test_malformed_date_params_rejected_at_edge(client):
+    """Review N1: only true ISO dates may reach the store's string compare."""
+    for bad in ("31-12-2026", "2026/01/01", "2026-1-3", "not-a-date"):
+        r = client.get("/api/documents", params={"date_from": bad, "semantic": "false"})
+        assert r.status_code == 422, bad
+    r = client.get(
+        "/api/documents", params={"date_from": "2026-01-03", "semantic": "false"}
+    )
+    assert r.status_code == 200
