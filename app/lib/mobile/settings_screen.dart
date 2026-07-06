@@ -128,7 +128,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ],
     );
-    if (confirmed != true || !mounted) return;
+    // The connection config may have changed while the dialog was open —
+    // never revoke through a client that is no longer the current one.
+    if (confirmed != true || !mounted || !identical(client, _devicesClient)) {
+      return;
+    }
     try {
       await client.revokeDevice(name);
     } on ServerUnreachable {
@@ -422,6 +426,17 @@ class _PairSheetBodyState extends State<_PairSheetBody> {
     final name = _name.text.trim();
     if (name.isEmpty) {
       setState(() => _nameError = 'Give the device a name.');
+      return;
+    }
+    // The QR embeds widget.serverUrl verbatim; a loopback address only
+    // resolves on THIS device, so the minted code could never connect
+    // another one (PR #42 finding 2).
+    if (AppConfig.isLoopbackServerUrl(widget.serverUrl)) {
+      setState(
+        () => _nameError =
+            'This device reaches the server at a loopback address — another '
+            "device can't. Set the server's LAN address in Connection first.",
+      );
       return;
     }
     setState(() {

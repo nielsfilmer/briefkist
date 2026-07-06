@@ -64,6 +64,16 @@ class AppConfig extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Whether [serverUrl]'s host is a loopback address ('127.0.0.1',
+  /// 'localhost', '::1') — reachable only from the machine it names. A
+  /// pairing code that embeds it could never connect another device
+  /// (PR #42 finding 2). Note this needs the URL's HOST specifically
+  /// ([serverHost] falls back to the raw URL when it can't parse).
+  static bool isLoopbackServerUrl(String serverUrl) {
+    final host = Uri.tryParse(_normalize(serverUrl))?.host ?? '';
+    return host == '127.0.0.1' || host == 'localhost' || host == '::1';
+  }
+
   static String _normalize(String url) {
     var u = url.trim();
     if (!u.contains('://')) u = 'http://$u';

@@ -55,6 +55,10 @@ class _SettingsContentState extends State<SettingsContent> {
   String? _thisDevice;
   bool _devicesOffline = false;
 
+  /// The server answered the device-list call but refused it (401/403, …):
+  /// hide the pairing sections quietly, like mobile (PR #42 finding 3).
+  bool _devicesDenied = false;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -64,13 +68,14 @@ class _SettingsContentState extends State<SettingsContent> {
       _serverController.text = config.serverUrl;
       _tokenController.text = config.token;
     }
-    if (config.client != _devicesClient) {
+    if (!identical(config.client, _devicesClient)) {
       _devicesClient = config.client;
       _minted = null; // a minted code belongs to the previous server
       _showToken = false;
       _devices = null;
       _thisDevice = null;
       _devicesOffline = false;
+      _devicesDenied = false;
       _refreshDevices();
     }
   }
@@ -101,22 +106,39 @@ class _SettingsContentState extends State<SettingsContent> {
     List<PairedDevice> devices;
     try {
       devices = await client.listDevices();
-    } on Exception {
-      if (!mounted || client != _devicesClient) return;
+    } on ServerUnreachable {
+      if (!mounted || !identical(client, _devicesClient)) return;
       setState(() => _devicesOffline = true);
+      return;
+    } on ApiError {
+      // The server answered but refused (401/403, …) — that is NOT
+      // "unreachable", so don't claim it is. Hide the pairing sections
+      // quietly, like mobile does (PR #42 finding 3).
+      if (!mounted || !identical(client, _devicesClient)) return;
+      setState(() {
+        _devices = null;
+        _devicesOffline = false;
+        _devicesDenied = true;
+      });
       return;
     }
     String? thisDevice;
     try {
       thisDevice = await client.whoami();
     } on Exception {
-      thisDevice = null; // tokenless loopback bootstrap — no marker then
+      // Only a genuinely failed call lands here. Tokenless loopback
+      // bootstrap does NOT throw: the server returns the
+      // '_bootstrap_loopback' sentinel, which can never collide with a real
+      // device (validate_name forbids leading underscores), so the
+      // "this device" marker simply never matches then.
+      thisDevice = null;
     }
-    if (!mounted || client != _devicesClient) return;
+    if (!mounted || !identical(client, _devicesClient)) return;
     setState(() {
       _devices = devices;
       _thisDevice = thisDevice;
       _devicesOffline = false;
+      _devicesDenied = false;
     });
   }
 
@@ -128,13 +150,24 @@ class _SettingsContentState extends State<SettingsContent> {
       setState(() => _deviceNameError = 'Give the device a name.');
       return;
     }
+    // A pairing code embeds the configured server URL verbatim; a loopback
+    // address only resolves on THIS machine, so the minted code could never
+    // connect another device (PR #42 finding 2).
+    if (AppConfig.isLoopbackServerUrl(AppConfigScope.of(context).serverUrl)) {
+      setState(
+        () => _deviceNameError =
+            'This device reaches the server at a loopback address — another '
+            "device can't. Set the server's LAN address in Connection first.",
+      );
+      return;
+    }
     setState(() {
       _minting = true;
       _deviceNameError = null;
     });
     try {
       final minted = await client.addDevice(name);
-      if (!mounted || client != _devicesClient) return;
+      if (!mounted || !identical(client, _devicesClient)) return;
       setState(() {
         _minted = minted;
         _showToken = false;
@@ -182,7 +215,9 @@ class _SettingsContentState extends State<SettingsContent> {
         ),
       ],
     );
-    if (confirmed != true || !mounted || client != _devicesClient) return;
+    if (confirmed != true || !mounted || !identical(client, _devicesClient)) {
+      return;
+    }
     try {
       await client.revokeDevice(name);
     } on ApiError catch (e) {
@@ -267,7 +302,9 @@ class _SettingsContentState extends State<SettingsContent> {
                 ),
               ),
 
-              if (config.isConfigured && config.client != null) ...[
+              if (config.isConfigured &&
+                  config.client != null &&
+                  !_devicesDenied) ...[
                 _sideLabel(mf, 'Pair a device'),
                 _pairCard(mf, config),
                 _sideLabel(mf, 'Paired devices'),

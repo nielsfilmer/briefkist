@@ -83,7 +83,9 @@ class _ScanPairingScreenState extends State<ScanPairingScreen>
   }
 
   void _onDetect(BarcodeCapture capture) {
-    if (_handled) return;
+    // isCurrent: a system back-gesture pops without going through _close(),
+    // so a barcode landing during that transition must not pop again.
+    if (_handled || ModalRoute.of(context)?.isCurrent != true) return;
     for (final barcode in capture.barcodes) {
       final raw = barcode.rawValue;
       if (raw == null) continue;
@@ -108,6 +110,9 @@ class _ScanPairingScreenState extends State<ScanPairingScreen>
 
   void _close() {
     if (_handled) return;
+    // Claim the pop before it happens: a barcode detected during the pop
+    // transition must not trigger a second pop from _onDetect.
+    _handled = true;
     unawaited(_controller.stop());
     Navigator.of(context).maybePop();
   }
