@@ -13,13 +13,16 @@ import '../design/widgets/mf_privacy_mark.dart';
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({
     super.key,
+    required this.onScan,
     required this.onPair,
     required this.onDone,
   });
 
-  /// Jump to settings to enter the server address / device token. The kit's
-  /// step-2 CTA is "Scan the code"; QR pairing lands in the pairing PR
-  /// (tracker #29), so until then both the CTA and the alt link route here.
+  /// The kit's step-2 CTA "Scan the code" — open the QR pairing scanner.
+  final VoidCallback onScan;
+
+  /// The step-2 alt link "or paste a device token" — jump to settings to
+  /// enter the server address / device token by hand.
   final VoidCallback onPair;
 
   /// Finished (or skipped past) the walkthrough — go capture.
@@ -35,7 +38,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final mf = context.mf;
-    // Kit copy, verbatim (only the pairing CTA differs — see [onPair]).
+    // Kit copy, verbatim.
     final (art, title, body, cta, VoidCallback onCta) = switch (_step) {
       0 => (
         MfMark(size: 64, color: mf.accent),
@@ -49,13 +52,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       1 => (
         MfIcon(MfGlyphs.qr, size: 56, color: mf.accent),
         'Pair with your server.',
-        // Kit copy promises QR scanning; that arrives with the pairing PR —
-        // stay honest until then (review #39 observation).
-        'Open my-flopy on the computer that runs your archive and copy its '
-            'address into settings. This phone will talk only to your own '
-            'server.',
-        'Set the server address',
-        widget.onPair,
+        'Open my-flopy on the computer that runs your archive and scan the '
+            'code it shows. This phone will talk only to your own server.',
+        'Scan the code',
+        widget.onScan,
       ),
       _ => (
         MfIcon(MfGlyphs.camera, size: 56, color: mf.accent),

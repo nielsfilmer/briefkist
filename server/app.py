@@ -247,6 +247,13 @@ def delete_failed_document(device: Device, conn: Conn, doc_id: int) -> None:
 # the token returned here; tokens are shown exactly once and never listed.
 
 
+@app.get("/api/whoami")
+def whoami(device: Device) -> dict:
+    """The device name this request authenticated as — lets the apps mark
+    'this device' in the paired-devices list."""
+    return {"device": device}
+
+
 @app.get("/api/devices")
 def list_devices(device: Device) -> list[dict]:
     return auth.list_devices()

@@ -65,8 +65,22 @@ happen; don't wait.
     (open the filed document); desktop copy "Photos or PDFs" → "Photos"
     (PDF import is a later phase); pending rows say "Letter · N pages";
     onboarding step 2 says "copy its address into settings" until QR pairing
-    ships. Design could adopt the tray scroll, the badge-not-toast rule, and
-    the empty-list hints.
+    ships (superseded — QR pairing shipped in the pairing PR; step 2 is back
+    to the kit copy). Design could adopt the tray scroll, the badge-not-toast
+    rule, and the empty-list hints.
+
+11. **Pairing implementation notes (pairing PR).** (a) The kit shows an
+    always-visible QR on the settings pair card, but tokens are minted per
+    named device with enforced name uniqueness — so both surfaces replaced it
+    with a mint-on-demand flow: name field → "Create pairing code". (b) A QR
+    scanner screen exists on mobile (the kit has none), with forced-dark
+    chrome over the live camera feed (the feed isn't themed, so themed chrome
+    would be illegible in light mode). (c) QRs render black-on-white, never
+    themed — scanners need the contrast. (d) Mobile device rows gained
+    Revoke + "this device" (kit mobile rows show only paired dates). (e) The
+    mobile QR renders at 200px vs the kit sheet's 160px (scan reliability at
+    arm's length). Design could adopt the mint-on-demand card, spec the
+    scanner screen, and bless the QR contrast/size rules.
 
 ## Content / sample-data
 

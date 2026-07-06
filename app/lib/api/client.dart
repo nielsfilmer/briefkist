@@ -174,6 +174,64 @@ class FlopyClient {
     return (json as Map<String, dynamic>)['id'] as int;
   }
 
+  /// Paired devices — [{name, created}], tokens never included.
+  Future<List<PairedDevice>> listDevices() async {
+    final json = await _getJson('/api/devices') as List;
+    return [
+      for (final d in json) PairedDevice.fromJson(d as Map<String, dynamic>),
+    ];
+  }
+
+  /// Mint a token for a new device; the token is returned exactly once.
+  Future<MintedDevice> addDevice(String name) async {
+    final http.Response resp;
+    try {
+      resp = await _http
+          .post(
+            _uri('/api/devices'),
+            headers: {...authHeaders, 'Content-Type': 'application/json'},
+            body: jsonEncode({'name': name}),
+          )
+          .timeout(const Duration(seconds: 10));
+    } on Exception catch (e) {
+      throw ServerUnreachable(e);
+    }
+    if (resp.statusCode ~/ 100 != 2) {
+      throw ApiError(resp.statusCode, resp.body);
+    }
+    final dynamic json;
+    try {
+      json = jsonDecode(utf8.decode(resp.bodyBytes));
+    } on FormatException catch (e) {
+      throw ServerUnreachable(e);
+    }
+    return MintedDevice.fromJson(json as Map<String, dynamic>);
+  }
+
+  /// Revoke a paired device (409 for the calling device).
+  Future<void> revokeDevice(String name) async {
+    final http.Response resp;
+    try {
+      resp = await _http
+          .delete(
+            _uri('/api/devices/${Uri.encodeComponent(name)}'),
+            headers: authHeaders,
+          )
+          .timeout(const Duration(seconds: 10));
+    } on Exception catch (e) {
+      throw ServerUnreachable(e);
+    }
+    if (resp.statusCode ~/ 100 != 2) {
+      throw ApiError(resp.statusCode, resp.body);
+    }
+  }
+
+  /// The device name this client's token authenticates as.
+  Future<String> whoami() async {
+    final json = await _getJson('/api/whoami') as Map<String, dynamic>;
+    return json['device'] as String;
+  }
+
   /// URL of a page image; pass [authHeaders] to Image.network.
   Uri imageUri(int docId, int pageNo, {String kind = 'thumb'}) =>
       _uri('/api/documents/$docId/pages/$pageNo/image', {'kind': kind});

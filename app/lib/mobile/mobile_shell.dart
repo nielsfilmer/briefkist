@@ -11,11 +11,13 @@ import '../design/widgets/mf_button.dart';
 import '../design/widgets/mf_empty_state.dart';
 import '../design/widgets/mf_privacy_mark.dart';
 import '../design/widgets/mf_tab_bar.dart';
+import '../design/widgets/mf_toast.dart';
 import '../uploads_controller.dart';
 import 'archive_screen.dart';
 import 'capture_screen.dart';
 import 'document_detail_screen.dart';
 import 'onboarding_screen.dart';
+import 'scan_pairing_screen.dart';
 import 'settings_screen.dart';
 
 /// Phone layout: app header + active tab + bottom tab bar
@@ -181,11 +183,38 @@ class _MobileShellState extends State<MobileShell> {
     }
   }
 
+  /// Push the full-screen QR scanner; a scanned code pairs this phone with
+  /// the server, the paste fallback routes to manual entry in settings.
+  Future<void> _scanPairingCode() async {
+    final result = await Navigator.of(context).push<ScanPairingResult>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => const ScanPairingScreen(),
+      ),
+    );
+    if (!mounted) return;
+    switch (result) {
+      case ScanPairingScanned(:final serverUrl, :final token):
+        await AppConfigScope.of(
+          context,
+        ).setConnection(serverUrl: serverUrl, token: token);
+        if (!mounted) return;
+        // 76 clears the mobile tab bar (mf_toast.dart guidance).
+        showMfToast(context, 'Paired with your server.', bottomOffset: 76);
+        setState(() => _tab = 'capture');
+      case ScanPairingPasteFallback():
+        setState(() => _tab = 'settings');
+      case null:
+        break; // closed the scanner without pairing
+    }
+  }
+
   /// Capture/archive with no server configured: the onboarding walkthrough
   /// first, the plain pairing empty state once it's been dismissed.
   Widget _unconfiguredBody() {
     if (_onboarded) return _notConfigured();
     return OnboardingScreen(
+      onScan: _scanPairingCode,
       onPair: () => setState(() => _tab = 'settings'),
       // 'Open the camera' on the last step: land on capture — still
       // unconfigured, so it shows the pairing empty state (not the loop).
