@@ -299,3 +299,27 @@ def test_list_correspondents_counts_and_order(conn):
         {"name": "Zilveren Kruis", "count": 2},
         {"name": "Belastingdienst", "count": 1},
     ]
+
+
+def test_list_date_to_alone_no_query(conn):
+    a = _make_doc(conn, "vroeg", "januari brief")
+    b = _make_doc(conn, "laat", "december brief")
+    _set_meta(conn, a, None, "2026-01-05")
+    _set_meta(conn, b, None, "2026-11-30")
+    hits = store.list_documents(conn, date_to="2026-06-30")
+    assert [h["id"] for h in hits] == [a]
+
+
+def test_list_correspondents_tiebreak_and_empty_excluded(conn):
+    a = _make_doc(conn, "a", "x")
+    b = _make_doc(conn, "b", "y")
+    c = _make_doc(conn, "c", "z")
+    _set_meta(conn, a, "Ziggo", None)
+    _set_meta(conn, b, "Belastingdienst", None)
+    _set_meta(conn, c, "", None)  # empty string excluded like NULL
+    got = store.list_correspondents(conn)
+    # equal counts -> alphabetical
+    assert got == [
+        {"name": "Belastingdienst", "count": 1},
+        {"name": "Ziggo", "count": 1},
+    ]

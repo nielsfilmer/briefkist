@@ -233,3 +233,14 @@ def test_list_filter_params_and_correspondents_endpoint(client):
     # auth still required
     r = client.get("/api/correspondents", headers={"Authorization": "Bearer wrong"})
     assert r.status_code == 401
+
+
+def test_malformed_date_params_rejected_at_edge(client):
+    """Review N1: only true ISO dates may reach the store's string compare."""
+    for bad in ("31-12-2026", "2026/01/01", "2026-1-3", "not-a-date"):
+        r = client.get("/api/documents", params={"date_from": bad, "semantic": "false"})
+        assert r.status_code == 422, bad
+    r = client.get(
+        "/api/documents", params={"date_from": "2026-01-03", "semantic": "false"}
+    )
+    assert r.status_code == 200
