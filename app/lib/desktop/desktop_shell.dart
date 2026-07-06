@@ -157,6 +157,8 @@ class _DesktopShellState extends State<DesktopShell> {
   void _goTo(String nav) {
     // Newly filed documents must appear when the user returns to the archive.
     if (nav == 'archive' && _nav != 'archive') _controller?.refresh();
+    // Same for uploads: other devices' documents appear on return (QA #39).
+    if (nav == 'upload' && _nav != 'upload') _uploads?.refresh();
     setState(() {
       _nav = nav;
       _docId = null; // per kit: changing screen closes the open document

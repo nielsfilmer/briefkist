@@ -95,6 +95,9 @@ class _MobileShellState extends State<MobileShell> {
     // A letter uploaded on the capture tab should be there when the user
     // looks: refresh the archive whenever they switch to it.
     if (id == 'archive' && _tab != 'archive') _archive?.refresh();
+    // Documents uploaded by other devices only show up when this screen
+    // polls; returning to the tab is the natural refresh point (QA, PR #39).
+    if (id == 'capture' && _tab != 'capture') _uploads?.refresh();
     setState(() => _tab = id);
   }
 

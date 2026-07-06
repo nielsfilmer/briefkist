@@ -58,24 +58,27 @@ class _ThumbFrameState extends State<_ThumbFrame> {
           CustomPaint(
             painter: _HatchPainter(base: mf.surfaceCard, line: mf.surfaceInset),
           ),
-          Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 6),
-              decoration: BoxDecoration(
-                color: mf.surfaceCard,
-                borderRadius: BorderRadius.circular(3),
-              ),
-              child: Text(
-                'page scan',
-                style: TextStyle(
-                  fontFamily: MfFonts.mono,
-                  fontSize: 10,
-                  letterSpacing: 0.6, // 0.06em at 10px
-                  color: mf.text3,
+          // Below ~64px the pill label wraps mid-word ("pag e sca") — the
+          // hatch alone reads as "placeholder" at row-thumb sizes (QA #39).
+          if (s.width >= 64)
+            Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 6),
+                decoration: BoxDecoration(
+                  color: mf.surfaceCard,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+                child: Text(
+                  'page scan',
+                  style: TextStyle(
+                    fontFamily: MfFonts.mono,
+                    fontSize: 10,
+                    letterSpacing: 0.6, // 0.06em at 10px
+                    color: mf.text3,
+                  ),
                 ),
               ),
             ),
-          ),
         ],
         if (s.pageNumber != null)
           Positioned(
