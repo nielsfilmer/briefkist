@@ -302,8 +302,9 @@ sizing choice still assumes 8 GB; an upgrade to a 32 GB mini restores the
 8B-model path.
 
 Status: **executing — Phase 0 complete (GO, `docs/phase0/VERDICT.md`); Phase 1
-(end-to-end thin slice + search) built; native Flutter apps (iOS + macOS) in
-build against the `design/` design system (decision log v0.5)**.
+(end-to-end thin slice + search) built; native Flutter apps (iOS + macOS)
+**built and verified** against the `design/` design system (decision log v0.5;
+milestone "Native apps" — real-device pass + follow-ups still open)**.
 
 ## File map
 
@@ -340,6 +341,8 @@ build against the `design/` design system (decision log v0.5)**.
   the widget gallery. Built per plan.md v0.5.
 - [scripts/gen_flutter_tokens.py](scripts/gen_flutter_tokens.py) — oklch→sRGB
   token generator: `design/tokens/colors.css` → `app/lib/design/tokens.g.dart`.
+- [docs/design-feedback.md](docs/design-feedback.md) — the as-built deviation
+  log, finalized as the update prompt for the Claude Design project.
 - [docs/RUNBOOK.md](docs/RUNBOOK.md) — operations: services, phone setup,
   backup, model knobs, known limitations. **The owner-facing doc.**
 - `deploy/` — launchd agent template + `install.sh` (installs/updates the
