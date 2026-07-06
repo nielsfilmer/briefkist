@@ -7,6 +7,7 @@ Bind/auth posture: see config.py and auth.py (plan.md §5.1).
 from __future__ import annotations
 
 import contextlib
+import datetime
 import logging
 from pathlib import Path
 from typing import Annotated, Any
@@ -126,8 +127,10 @@ def list_documents(
     status: str | None = None,
     limit: int = 50,
     correspondent: str | None = None,
-    date_from: str | None = None,
-    date_to: str | None = None,
+    # datetime.date: FastAPI 422s malformed dates at the edge, so only true
+    # ISO strings reach the store's string-compare range filter
+    date_from: datetime.date | None = None,
+    date_to: datetime.date | None = None,
 ) -> list[dict]:
     query_embedding = None
     if query and semantic:
@@ -139,12 +142,12 @@ def list_documents(
         conn,
         query,
         query_embedding,
-        category,
-        status,
-        min(limit, 200),
-        correspondent,
-        date_from,
-        date_to,
+        category=category,
+        status=status,
+        limit=min(limit, 200),
+        correspondent=correspondent,
+        date_from=date_from.isoformat() if date_from else None,
+        date_to=date_to.isoformat() if date_to else None,
     )
 
 
