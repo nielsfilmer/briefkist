@@ -24,7 +24,9 @@ def main() -> None:
 
     if args.cmd == "add":
         try:
-            token = auth.add_device(args.name)
+            token, _created = auth.add_device(args.name)
+        except auth.BadDeviceName as exc:
+            raise SystemExit(str(exc)) from None
         except auth.DeviceExists:
             raise SystemExit(
                 f"device {args.name!r} already exists (revoke first to rotate)"

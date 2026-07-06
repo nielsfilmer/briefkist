@@ -254,18 +254,16 @@ def list_devices(device: Device) -> list[dict]:
 
 @app.post("/api/devices", status_code=201)
 def add_device(device: Device, body: dict) -> dict:
-    name = str(body.get("name") or "").strip()
-    if not name:
-        raise HTTPException(422, "device name required")
-    if len(name) > 64:
-        raise HTTPException(422, "device name too long (max 64)")
+    raw = body.get("name")
     try:
-        token = auth.add_device(name)
+        name = auth.validate_name(raw)
+        token, created = auth.add_device(name)
+    except auth.BadDeviceName as exc:
+        raise HTTPException(422, str(exc)) from None
     except auth.DeviceExists:
-        raise HTTPException(409, f"device {name!r} already exists") from None
+        raise HTTPException(409, "a device with that name already exists") from None
     log.info("device %s paired new device %s", device, name)
-    entry = next(e for e in auth.list_devices() if e["name"] == name)
-    return {"name": name, "token": token, "created": entry["created"]}
+    return {"name": name, "token": token, "created": created}
 
 
 @app.delete("/api/devices/{name}", status_code=204)
