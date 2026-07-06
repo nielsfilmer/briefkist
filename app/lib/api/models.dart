@@ -1,6 +1,8 @@
 // my-flopy — API models, mirroring the FastAPI backend's JSON
 // (server/store.py projections). Keep field names in sync with the server.
 
+import 'dart:convert';
+
 /// List-projection of a document (GET /api/documents).
 class DocumentSummary {
   const DocumentSummary({
@@ -186,3 +188,59 @@ String relativeTime(String? createdAt) {
   if (diff.inHours < 24) return '${diff.inHours} h ago';
   return formatDate(local.toIso8601String());
 }
+
+/// A paired device (GET /api/devices) — tokens are never listed.
+class PairedDevice {
+  const PairedDevice({required this.name, this.created});
+
+  final String name;
+
+  /// ISO date the device was paired, or null for pre-pairing tokens.
+  final String? created;
+
+  factory PairedDevice.fromJson(Map<String, dynamic> json) => PairedDevice(
+    name: json['name'] as String,
+    created: json['created'] as String?,
+  );
+}
+
+/// A freshly minted device (POST /api/devices) — the only time the token
+/// is ever visible.
+class MintedDevice {
+  const MintedDevice({required this.name, required this.token, this.created});
+
+  final String name;
+  final String token;
+  final String? created;
+
+  factory MintedDevice.fromJson(Map<String, dynamic> json) => MintedDevice(
+    name: json['name'] as String,
+    token: json['token'] as String,
+    created: json['created'] as String?,
+  );
+}
+
+/// The QR payload for pairing: what the phone scans from the desktop
+/// settings screen. JSON: {"flopy": 1, "url": ..., "token": ...} — the
+/// version key lets a future format evolve without breaking old scanners.
+String pairingPayload({required String serverUrl, required String token}) =>
+    '{"flopy":1,"url":${_jsonString(serverUrl)},"token":${_jsonString(token)}}';
+
+/// Parse a scanned pairing QR; returns (url, token) or null when it isn't
+/// a my-flopy pairing code.
+(String, String)? parsePairingPayload(String raw) {
+  try {
+    final decoded = jsonDecode(raw);
+    if (decoded is! Map<String, dynamic> || decoded['flopy'] != 1) return null;
+    final url = decoded['url'];
+    final token = decoded['token'];
+    if (url is! String || token is! String || url.isEmpty || token.isEmpty) {
+      return null;
+    }
+    return (url, token);
+  } on FormatException {
+    return null;
+  }
+}
+
+String _jsonString(String value) => jsonEncode(value);

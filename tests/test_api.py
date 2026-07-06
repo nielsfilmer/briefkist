@@ -334,3 +334,9 @@ def test_bootstrap_loopback_can_mint_first_token(tmp_path, monkeypatch):
         # ...and the minted token works
         r = c.get("/api/devices", headers={"Authorization": f"Bearer {token}"})
         assert r.status_code == 200
+
+
+def test_whoami_returns_authenticated_device(client):
+    r = client.get("/api/whoami")
+    assert r.status_code == 200
+    assert r.json() == {"device": "test-device"}
