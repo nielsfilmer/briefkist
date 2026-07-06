@@ -49,33 +49,37 @@ class _MfButtonState extends State<MfButton> {
 
   late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
     // Space (WidgetsApp) and Enter (Material) both activate.
-    ActivateIntent: CallbackAction<ActivateIntent>(onInvoke: (_) {
-      widget.onPressed?.call();
-      return null;
-    }),
-    ButtonActivateIntent: CallbackAction<ButtonActivateIntent>(onInvoke: (_) {
-      widget.onPressed?.call();
-      return null;
-    }),
+    ActivateIntent: CallbackAction<ActivateIntent>(
+      onInvoke: (_) {
+        widget.onPressed?.call();
+        return null;
+      },
+    ),
+    ButtonActivateIntent: CallbackAction<ButtonActivateIntent>(
+      onInvoke: (_) {
+        widget.onPressed?.call();
+        return null;
+      },
+    ),
   };
 
   double get _height => switch (widget.size) {
-        MfButtonSize.sm => 32,
-        MfButtonSize.md => 40,
-        MfButtonSize.lg => 48,
-      };
+    MfButtonSize.sm => 32,
+    MfButtonSize.md => 40,
+    MfButtonSize.lg => 48,
+  };
 
   double get _hPadding => switch (widget.size) {
-        MfButtonSize.sm => 12,
-        MfButtonSize.md => 16,
-        MfButtonSize.lg => 22,
-      };
+    MfButtonSize.sm => 12,
+    MfButtonSize.md => 16,
+    MfButtonSize.lg => 22,
+  };
 
   TextStyle get _baseStyle => switch (widget.size) {
-        MfButtonSize.sm => MfType.sm,
-        MfButtonSize.md => MfType.base,
-        MfButtonSize.lg => MfType.md,
-      };
+    MfButtonSize.sm => MfType.sm,
+    MfButtonSize.md => MfType.base,
+    MfButtonSize.lg => MfType.md,
+  };
 
   /// Resolved per-state colors, mirroring the .mfBtn--* CSS rules.
   ({Color bg, Color fg, Color border}) _colors(MfColors mf) {
@@ -93,8 +97,8 @@ class _MfButtonState extends State<MfButton> {
           bg: pressed
               ? mf.surfacePressed
               : hovered
-                  ? mf.surfaceHover
-                  : mf.surfaceCard,
+              ? mf.surfaceHover
+              : mf.surfaceCard,
           fg: mf.text1,
           border: mf.borderStrong,
         );
@@ -109,8 +113,8 @@ class _MfButtonState extends State<MfButton> {
           bg: pressed
               ? mf.surfacePressed
               : hovered
-                  ? mf.surfaceHover
-                  : Colors.transparent,
+              ? mf.surfaceHover
+              : Colors.transparent,
           fg: hovered || pressed ? mf.text1 : mf.text2,
           border: Colors.transparent,
         );
@@ -121,8 +125,10 @@ class _MfButtonState extends State<MfButton> {
   Widget build(BuildContext context) {
     final mf = context.mf;
     final c = _colors(mf);
-    final textStyle =
-        _baseStyle.copyWith(fontWeight: FontWeight.w600, color: c.fg);
+    final textStyle = _baseStyle.copyWith(
+      fontWeight: FontWeight.w600,
+      color: c.fg,
+    );
 
     Widget button = AnimatedContainer(
       duration: MfMotion.fast,
@@ -154,8 +160,9 @@ class _MfButtonState extends State<MfButton> {
     button = FocusableActionDetector(
       enabled: _enabled,
       actions: _actions,
-      mouseCursor:
-          _enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      mouseCursor: _enabled
+          ? SystemMouseCursors.click
+          : SystemMouseCursors.basic,
       onShowHoverHighlight: (v) => setState(() => _hovered = v),
       onShowFocusHighlight: (v) => setState(() => _focused = v),
       child: GestureDetector(

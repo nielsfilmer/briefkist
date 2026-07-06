@@ -59,10 +59,7 @@ class MfEmptyState extends StatelessWidget {
           ],
           if (action != null)
             // column gap (6) + the action's own margin-top (14)
-            Padding(
-              padding: const EdgeInsets.only(top: 20),
-              child: action!,
-            ),
+            Padding(padding: const EdgeInsets.only(top: 20), child: action!),
         ],
       ),
     );

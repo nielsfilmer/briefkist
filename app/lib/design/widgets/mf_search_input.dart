@@ -4,10 +4,11 @@ import 'package:flutter/material.dart';
 
 import '../mf_icons.dart';
 import '../mf_theme.dart';
+import 'mf_focus_ring.dart';
 
 /// Pill-shaped search field: 44px tall, full radius, leading search glyph.
 /// Focus shows the 2px plum ring (border goes transparent, as the mirror does).
-class MfSearchInput extends StatelessWidget {
+class MfSearchInput extends StatefulWidget {
   const MfSearchInput({
     super.key,
     this.controller,
@@ -22,34 +23,10 @@ class MfSearchInput extends StatelessWidget {
   final bool autofocus;
 
   @override
-  Widget build(BuildContext context) {
-    return _SearchField(
-      controller: controller,
-      onChanged: onChanged,
-      placeholder: placeholder,
-      autofocus: autofocus,
-    );
-  }
+  State<MfSearchInput> createState() => _MfSearchInputState();
 }
 
-class _SearchField extends StatefulWidget {
-  const _SearchField({
-    this.controller,
-    this.onChanged,
-    required this.placeholder,
-    required this.autofocus,
-  });
-
-  final TextEditingController? controller;
-  final ValueChanged<String>? onChanged;
-  final String placeholder;
-  final bool autofocus;
-
-  @override
-  State<_SearchField> createState() => _SearchFieldState();
-}
-
-class _SearchFieldState extends State<_SearchField> {
+class _MfSearchInputState extends State<MfSearchInput> {
   final FocusNode _focusNode = FocusNode();
   bool _focused = false;
 
@@ -73,7 +50,7 @@ class _SearchFieldState extends State<_SearchField> {
   @override
   Widget build(BuildContext context) {
     final mf = context.mf;
-    return _FocusRing(
+    return MfFocusRing(
       focused: _focused,
       radius: MfRadius.full,
       child: Container(
@@ -125,39 +102,3 @@ class _SearchFieldState extends State<_SearchField> {
 
 /// 2px plum focus ring drawn just outside the control (mirror: `outline: 2px
 /// solid var(--focus-ring); outline-offset: 1px`).
-class _FocusRing extends StatelessWidget {
-  const _FocusRing({
-    required this.focused,
-    required this.radius,
-    required this.child,
-  });
-
-  final bool focused;
-  final double radius;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        child,
-        if (focused)
-          Positioned(
-            left: -3,
-            top: -3,
-            right: -3,
-            bottom: -3,
-            child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(radius + 3),
-                  border: Border.all(color: context.mf.focusRing, width: 2),
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}

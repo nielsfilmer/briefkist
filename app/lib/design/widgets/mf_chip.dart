@@ -42,20 +42,26 @@ class _MfChipState extends State<MfChip> {
   bool get _interactive => widget.onTap != null;
 
   late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
-    ActivateIntent: CallbackAction<ActivateIntent>(onInvoke: (_) {
-      widget.onTap?.call();
-      return null;
-    }),
-    ButtonActivateIntent: CallbackAction<ButtonActivateIntent>(onInvoke: (_) {
-      widget.onTap?.call();
-      return null;
-    }),
+    ActivateIntent: CallbackAction<ActivateIntent>(
+      onInvoke: (_) {
+        widget.onTap?.call();
+        return null;
+      },
+    ),
+    ButtonActivateIntent: CallbackAction<ButtonActivateIntent>(
+      onInvoke: (_) {
+        widget.onTap?.call();
+        return null;
+      },
+    ),
   };
 
   @override
   Widget build(BuildContext context) {
     final mf = context.mf;
-    // Selected wins over hover, matching the source CSS cascade.
+    // Selected wins over hover. Deliberate divergence from the mirror, where
+    // `.mfChip--interactive:hover` out-specifies `.mfChip--selected` so hover
+    // repaints a selected chip — logged in docs/design-feedback.md #6.
     final Color bg;
     final Color fg;
     final Color border;
@@ -77,7 +83,10 @@ class _MfChipState extends State<MfChip> {
       height: 26,
       // The remove button carries margin-right:-4px in the source, so the
       // right padding shrinks from 11 to 7 when it is present.
-      padding: EdgeInsets.only(left: 11, right: widget.onRemove != null ? 7 : 11),
+      padding: EdgeInsets.only(
+        left: 11,
+        right: widget.onRemove != null ? 7 : 11,
+      ),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(MfRadius.full),

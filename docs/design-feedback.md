@@ -31,6 +31,13 @@ happen; don't wait.
    editable-but-unwired row would render a dead button). Suggest the design
    adopt "affordance only when actionable".
 
+6. **Chip: hover repaints a selected chip.** In the mirror,
+   `.mfChip--interactive:hover` out-specifies `.mfChip--selected`, so hovering
+   a selected chip swaps its accent tint for the generic hover surface. The
+   app keeps selected styling stable under hover (reads as less glitchy).
+   Suggest the design adopt `.mfChip--selected:hover` styling explicitly.
+   (Senior review finding, PR #32.)
+
 ## Content / sample-data
 
 5. **"Phone · Jasmijn"** (desktop kit, Settings → paired devices) may be a

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import '../mf_icons.dart';
 import '../mf_theme.dart';
+import 'mf_focus_ring.dart';
 
 /// Labelled select control: 40px tall, radius 6, 1px strong border, card
 /// surface, trailing 14px chevron. Opens a raised menu (card surface, radius
@@ -231,7 +232,7 @@ class _SelectControlState extends State<_SelectControl> {
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: _toggle,
-              child: _FocusRing(
+              child: MfFocusRing(
                 focused: _focused,
                 radius: MfRadius.md,
                 child: Container(
@@ -308,8 +309,9 @@ class _MenuItemState extends State<_MenuItem> {
   @override
   Widget build(BuildContext context) {
     final mf = context.mf;
-    final color =
-        widget.muted ? mf.text3 : (widget.selected ? mf.accent : mf.text1);
+    final color = widget.muted
+        ? mf.text3
+        : (widget.selected ? mf.accent : mf.text1);
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hover = true),
@@ -334,39 +336,3 @@ class _MenuItemState extends State<_MenuItem> {
 
 /// 2px plum focus ring drawn just outside the control (mirror: `outline: 2px
 /// solid var(--focus-ring); outline-offset: 1px`).
-class _FocusRing extends StatelessWidget {
-  const _FocusRing({
-    required this.focused,
-    required this.radius,
-    required this.child,
-  });
-
-  final bool focused;
-  final double radius;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        child,
-        if (focused)
-          Positioned(
-            left: -3,
-            top: -3,
-            right: -3,
-            bottom: -3,
-            child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(radius + 3),
-                  border: Border.all(color: context.mf.focusRing, width: 2),
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}

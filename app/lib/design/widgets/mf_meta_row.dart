@@ -137,21 +137,16 @@ class _MfMetaRowState extends State<MfMetaRow> {
   }
 
   Widget _correctedMark(MfColors mf) => Tooltip(
-        message: 'Corrected by you',
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            MfIcon(
-              MfGlyphs.check,
-              size: 11,
-              strokeWidth: 2.5,
-              color: mf.ok,
-            ),
-            const SizedBox(width: 4),
-            Text('corrected', style: MfType.monoXs.copyWith(color: mf.ok)),
-          ],
-        ),
-      );
+    message: 'Corrected by you',
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        MfIcon(MfGlyphs.check, size: 11, strokeWidth: 2.5, color: mf.ok),
+        const SizedBox(width: 4),
+        Text('corrected', style: MfType.monoXs.copyWith(color: mf.ok)),
+      ],
+    ),
+  );
 
   Widget _buildValue(MfColors mf) {
     if (widget.child != null) {
@@ -179,8 +174,8 @@ class _MfMetaRowState extends State<MfMetaRow> {
     final textStyle = !hasValue
         ? MfType.base.copyWith(color: mf.text3, fontStyle: FontStyle.italic)
         : widget.mono
-            ? MfType.mono.copyWith(color: mf.text1)
-            : MfType.base.copyWith(color: mf.text1);
+        ? MfType.mono.copyWith(color: mf.text1)
+        : MfType.base.copyWith(color: mf.text1);
 
     return Text.rich(
       TextSpan(
@@ -292,8 +287,10 @@ class _MfMetaRowState extends State<MfMetaRow> {
           isDense: true,
           filled: true,
           fillColor: mf.surfaceCard,
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 6,
+            horizontal: 10,
+          ),
           border: fieldBorder,
           enabledBorder: fieldBorder,
           focusedBorder: OutlineInputBorder(

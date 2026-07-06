@@ -104,10 +104,14 @@ class _MfToastHost extends StatefulWidget {
 
 class _MfToastHostState extends State<_MfToastHost>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller =
-      AnimationController(vsync: this, duration: MfMotion.base);
-  late final CurvedAnimation _t =
-      CurvedAnimation(parent: _controller, curve: MfMotion.curve);
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: MfMotion.base,
+  );
+  late final CurvedAnimation _t = CurvedAnimation(
+    parent: _controller,
+    curve: MfMotion.curve,
+  );
   Timer? _timer;
 
   @override

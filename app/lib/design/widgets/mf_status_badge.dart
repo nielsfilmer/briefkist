@@ -38,9 +38,10 @@ class _MfStatusBadgeState extends State<MfStatusBadge>
     vsync: this,
     duration: MfMotion.pulse ~/ 2,
   );
-  late final Animation<double> _dotOpacity = Tween<double>(begin: 1, end: 0.3)
-      .chain(CurveTween(curve: Curves.easeInOut))
-      .animate(_pulse);
+  late final Animation<double> _dotOpacity = Tween<double>(
+    begin: 1,
+    end: 0.3,
+  ).chain(CurveTween(curve: Curves.easeInOut)).animate(_pulse);
 
   @override
   void initState() {

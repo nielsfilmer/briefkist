@@ -21,9 +21,9 @@ Future<T?> showMfDialog<T>(
     transitionDuration: MfMotion.fast,
     transitionBuilder: (context, animation, secondaryAnimation, child) =>
         FadeTransition(
-      opacity: CurvedAnimation(parent: animation, curve: MfMotion.curve),
-      child: child,
-    ),
+          opacity: CurvedAnimation(parent: animation, curve: MfMotion.curve),
+          child: child,
+        ),
     pageBuilder: (context, animation, secondaryAnimation) => SafeArea(
       child: Center(
         child: Padding(

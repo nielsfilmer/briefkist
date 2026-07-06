@@ -39,7 +39,9 @@ class MfTabBar extends StatelessWidget {
         color: mf.surfacePage,
         border: Border(top: BorderSide(color: mf.border)),
       ),
-      padding: EdgeInsets.only(bottom: MediaQuery.viewPaddingOf(context).bottom),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.viewPaddingOf(context).bottom,
+      ),
       child: Row(
         children: [
           for (final item in list)
@@ -73,8 +75,7 @@ class _TabButtonState extends State<_TabButton> {
   @override
   Widget build(BuildContext context) {
     final mf = context.mf;
-    final color =
-        widget.active ? mf.accent : (_hover ? mf.text2 : mf.text3);
+    final color = widget.active ? mf.accent : (_hover ? mf.text2 : mf.text3);
     return Semantics(
       button: true,
       selected: widget.active,
@@ -100,8 +101,9 @@ class _TabButtonState extends State<_TabButton> {
                   style: MfType.xs.copyWith(
                     color: color,
                     height: 1,
-                    fontWeight:
-                        widget.active ? FontWeight.w600 : FontWeight.w400,
+                    fontWeight: widget.active
+                        ? FontWeight.w600
+                        : FontWeight.w400,
                   ),
                 ),
               ],

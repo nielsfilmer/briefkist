@@ -30,6 +30,9 @@ abstract final class MfSpace {
   static const s10 = 40.0;
   static const s11 = 48.0;
   static const s12 = 64.0;
+
+  /// Minimum touch target (`--hit-target` — a size token in spacing.css).
+  static const hitTarget = 44.0;
 }
 
 /// Radius scale — design/tokens/spacing.css `--radius-*`.
@@ -39,7 +42,6 @@ abstract final class MfRadius {
   static const lg = 10.0; // cards, menus
   static const xl = 16.0; // sheets, dialogs, image viewer
   static const full = 999.0; // chips, pills
-  static const hitTarget = 44.0; // minimum touch target
 }
 
 /// Motion — design/readme.md "Motion": quiet, 150–200ms ease-out, no bounces.
@@ -71,33 +73,49 @@ abstract final class MfType {
 
   /// Serif sizes — document titles and brand moments (Lora).
   static const serifMd = TextStyle(
-      fontFamily: MfFonts.serif,
-      fontSize: 17,
-      height: 1.35,
-      fontWeight: FontWeight.w600);
+    fontFamily: MfFonts.serif,
+    fontSize: 17,
+    height: 1.35,
+    fontWeight: FontWeight.w600,
+  );
   static const serifLg = TextStyle(
-      fontFamily: MfFonts.serif,
-      fontSize: 20,
-      height: 1.3,
-      fontWeight: FontWeight.w600);
+    fontFamily: MfFonts.serif,
+    fontSize: 20,
+    height: 1.3,
+    fontWeight: FontWeight.w600,
+  );
   static const serifXl = TextStyle(
-      fontFamily: MfFonts.serif,
-      fontSize: 24,
-      height: 1.3,
-      fontWeight: FontWeight.w600);
+    fontFamily: MfFonts.serif,
+    fontSize: 24,
+    height: 1.3,
+    fontWeight: FontWeight.w600,
+  );
   static const serif2xl = TextStyle(
-      fontFamily: MfFonts.serif,
-      fontSize: 30,
-      height: 1.25,
-      fontWeight: FontWeight.w600);
+    fontFamily: MfFonts.serif,
+    fontSize: 30,
+    height: 1.25,
+    fontWeight: FontWeight.w600,
+  );
 
   /// Mono — references, dates-in-metadata, technical trust moments.
-  static const mono = TextStyle(fontFamily: MfFonts.mono, fontSize: 13, height: 18 / 13);
-  static const monoXs = TextStyle(fontFamily: MfFonts.mono, fontSize: 12, height: 16 / 12);
+  static const mono = TextStyle(
+    fontFamily: MfFonts.mono,
+    fontSize: 13,
+    height: 18 / 13,
+  );
+  static const monoXs = TextStyle(
+    fontFamily: MfFonts.mono,
+    fontSize: 12,
+    height: 16 / 12,
+  );
 
   /// Mono all-caps label — `--tracking-caps: 0.08em` at 12px.
   static const monoCaps = TextStyle(
-      fontFamily: MfFonts.mono, fontSize: 12, height: 16 / 12, letterSpacing: 0.96);
+    fontFamily: MfFonts.mono,
+    fontSize: 12,
+    height: 16 / 12,
+    letterSpacing: 0.96,
+  );
 }
 
 /// Elevation — design/tokens/elevation.css. Flat by default; warm-tinted soft
@@ -105,22 +123,54 @@ abstract final class MfType {
 abstract final class MfShadows {
   static List<BoxShadow> raised(Brightness b) => b == Brightness.dark
       ? const [
-          BoxShadow(color: Color(0x40000000), offset: Offset(0, 1), blurRadius: 2),
-          BoxShadow(color: Color(0x4D000000), offset: Offset(0, 2), blurRadius: 8),
+          BoxShadow(
+            color: Color(0x40000000),
+            offset: Offset(0, 1),
+            blurRadius: 2,
+          ),
+          BoxShadow(
+            color: Color(0x4D000000),
+            offset: Offset(0, 2),
+            blurRadius: 8,
+          ),
         ]
       : const [
-          BoxShadow(color: Color(0x0F272229), offset: Offset(0, 1), blurRadius: 2),
-          BoxShadow(color: Color(0x14272229), offset: Offset(0, 2), blurRadius: 8),
+          BoxShadow(
+            color: Color(0x0F272229),
+            offset: Offset(0, 1),
+            blurRadius: 2,
+          ),
+          BoxShadow(
+            color: Color(0x14272229),
+            offset: Offset(0, 2),
+            blurRadius: 8,
+          ),
         ];
 
   static List<BoxShadow> overlay(Brightness b) => b == Brightness.dark
       ? const [
-          BoxShadow(color: Color(0x59000000), offset: Offset(0, 4), blurRadius: 12),
-          BoxShadow(color: Color(0x73000000), offset: Offset(0, 16), blurRadius: 40),
+          BoxShadow(
+            color: Color(0x59000000),
+            offset: Offset(0, 4),
+            blurRadius: 12,
+          ),
+          BoxShadow(
+            color: Color(0x73000000),
+            offset: Offset(0, 16),
+            blurRadius: 40,
+          ),
         ]
       : const [
-          BoxShadow(color: Color(0x1A272229), offset: Offset(0, 4), blurRadius: 12),
-          BoxShadow(color: Color(0x29272229), offset: Offset(0, 16), blurRadius: 40),
+          BoxShadow(
+            color: Color(0x1A272229),
+            offset: Offset(0, 4),
+            blurRadius: 12,
+          ),
+          BoxShadow(
+            color: Color(0x29272229),
+            offset: Offset(0, 16),
+            blurRadius: 40,
+          ),
         ];
 }
 

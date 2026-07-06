@@ -42,21 +42,25 @@ class _MfIconButtonState extends State<MfIconButton> {
 
   late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
     // Space (WidgetsApp) and Enter (Material) both activate.
-    ActivateIntent: CallbackAction<ActivateIntent>(onInvoke: (_) {
-      widget.onPressed?.call();
-      return null;
-    }),
-    ButtonActivateIntent: CallbackAction<ButtonActivateIntent>(onInvoke: (_) {
-      widget.onPressed?.call();
-      return null;
-    }),
+    ActivateIntent: CallbackAction<ActivateIntent>(
+      onInvoke: (_) {
+        widget.onPressed?.call();
+        return null;
+      },
+    ),
+    ButtonActivateIntent: CallbackAction<ButtonActivateIntent>(
+      onInvoke: (_) {
+        widget.onPressed?.call();
+        return null;
+      },
+    ),
   };
 
   double get _side => switch (widget.size) {
-        MfIconButtonSize.sm => 32,
-        MfIconButtonSize.md => 40,
-        MfIconButtonSize.lg => 44,
-      };
+    MfIconButtonSize.sm => 32,
+    MfIconButtonSize.md => 40,
+    MfIconButtonSize.lg => 44,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -66,8 +70,8 @@ class _MfIconButtonState extends State<MfIconButton> {
     final bg = pressed
         ? mf.surfacePressed
         : hovered
-            ? mf.surfaceHover
-            : Colors.transparent;
+        ? mf.surfaceHover
+        : Colors.transparent;
     final fg = hovered || pressed ? mf.text1 : mf.text2;
 
     Widget button = AnimatedContainer(
@@ -89,8 +93,9 @@ class _MfIconButtonState extends State<MfIconButton> {
     button = FocusableActionDetector(
       enabled: _enabled,
       actions: _actions,
-      mouseCursor:
-          _enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      mouseCursor: _enabled
+          ? SystemMouseCursors.click
+          : SystemMouseCursors.basic,
       onShowHoverHighlight: (v) => setState(() => _hovered = v),
       onShowFocusHighlight: (v) => setState(() => _focused = v),
       child: GestureDetector(

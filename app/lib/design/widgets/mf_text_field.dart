@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 
 import '../mf_theme.dart';
+import 'mf_focus_ring.dart';
 
 /// Labelled text input. 40px tall (multiline: 3 rows), radius 6, 1px strong
 /// border (error tone when [error]), card surface. Focus shows the 2px plum
@@ -127,8 +128,9 @@ class _FieldInputState extends State<_FieldInput> {
   @override
   Widget build(BuildContext context) {
     final mf = context.mf;
-    final style = (widget.mono ? MfType.mono : MfType.base)
-        .copyWith(color: mf.text1);
+    final style = (widget.mono ? MfType.mono : MfType.base).copyWith(
+      color: mf.text1,
+    );
     final decoration = BoxDecoration(
       color: mf.surfaceCard,
       borderRadius: BorderRadius.circular(MfRadius.md),
@@ -153,14 +155,13 @@ class _FieldInputState extends State<_FieldInput> {
       ),
     );
 
-    return _FocusRing(
+    return MfFocusRing(
       focused: _focused,
       radius: MfRadius.md,
       child: widget.multiline
           ? Container(
               decoration: decoration,
-              padding:
-                  const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
               child: field,
             )
           : Container(
@@ -175,39 +176,3 @@ class _FieldInputState extends State<_FieldInput> {
 
 /// 2px plum focus ring drawn just outside the control (mirror: `outline: 2px
 /// solid var(--focus-ring); outline-offset: 1px`).
-class _FocusRing extends StatelessWidget {
-  const _FocusRing({
-    required this.focused,
-    required this.radius,
-    required this.child,
-  });
-
-  final bool focused;
-  final double radius;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        child,
-        if (focused)
-          Positioned(
-            left: -3,
-            top: -3,
-            right: -3,
-            bottom: -3,
-            child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(radius + 3),
-                  border: Border.all(color: context.mf.focusRing, width: 2),
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}

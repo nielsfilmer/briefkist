@@ -51,8 +51,8 @@ class _MfDocumentCardState extends State<MfDocumentCard> {
     final bg = _pressed
         ? mf.surfacePressed
         : _hovered
-            ? mf.surfaceHover
-            : mf.surfaceCard;
+        ? mf.surfaceHover
+        : mf.surfaceCard;
 
     final card = AnimatedContainer(
       duration: MfMotion.fast,
@@ -67,7 +67,7 @@ class _MfDocumentCardState extends State<MfDocumentCard> {
     );
 
     return Semantics(
-      button: true,
+      button: widget.onOpen != null,
       child: FocusableActionDetector(
         enabled: widget.onOpen != null,
         mouseCursor: SystemMouseCursors.click,
@@ -102,52 +102,50 @@ class _MfDocumentCardState extends State<MfDocumentCard> {
   int? get _pageBadge => widget.pages > 1 ? widget.pages : null;
 
   Widget _list(MfColors mf) => IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Keep the thumb at its fixed 56x74 while the body stretches.
-            Align(
-              alignment: Alignment.topCenter,
-              widthFactor: 1,
-              child: MfPageThumb(
-                image: widget.image,
-                width: 56,
-                height: 74,
-                pageNumber: _pageBadge,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(child: _body(mf, listDensity: true)),
-          ],
-        ),
-      );
-
-  Widget _grid(MfColors mf) => Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          MfPageThumb(
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Keep the thumb at its fixed 56x74 while the body stretches.
+        Align(
+          alignment: Alignment.topCenter,
+          widthFactor: 1,
+          child: MfPageThumb(
             image: widget.image,
-            width: double.infinity,
-            height: 120,
+            width: 56,
+            height: 74,
             pageNumber: _pageBadge,
           ),
-          const SizedBox(height: 10),
-          _body(mf, listDensity: false),
-        ],
-      );
+        ),
+        const SizedBox(width: 14),
+        Expanded(child: _body(mf, listDensity: true)),
+      ],
+    ),
+  );
+
+  Widget _grid(MfColors mf) => Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      MfPageThumb(
+        image: widget.image,
+        width: double.infinity,
+        height: 120,
+        pageNumber: _pageBadge,
+      ),
+      const SizedBox(height: 10),
+      _body(mf, listDensity: false),
+    ],
+  );
 
   Widget _body(MfColors mf, {required bool listDensity}) {
     final processing = widget.status != MfStatus.done;
-    final title = widget.title ??
+    final title =
+        widget.title ??
         (processing ? 'Reading your letter…' : 'Untitled document');
 
     final subChildren = <Widget>[
       if (widget.correspondent != null)
-        Text(
-          widget.correspondent!,
-          style: MfType.sm.copyWith(color: mf.text2),
-        ),
+        Text(widget.correspondent!, style: MfType.sm.copyWith(color: mf.text2)),
       if (widget.date != null)
         Text(widget.date!, style: MfType.monoXs.copyWith(color: mf.text3)),
     ];
@@ -181,9 +179,7 @@ class _MfDocumentCardState extends State<MfDocumentCard> {
         if (listDensity) const Spacer(),
         Padding(
           padding: const EdgeInsets.only(top: 6),
-          child: foot == null
-              ? const SizedBox.shrink()
-              : Row(children: [foot]),
+          child: foot == null ? const SizedBox.shrink() : Row(children: [foot]),
         ),
       ],
     );

@@ -21,7 +21,13 @@ OUT = REPO / "app" / "lib" / "design" / "tokens.g.dart"
 
 
 def oklch_to_srgb8(lightness: float, chroma: float, hue_deg: float) -> tuple[int, int, int]:
-    """oklch -> sRGB 0-255, CSS Color 4 reference conversion (clamped)."""
+    """oklch -> sRGB 0-255, CSS Color 4 reference conversion.
+
+    Out-of-gamut handling is a per-channel clamp, not CSS Color 4's
+    chroma-reduction gamut mapping — fine here because every design token is
+    verifiably in-gamut (chroma <= 0.12); revisit if a re-mirror adds vivid
+    colors.
+    """
     hue = math.radians(hue_deg)
     a = chroma * math.cos(hue)
     b = chroma * math.sin(hue)

@@ -34,7 +34,10 @@ Future<T?> showMfSheet<T>(
       alignment: Alignment.bottomCenter,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 560),
-        child: MfSheetSurface(title: title, child: Builder(builder: builder)),
+        child: MfSheetSurface(
+          title: title,
+          child: Builder(builder: builder),
+        ),
       ),
     ),
   );
@@ -58,8 +61,9 @@ class MfSheetSurface extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(20, 8, 20, 24 + safeBottom),
       decoration: BoxDecoration(
         color: mf.surfaceOverlay,
-        borderRadius:
-            const BorderRadius.vertical(top: Radius.circular(MfRadius.xl)),
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(MfRadius.xl),
+        ),
         boxShadow: MfShadows.overlay(Theme.of(context).brightness),
       ),
       child: Material(

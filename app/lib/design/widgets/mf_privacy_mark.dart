@@ -12,7 +12,11 @@ import '../mf_theme.dart';
 enum MfPrivacyTone { neutral, ok, warn }
 
 class MfPrivacyMark extends StatelessWidget {
-  const MfPrivacyMark({super.key, this.tone = MfPrivacyTone.neutral, this.label});
+  const MfPrivacyMark({
+    super.key,
+    this.tone = MfPrivacyTone.neutral,
+    this.label,
+  });
 
   final MfPrivacyTone tone;
 

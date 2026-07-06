@@ -19,10 +19,16 @@ abstract final class MfGlyphs {
   static const wifiOff =
       'M2 8.8A15 15 0 0 1 12 5c3.8 0 7.3 1.4 10 3.8 M5.5 12.5A10 10 0 0 1 12 10c2.5 0 4.8.9 6.5 2.5 M9 16.2a5 5 0 0 1 6 0 M12 20h.01 m-9-17 18 18';
   static const qr =
-      'M3 3h7v7H3Z M14 3h7v7h-7Z M3 14h7v7H3Z M14 14h3v3h-3zM20 14h1M14 20h1M20 20h1';
+      'M4 3h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z '
+      'M15 3h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z '
+      'M4 14h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1Z '
+      'M14 14h3v3h-3zM20 14h1M14 20h1M20 20h1';
   static const search = 'M11 4 A7 7 0 1 1 10.99 4 Z m9 16-3.8-3.8';
   static const grid =
-      'M4 4h7v7H4Z M13 4h7v7h-7Z M4 13h7v7H4Z M13 13h7v7h-7Z';
+      'M5 4h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z '
+      'M14 4h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z '
+      'M5 13h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1Z '
+      'M14 13h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1Z';
   static const rows = 'M4 6h16M4 12h16M4 18h16';
   static const upload = 'M12 16V4m0 0 5 5m-5-5L7 9 M4 20h16';
   static const gear =
@@ -63,7 +69,8 @@ class MfIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = color ??
+    final c =
+        color ??
         DefaultTextStyle.of(context).style.color ??
         const Color(0xFF000000);
     return Semantics(
@@ -86,7 +93,8 @@ class MfPostmark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = color ??
+    final c =
+        color ??
         DefaultTextStyle.of(context).style.color ??
         const Color(0xFF000000);
     return CustomPaint(
