@@ -1,0 +1,23 @@
+/* my-flopy — spacing & radius tokens */
+:root {
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 12px;
+  --space-6: 16px;
+  --space-7: 20px;
+  --space-8: 24px;
+  --space-9: 32px;
+  --space-10: 40px;
+  --space-11: 48px;
+  --space-12: 64px;
+
+  --radius-sm: 4px;    /* inline chips' inner bits, small controls */
+  --radius-md: 6px;    /* buttons, inputs */
+  --radius-lg: 10px;   /* cards, menus */
+  --radius-xl: 16px;   /* sheets, dialogs, image viewer */
+  --radius-full: 999px;/* chips, status dots, pills */
+
+  --hit-target: 44px;  /* minimum touch target */
+}

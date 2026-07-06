@@ -251,6 +251,8 @@ observed running it.
   PR's *changes* to such a dir are sensible imports, but don't critique the
   imported files. **Exception:** when a PR's stated purpose IS to update the
   vendored files. Paste this paragraph (naming the dirs) into the review prompt.
+  **This repo's vendored dir: `design/`** (mirror of the Claude Design project —
+  see `design/MIRROR.md`).
 
 ---
 
@@ -279,18 +281,24 @@ reference, subject, a 2-4 sentence summary and 3-8 curated keywords), then files
 it into a searchable archive (full-text + semantic). **Nothing leaves hardware
 the owner controls** — remote ("on the road") access is via a private
 WireGuard/Tailscale overlay, not the public
-internet. Stack (v0.2, amended 2026-07-03 — see plan.md decision log): **web app**
-(mobile capture page + desktop browse, served by the backend; Flutter deferred),
+internet. Stack (v0.2, amended 2026-07-03; native apps added 2026-07-06 v0.5 —
+see plan.md decision log): **Flutter native apps** (iOS + macOS, one codebase in
+`app/`, built against `design/`) alongside the **web app** fallback
+(mobile capture page + desktop browse, served by the backend),
 **FastAPI** backend, **Ollama** running **Qwen3-VL-4B** (2B fallback) + OCR (Apple
 Vision vs PaddleOCR, benchmarked in Phase 0), **SQLite FTS5 + sqlite-vec**, **bge-m3**
 embeddings — all **native processes, no Docker**. Full detail in [plan.md](plan.md).
 
 **The production host is this machine**: the owner's existing always-on **M1 Mac mini
-with 8 GB RAM**, macOS 14.4 (it also runs Plex/Sonarr — leave those alone). Every
-sizing choice assumes 8 GB; an upgrade to a 32 GB mini restores the 8B-model path.
+with 8 GB RAM** (`Macmini9,1`), upgraded to **macOS 26.5 with Xcode 26.6 +
+iOS 26.5 simulator + Flutter + CocoaPods** (2026-07-06 — native iOS/macOS builds
+happen on this box now; it also runs Plex/Sonarr — leave those alone). Every
+sizing choice still assumes 8 GB; an upgrade to a 32 GB mini restores the
+8B-model path.
 
 Status: **executing — Phase 0 complete (GO, `docs/phase0/VERDICT.md`); Phase 1
-(end-to-end thin slice + search) in build**.
+(end-to-end thin slice + search) built; native Flutter apps (iOS + macOS) in
+build against the `design/` design system (decision log v0.5)**.
 
 ## File map
 
@@ -315,7 +323,12 @@ Status: **executing — Phase 0 complete (GO, `docs/phase0/VERDICT.md`); Phase 1
 - `server/` — the FastAPI backend: SQLite (FTS5 + sqlite-vec) store, sequential
   worker, §9 pipeline (imports spike/ components), per-device token auth.
 - `web/` — the v1 web app served by the backend: phone capture page + archive
-  browse/search/correct (vanilla JS, mobile-first, dark-mode aware).
+  browse/search/correct (vanilla JS, mobile-first, dark-mode aware). Stays as
+  the zero-install fallback; restyle to the design system is a follow-up.
+- [design/](design/MIRROR.md) — **verbatim mirror of the Claude Design project**
+  (brand, tokens, components, mobile + desktop UI kits): the design source of
+  truth for the native apps. **Vendored-asset dir — don't edit here**; change
+  the Claude Design project and re-mirror (see `design/MIRROR.md`).
 - [docs/RUNBOOK.md](docs/RUNBOOK.md) — operations: services, phone setup,
   backup, model knobs, known limitations. **The owner-facing doc.**
 - `deploy/` — launchd agent template + `install.sh` (installs/updates the

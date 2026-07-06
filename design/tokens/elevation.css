@@ -1,0 +1,9 @@
+/* my-flopy — elevation. Flat by default; warm-tinted soft shadows on overlays only. */
+:root {
+  --shadow-raised: 0 1px 2px oklch(0.26 0.015 320 / 0.06), 0 2px 8px oklch(0.26 0.015 320 / 0.08);
+  --shadow-overlay: 0 4px 12px oklch(0.26 0.015 320 / 0.10), 0 16px 40px oklch(0.26 0.015 320 / 0.16);
+}
+[data-theme="dark"] {
+  --shadow-raised: 0 1px 2px oklch(0 0 0 / 0.25), 0 2px 8px oklch(0 0 0 / 0.3);
+  --shadow-overlay: 0 4px 12px oklch(0 0 0 / 0.35), 0 16px 40px oklch(0 0 0 / 0.45);
+}

@@ -90,6 +90,28 @@ application, this is genuinely just an archive for snail mail."*
     columns swapped, categories remapped, FTS rebuilt, done-documents requeued
     so the new pipeline fills summary/keywords from the stored pages).
 
+## Decision log — 2026-07-06 (v0.5, native apps pulled forward — owner directive)
+
+14. **The deferred Flutter native-app phase starts now.** The blocker that
+    deferred it (§6.7: no Xcode on the host) is gone — the Mac mini was
+    upgraded to macOS 26.5 and Xcode 26.6 is installed, so iOS-simulator and
+    macOS builds happen on this box. The owner commissioned a full corporate
+    identity + design system + all screens (mobile & desktop) in Claude Design;
+    a verbatim mirror lives in `design/` (see `design/MIRROR.md`) and is the
+    design source of truth. Deliverables: a fully working **iOS app** and
+    **macOS desktop app** (one Flutter codebase in `app/`), plus a documented
+    design-feedback loop back into Claude Design.
+15. **The web app (`web/`) stays as the zero-install fallback**, served by the
+    backend as today; restyling it to the new design system is a filed
+    follow-up, not part of this phase.
+16. **Local-first applies to the apps' assets too**: fonts (Lora, Source
+    Sans 3, Source Code Pro — all OFL) and the Lucide icon set are bundled in
+    the app binaries; the design's Google-Fonts/CDN references are a web-kit
+    convenience only and must not appear in the shipped apps.
+17. **Device pairing gets first-class UX** (QR scan + token fallback + revoke
+    list, per the design). The backend grows minimal pairing/device endpoints
+    on top of the existing per-device token auth; the CLI path stays.
+
 ---
 
 ## 1. Goal
@@ -472,6 +494,11 @@ At this scale (thousands of docs) everything is fast enough; the real constraint
   bigger hardware.
 
 ### 6.7 Cross-platform app framework (desktop + mobile, one codebase)
+- **Re-amended 2026-07-06 — the Flutter phase is live (decision log v0.5).** Xcode
+  26.6 is now installed on the (macOS 26.5-upgraded) host, so the deferral reason is
+  gone: the native apps are being built in `app/` against the `design/` design
+  system. The web UI stays as the zero-install fallback. The 2026-07-03 deferral
+  below is kept for history.
 - **Amended 2026-07-03 — v1 ships a web UI, Flutter is deferred.** The host has no
   Xcode (and 8 GB makes local iOS toolchains painful), so the native Flutter/VisionKit
   app can't be built on it today. v1 instead serves a **mobile-first web app from the
