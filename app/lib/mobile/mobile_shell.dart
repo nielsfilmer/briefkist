@@ -6,18 +6,21 @@ import '../api/client.dart';
 import '../api/models.dart';
 import '../app_config.dart';
 import '../archive_controller.dart';
-import '../design/mf_icons.dart';
 import '../design/widgets/mf_app_header.dart';
 import '../design/widgets/mf_button.dart';
 import '../design/widgets/mf_empty_state.dart';
 import '../design/widgets/mf_privacy_mark.dart';
 import '../design/widgets/mf_tab_bar.dart';
+import '../uploads_controller.dart';
 import 'archive_screen.dart';
+import 'capture_screen.dart';
 import 'document_detail_screen.dart';
+import 'onboarding_screen.dart';
 import 'settings_screen.dart';
 
 /// Phone layout: app header + active tab + bottom tab bar
-/// (capture / archive / settings). Owns the [ArchiveController].
+/// (capture / archive / settings). Owns the [ArchiveController] and the
+/// [UploadsController].
 class MobileShell extends StatefulWidget {
   const MobileShell({super.key});
 
@@ -29,28 +32,28 @@ class _MobileShellState extends State<MobileShell> {
   // Dev-only initial tab override for simulator QA (MF_TAB=archive).
   String _tab = const String.fromEnvironment('MF_TAB', defaultValue: 'capture');
   ArchiveController? _archive;
+  UploadsController? _uploads;
   FlopyClient? _client;
 
-  /// Whether we already yanked the user to settings for this
-  /// unconfigured episode (don't re-force on every dependency change).
-  bool _forcedSettings = false;
+  /// Whether the user finished (or skipped past) the onboarding walkthrough
+  /// this unconfigured episode — after that, capture/archive show the plain
+  /// 'Pair with your server' empty state instead of looping onboarding.
+  bool _onboarded = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final client = AppConfigScope.of(context).client;
     if (client == null) {
-      // Not paired yet: nothing for the controller to talk to, and the only
-      // useful tab is settings — other tabs show a not-configured state.
+      // Not paired yet: nothing for the controllers to talk to — the
+      // capture/archive tabs show onboarding (settings stays reachable via
+      // the tab bar; no forced tab switch).
       _archive?.dispose();
       _archive = null;
+      _uploads?.dispose();
+      _uploads = null;
       _client = null;
-      if (!_forcedSettings) {
-        _forcedSettings = true;
-        _tab = 'settings';
-      }
     } else if (!identical(client, _client)) {
-      _forcedSettings = false;
       _client = client;
       final archive = _archive;
       if (archive == null) {
@@ -58,25 +61,41 @@ class _MobileShellState extends State<MobileShell> {
       } else {
         archive.client = client; // connection settings changed → refetch
       }
+      final uploads = _uploads;
+      if (uploads == null) {
+        _uploads = UploadsController(client);
+      } else {
+        uploads.client = client;
+      }
     }
   }
 
   @override
   void dispose() {
     _archive?.dispose();
+    _uploads?.dispose();
     super.dispose();
   }
 
-  void _openDocument(DocumentSummary doc) {
+  void _openDocument(DocumentSummary doc) => _openDocumentById(doc.id);
+
+  void _openDocumentById(int docId) {
     final client = _client;
     if (client == null) return;
     // Native idiom: detail is a pushed route rather than the kit's in-place
     // swap — the kit's back-button header maps to the route's own back.
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => DocumentDetailScreen(docId: doc.id, client: client),
+        builder: (_) => DocumentDetailScreen(docId: docId, client: client),
       ),
     );
+  }
+
+  void _selectTab(String id) {
+    // A letter uploaded on the capture tab should be there when the user
+    // looks: refresh the archive whenever they switch to it.
+    if (id == 'archive' && _tab != 'archive') _archive?.refresh();
+    setState(() => _tab = id);
   }
 
   // Dev-only: lets simulator QA relaunches land on a document detail
@@ -100,6 +119,11 @@ class _MobileShellState extends State<MobileShell> {
     });
   }
 
+  /// Whether the active tab shows the onboarding walkthrough instead of its
+  /// regular body (unconfigured, not yet walked through, not on settings).
+  bool _showsOnboarding(AppConfig config) =>
+      !config.isConfigured && !_onboarded && _tab != 'settings';
+
   @override
   Widget build(BuildContext context) {
     _maybeQaOpen();
@@ -111,12 +135,12 @@ class _MobileShellState extends State<MobileShell> {
           listenable: Listenable.merge([?_archive]),
           builder: (context, _) => Column(
             children: [
-              MfAppHeader(connection: _connectionTone(config)),
-              Expanded(child: _tabBody(config)),
-              MfTabBar(
-                active: _tab,
-                onSelect: (id) => setState(() => _tab = id),
-              ),
+              // The kit shows onboarding chrome-free (no header); the tab
+              // bar stays so settings remains reachable.
+              if (!_showsOnboarding(config))
+                MfAppHeader(connection: _connectionTone(config)),
+              Expanded(child: _tabBody()),
+              MfTabBar(active: _tab, onSelect: _selectTab),
             ],
           ),
         ),
@@ -135,11 +159,11 @@ class _MobileShellState extends State<MobileShell> {
         : MfPrivacyTone.ok;
   }
 
-  Widget _tabBody(AppConfig config) {
+  Widget _tabBody() {
     switch (_tab) {
       case 'archive':
         final archive = _archive;
-        if (archive == null) return _notConfigured();
+        if (archive == null) return _unconfiguredBody();
         return ArchiveScreen(
           controller: archive,
           onOpen: _openDocument,
@@ -147,23 +171,25 @@ class _MobileShellState extends State<MobileShell> {
         );
       case 'settings':
         return const SettingsScreen();
-      default: // capture — placeholder until the capture PR lands.
-        if (!config.isConfigured) return _notConfigured();
-        return _capturePlaceholder();
+      default: // capture
+        final uploads = _uploads;
+        if (uploads == null) return _unconfiguredBody();
+        return CaptureScreen(uploads: uploads, onOpenDoc: _openDocumentById);
     }
   }
 
-  Widget _capturePlaceholder() {
-    return Center(
-      child: SingleChildScrollView(
-        child: MfEmptyState(
-          icon: const MfIcon(MfGlyphs.camera, size: 44),
-          title: 'Capture',
-          body:
-              'Photograph letters with this phone — coming in the next '
-              'update.',
-        ),
-      ),
+  /// Capture/archive with no server configured: the onboarding walkthrough
+  /// first, the plain pairing empty state once it's been dismissed.
+  Widget _unconfiguredBody() {
+    if (_onboarded) return _notConfigured();
+    return OnboardingScreen(
+      onPair: () => setState(() => _tab = 'settings'),
+      // 'Open the camera' on the last step: land on capture — still
+      // unconfigured, so it shows the pairing empty state (not the loop).
+      onDone: () => setState(() {
+        _onboarded = true;
+        _tab = 'capture';
+      }),
     );
   }
 

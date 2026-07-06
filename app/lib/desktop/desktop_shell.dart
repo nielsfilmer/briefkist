@@ -15,6 +15,7 @@ import '../design/widgets/mf_privacy_mark.dart';
 import '../design/widgets/mf_search_input.dart';
 import '../design/widgets/mf_select.dart';
 import '../design/widgets/mf_text_field.dart';
+import '../uploads_controller.dart';
 import 'archive_content.dart';
 import 'detail_content.dart';
 import 'settings_content.dart';
@@ -39,6 +40,7 @@ class _DesktopShellState extends State<DesktopShell> {
 
   FlopyClient? _client;
   ArchiveController? _controller;
+  UploadsController? _uploads;
   ArchiveState? _lastSeenState;
   List<Correspondent> _correspondents = const [];
 
@@ -58,10 +60,13 @@ class _DesktopShellState extends State<DesktopShell> {
       _controller?.removeListener(_onArchiveChanged);
       _controller?.dispose();
       _controller = null;
+      _uploads?.dispose();
+      _uploads = null;
       _correspondents = const [];
       _docId = null;
     } else if (_controller == null) {
       _controller = ArchiveController(client)..addListener(_onArchiveChanged);
+      _uploads = UploadsController(client);
       _searchController.clear();
       _dateFromController.clear();
       _dateToController.clear();
@@ -71,6 +76,7 @@ class _DesktopShellState extends State<DesktopShell> {
     } else {
       // Connection settings changed: keep the filters, swap the client.
       _controller!.client = client;
+      _uploads!.client = client;
       _loadCorrespondents();
     }
   }
@@ -79,6 +85,7 @@ class _DesktopShellState extends State<DesktopShell> {
   void dispose() {
     _controller?.removeListener(_onArchiveChanged);
     _controller?.dispose();
+    _uploads?.dispose();
     _searchController.dispose();
     _dateFromController.dispose();
     _dateToController.dispose();
@@ -147,10 +154,14 @@ class _DesktopShellState extends State<DesktopShell> {
   }
 
   // ── navigation ───────────────────────────────────────────────────
-  void _goTo(String nav) => setState(() {
-    _nav = nav;
-    _docId = null; // per kit: changing screen closes the open document
-  });
+  void _goTo(String nav) {
+    // Newly filed documents must appear when the user returns to the archive.
+    if (nav == 'archive' && _nav != 'archive') _controller?.refresh();
+    setState(() {
+      _nav = nav;
+      _docId = null; // per kit: changing screen closes the open document
+    });
+  }
 
   void _openDocument(DocumentSummary doc) => setState(() => _docId = doc.id);
 
@@ -193,8 +204,11 @@ class _DesktopShellState extends State<DesktopShell> {
           Expanded(child: SettingsContent(onBack: () => _goTo('archive'))),
         ],
       );
-    } else if (nav == 'upload') {
-      main = const UploadContent();
+    } else if (nav == 'upload' && _uploads != null) {
+      main = UploadContent(
+        uploads: _uploads!,
+        onOpenDoc: (id) => setState(() => _docId = id),
+      );
     } else if (controller != null) {
       main = ArchiveContent(
         controller: controller,
