@@ -1,7 +1,8 @@
 # Design feedback — update prompt for the Claude Design project
 
-**Status: ready to send** (Native apps phase complete, 2026-07-06). This file
-doubles as the paste-ready prompt below and the repo's running deviation log.
+**Status: ready to send** (build-out complete 2026-07-06; the phase closes
+after the owner's real-device pass). This file doubles as the paste-ready
+prompt below and the repo's running deviation log.
 
 ---
 
@@ -17,10 +18,9 @@ doubles as the paste-ready prompt below and the repo's running deviation log.
 > 1. Document the platform translations (bundled fonts/icons, oklch→sRGB) in
 >    readme.md — the design stays the source of truth, the note prevents a
 >    future implementer reintroducing CDNs (findings 1–2).
-> 2. Adopt the interaction fixes the build surfaced: content-hugging chips in
->    meta rows, actionable-only edit affordances, selected-beats-hover chips,
->    correspondent/place as separate rows, name-only correspondent display
->    (findings 4, 6, 9).
+> 2. Adopt the interaction fixes the build surfaced: actionable-only edit
+>    affordances, selected-beats-hover chips, correspondent/place as separate
+>    rows with name-only display (findings 4, 6, 9).
 > 3. Rework the pairing screens around mint-on-demand (named tokens with
 >    server-enforced uniqueness) and add the mobile QR-scanner screen the kit
 >    lacks (finding 11).
@@ -32,9 +32,8 @@ doubles as the paste-ready prompt below and the repo's running deviation log.
 > 6. Sample data: answer the "Phone · Jasmijn" question (finding 5) and
 >    rename if real.
 >
-> The apps' current screenshots (all screens, light + dark) accompany this
-> prompt; the implementation is at github.com/nielsfilmer/my-flopy under
-> `app/`.
+> The as-built implementation is at github.com/nielsfilmer/my-flopy under
+> `app/` (fresh screenshots of any screen can be captured on request).
 
 ---
 

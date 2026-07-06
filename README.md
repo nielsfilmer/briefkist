@@ -29,7 +29,7 @@ public ports, no third party in the data path.**
 | Layer | Choice |
 |---|---|
 | Apps | **Flutter iOS + macOS** (`app/`, design system from `design/`) + web fallback served by the backend |
-| Capture (v1) | Phone browser camera + backend OpenCV cleanup |
+| Capture | iOS document scanner (VisionKit) in the app; phone-browser camera in the web fallback; backend OpenCV cleanup |
 | OCR | Apple Vision vs PaddleOCR — Phase 0 benchmark picks the primary |
 | Understanding | Qwen3-VL-4B (2B fallback) via Ollama |
 | Search | SQLite FTS5 + sqlite-vec · bge-m3 embeddings |

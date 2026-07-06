@@ -36,19 +36,24 @@ itself once the address is right).
 
 **With the native apps (preferred):**
 
-1. On the mini, run the desktop app (`cd app && flutter run -d macos`, or a
-   built copy) → Settings. First run: enter the server address
-   (`http://<mini-LAN-IP>:8484`) and Save — on a fresh server with no tokens,
-   loopback connects without one (bootstrap) and you can mint the desktop's
-   own token from the Pair a device card.
-2. Settings → **Pair a device**: type a name for the phone (e.g. "niels-
-   iphone") → **Create pairing code** → a QR appears (or "Show token
+1. **Mint the desktop's own token once, via the CLI** (the deployed service
+   listens on the LAN address only, so there is no loopback bootstrap to
+   lean on). On the mini, from the repo checkout directory (or with the same
+   `FLOPY_DATA_DIR` the service uses):
+   `uv run python -m server.tokens_cli add "mini-desktop"` → copy the token.
+2. Run the desktop app (`cd app && flutter run -d macos`, or a built copy) →
+   Settings → Connection: enter `http://<mini-LAN-IP>:8484` + that token,
+   Save. (The address must be the LAN IP — the pairing card refuses to mint
+   codes for a loopback address, since no other device could reach it.)
+3. Settings → **Pair a device**: type a name for the phone (e.g.
+   "niels-iphone") → **Create pairing code** → a QR appears (or "Show token
    instead"). The token is shown exactly once.
-3. On the iPhone: open the my-flopy app → onboarding → **Scan the code**
+4. On the iPhone: open the my-flopy app → onboarding → **Scan the code**
    (or paste the token in settings). Done — capture away.
-4. Lost/stolen phone: desktop app → Settings → Paired devices → **Revoke**
-   (or `uv run python -m server.tokens_cli revoke "niels-iphone"`) — takes
-   effect immediately.
+5. Lost/stolen phone: desktop app → Settings → Paired devices → **Revoke**
+   (or `uv run python -m server.tokens_cli revoke "niels-iphone"` from the
+   checkout dir / with the service's `FLOPY_DATA_DIR`) — takes effect
+   immediately.
 
 **Web fallback (no app install):**
 
