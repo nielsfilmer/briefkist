@@ -155,7 +155,14 @@ class _MfMetaRowState extends State<MfMetaRow> {
 
   Widget _buildValue(MfColors mf) {
     if (widget.child != null) {
-      if (!widget.corrected) return widget.child!;
+      // Hug content: the value column's Expanded would otherwise stretch
+      // inline children (chips) to the full column width — Chip.jsx is
+      // inline-flex (QA finding, PR #32).
+      final hugged = Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: widget.child,
+      );
+      if (!widget.corrected) return hugged;
       return Wrap(
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
