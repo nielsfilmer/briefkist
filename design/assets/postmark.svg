@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 56" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+  <circle cx="28" cy="28" r="20" stroke-dasharray="4 5"></circle>
+  <g font-family="Source Code Pro, monospace" font-size="7" fill="currentColor" stroke="none" text-anchor="middle">
+    <text x="28" y="25">FILED</text>
+    <text x="28" y="35">LOCAL</text>
+  </g>
+  <path d="M56 20c6-4 10 4 16 0s10 4 16 0s10 4 16 0"></path>
+  <path d="M56 28c6-4 10 4 16 0s10 4 16 0s10 4 16 0"></path>
+  <path d="M56 36c6-4 10 4 16 0s10 4 16 0s10 4 16 0"></path>
+</svg>
