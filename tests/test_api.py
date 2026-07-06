@@ -244,3 +244,58 @@ def test_malformed_date_params_rejected_at_edge(client):
         "/api/documents", params={"date_from": "2026-01-03", "semantic": "false"}
     )
     assert r.status_code == 200
+
+
+def test_device_pairing_lifecycle(client):
+    # list: only the fixture device, no tokens exposed
+    r = client.get("/api/devices")
+    assert r.status_code == 200
+    devices = r.json()
+    assert [d["name"] for d in devices] == ["test-device"]
+    assert all("token" not in d for d in devices)
+
+    # mint: token shown exactly once
+    r = client.post("/api/devices", json={"name": "kitchen-ipad"})
+    assert r.status_code == 201
+    minted = r.json()
+    assert minted["name"] == "kitchen-ipad" and len(minted["token"]) > 20
+    assert minted["created"]  # ISO date
+
+    # the minted token authenticates
+    r = client.get(
+        "/api/devices", headers={"Authorization": f"Bearer {minted['token']}"}
+    )
+    assert r.status_code == 200
+    assert [d["name"] for d in r.json()] == ["kitchen-ipad", "test-device"]
+
+    # duplicate name → 409; junk names → 422
+    assert client.post("/api/devices", json={"name": "kitchen-ipad"}).status_code == 409
+    assert client.post("/api/devices", json={"name": "  "}).status_code == 422
+    assert client.post("/api/devices", json={"name": "x" * 65}).status_code == 422
+
+    # can't revoke yourself; revoking the other device works and kills its token
+    assert client.delete("/api/devices/test-device").status_code == 409
+    assert client.delete("/api/devices/kitchen-ipad").status_code == 204
+    assert client.delete("/api/devices/kitchen-ipad").status_code == 404
+    r = client.get(
+        "/api/devices", headers={"Authorization": f"Bearer {minted['token']}"}
+    )
+    assert r.status_code == 401
+
+
+def test_legacy_flat_token_file_still_authenticates(client, tmp_path):
+    """Pre-pairing tokens.json stored name -> bare token string."""
+    from server import auth, config
+
+    config.TOKENS_PATH.write_text('{"old-phone": "legacy-token-value"}')
+    r = client.get(
+        "/api/devices", headers={"Authorization": "Bearer legacy-token-value"}
+    )
+    assert r.status_code == 200
+    assert r.json() == [{"name": "old-phone", "created": None}]
+    # a save (via add) rewrites the file in the new shape without breaking auth
+    auth.add_device("new-phone")
+    r = client.get(
+        "/api/devices", headers={"Authorization": "Bearer legacy-token-value"}
+    )
+    assert r.status_code == 200

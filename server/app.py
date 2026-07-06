@@ -240,6 +240,45 @@ def delete_failed_document(device: Device, conn: Conn, doc_id: int) -> None:
     log.info("device %s deleted failed document %s", device, doc_id)
 
 
+# ---- device pairing (design: settings → pair a device / paired devices) ----
+# Minting requires an already-authenticated device (or first-run loopback
+# bootstrap) — same trust model as every other endpoint (§5.1). The QR the
+# desktop app renders is composed client-side from its own server URL plus
+# the token returned here; tokens are shown exactly once and never listed.
+
+
+@app.get("/api/devices")
+def list_devices(device: Device) -> list[dict]:
+    return auth.list_devices()
+
+
+@app.post("/api/devices", status_code=201)
+def add_device(device: Device, body: dict) -> dict:
+    name = str(body.get("name") or "").strip()
+    if not name:
+        raise HTTPException(422, "device name required")
+    if len(name) > 64:
+        raise HTTPException(422, "device name too long (max 64)")
+    try:
+        token = auth.add_device(name)
+    except auth.DeviceExists:
+        raise HTTPException(409, f"device {name!r} already exists") from None
+    log.info("device %s paired new device %s", device, name)
+    entry = next(e for e in auth.list_devices() if e["name"] == name)
+    return {"name": name, "token": token, "created": entry["created"]}
+
+
+@app.delete("/api/devices/{name}", status_code=204)
+def revoke_device(device: Device, name: str) -> None:
+    if name == device:
+        # Revoking the token this very request authenticated with would lock
+        # the surface out mid-session; the design marks it "this device".
+        raise HTTPException(409, "can't revoke the device you are using")
+    if not auth.revoke_device(name):
+        raise HTTPException(404)
+    log.info("device %s revoked device %s", device, name)
+
+
 @app.get("/api/status")
 def status(device: Device, conn: Conn) -> dict:
     queue = {

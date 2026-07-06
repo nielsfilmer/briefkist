@@ -20,14 +20,22 @@ from fastapi import HTTPException, Request
 from . import config
 
 
-def _load() -> dict[str, str]:
-    """device name -> token"""
-    if config.TOKENS_PATH.exists():
-        return json.loads(config.TOKENS_PATH.read_text(encoding="utf-8"))
-    return {}
+def _load() -> dict[str, dict]:
+    """device name -> {"token": ..., "created": ISO-date-or-None}.
+
+    Backwards compatible: pre-pairing files stored a bare token string per
+    device; those load as entries with created=None and are rewritten in the
+    new shape on the next save."""
+    if not config.TOKENS_PATH.exists():
+        return {}
+    raw = json.loads(config.TOKENS_PATH.read_text(encoding="utf-8"))
+    return {
+        name: (value if isinstance(value, dict) else {"token": value, "created": None})
+        for name, value in raw.items()
+    }
 
 
-def _save(tokens: dict[str, str]) -> None:
+def _save(tokens: dict[str, dict]) -> None:
     import os
 
     config.TOKENS_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -37,12 +45,21 @@ def _save(tokens: dict[str, str]) -> None:
         json.dump(tokens, fh, indent=2)
 
 
+class DeviceExists(Exception):
+    """A device with that name is already paired."""
+
+
 def add_device(name: str) -> str:
+    import datetime
+
     tokens = _load()
     if name in tokens:
-        raise SystemExit(f"device {name!r} already exists (revoke first to rotate)")
+        raise DeviceExists(name)
     token = secrets.token_urlsafe(32)
-    tokens[name] = token
+    tokens[name] = {
+        "token": token,
+        "created": datetime.date.today().isoformat(),
+    }
     _save(tokens)
     return token
 
@@ -55,8 +72,12 @@ def revoke_device(name: str) -> bool:
     return True
 
 
-def list_devices() -> list[str]:
-    return sorted(_load())
+def list_devices() -> list[dict]:
+    """[{name, created}] — never exposes tokens."""
+    return [
+        {"name": name, "created": entry.get("created")}
+        for name, entry in sorted(_load().items())
+    ]
 
 
 def require_token(request: Request) -> str:
@@ -67,8 +88,8 @@ def require_token(request: Request) -> str:
     tokens = _load()
     header = request.headers.get("authorization", "")
     supplied = header.removeprefix("Bearer ").strip() if header.startswith("Bearer ") else ""
-    for device, token in tokens.items():
-        if supplied and hmac.compare_digest(supplied, token):
+    for device, entry in tokens.items():
+        if supplied and hmac.compare_digest(supplied, entry["token"]):
             return device
     if supplied:
         # a token was presented and matched nothing — always reject, even in
