@@ -51,7 +51,7 @@ class UploadsController extends ChangeNotifier {
   Future<void> upload(List<String> pagePaths) async {
     final entry = PendingUpload(pagePaths.length);
     pending.insert(0, entry);
-    notifyListeners();
+    _notify();
     try {
       await _client.uploadDocument(pagePaths);
       pending.remove(entry);
@@ -61,15 +61,31 @@ class UploadsController extends ChangeNotifier {
       entry.failureDetail =
           "Can't reach your home server. The photos stay on this device — "
           'try again when you are back on your network.';
-      notifyListeners();
+      _notify();
       rethrow;
     } on ApiError catch (e) {
       entry.failed = true;
-      entry.failureDetail =
-          'Your server rejected the upload (HTTP ${e.status}).';
-      notifyListeners();
+      entry.failureDetail = (e.status == 401 || e.status == 403)
+          ? "Your server didn't accept this device's token. Check the "
+                'device token in settings.'
+          : 'Your server rejected the upload (HTTP ${e.status}).';
+      _notify();
+      rethrow;
+    } on Exception {
+      // Anything escaping the client's taxonomy must still fail the entry —
+      // otherwise the row is stuck on "Uploading…" and the poll never stops
+      // (review #39 blocking 1).
+      entry.failed = true;
+      entry.failureDetail = 'The upload failed before reaching your server.';
+      _notify();
       rethrow;
     }
+  }
+
+  /// notifyListeners crashes after dispose; uploads can complete after the
+  /// screen is gone.
+  void _notify() {
+    if (!_disposed) notifyListeners();
   }
 
   void dismissFailed(PendingUpload entry) {

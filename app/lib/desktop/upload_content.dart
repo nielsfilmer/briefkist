@@ -258,7 +258,12 @@ class _PendingRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Letter', style: MfType.base.copyWith(color: mf.text1)),
+                Text(
+                  entry.pageCount > 1
+                      ? 'Letter · ${entry.pageCount} pages'
+                      : 'Letter',
+                  style: MfType.base.copyWith(color: mf.text1),
+                ),
                 if (entry.failed && entry.failureDetail != null)
                   Text(
                     entry.failureDetail!,
@@ -374,7 +379,7 @@ class _RecentRowState extends State<_RecentRow> {
           SizedBox(
             width: 70,
             child: Text(
-              _relTime(doc.createdAt),
+              relativeTime(doc.createdAt),
               textAlign: TextAlign.right,
               style: MfType.monoXs.copyWith(color: mf.text3),
             ),
@@ -401,25 +406,6 @@ class _RecentRowState extends State<_RecentRow> {
 }
 
 /// Relative time from the server's UTC 'YYYY-MM-DD HH:MM:SS' timestamps.
-String _relTime(String? createdAt) {
-  if (createdAt == null || createdAt.isEmpty) return '';
-  final DateTime t;
-  try {
-    var text = createdAt.replaceFirst(' ', 'T');
-    // The server sends ISO UTC with a Z suffix; tolerate zone-less values too.
-    if (!text.endsWith('Z') && !text.contains('+')) text = '${text}Z';
-    t = DateTime.parse(text).toLocal();
-  } on FormatException {
-    return '';
-  }
-  final d = DateTime.now().difference(t);
-  if (d.inMinutes < 1) return 'just now';
-  if (d.inMinutes < 60) return '${d.inMinutes} min ago';
-  if (d.inHours < 24) return '${d.inHours} h ago';
-  final mm = t.month.toString().padLeft(2, '0');
-  final dd = t.day.toString().padLeft(2, '0');
-  return formatDate('${t.year}-$mm-$dd');
-}
 
 /// 1.5px dashed rounded border, matching the kit's CSS `1.5px dashed`.
 class _DashedBorderPainter extends CustomPainter {

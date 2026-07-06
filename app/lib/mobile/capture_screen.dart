@@ -64,17 +64,19 @@ class _CaptureScreenState extends State<CaptureScreen> {
   }
 
   /// The iOS document scanner (edge detection, multi-page) is the first
-  /// choice. It has no macOS support and the simulator has no camera, so on
-  /// ANY exception — and on a null/empty result, which also covers a scanner
-  /// cancel — we fall back to the system photo picker: capture keeps working
-  /// everywhere, just without edge detection. (Cancelling the picker returns
-  /// an empty list and is a no-op.)
+  /// choice. Its `null` return specifically means USER CANCEL
+  /// (documentCameraViewControllerDidCancel in the plugin) — that must stay
+  /// a no-op, not open the photo library (review #39 blocking 2). Only a
+  /// thrown error (no camera — the simulator, unsupported platform,
+  /// permission refused) falls back to the system photo picker, so capture
+  /// keeps working everywhere, just without edge detection. (Cancelling the
+  /// picker returns an empty list and is a no-op too.)
   Future<List<String>> _acquirePages() async {
     try {
       final scanned = await CunningDocumentScanner.getPictures();
-      if (scanned != null && scanned.isNotEmpty) return scanned;
+      return scanned ?? const []; // null = user cancelled the scanner
     } on Exception {
-      // Unsupported platform / no camera / permission refused → picker below.
+      // Scanner unavailable → picker below.
     }
     try {
       final picked = await ImagePicker().pickMultiImage();
@@ -268,6 +270,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
   Widget _addTile(MfColors mf) {
     return Semantics(
       button: true,
+      enabled: !_capturing,
       label: 'Add page',
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -342,7 +345,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Letter',
+                  u.pageCount > 1 ? 'Letter · ${u.pageCount} pages' : 'Letter',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: MfType.base.copyWith(color: mf.text1),
@@ -438,7 +441,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
           ),
           const SizedBox(width: 12),
           Text(
-            _relTime(d.createdAt),
+            relativeTime(d.createdAt),
             style: MfType.monoXs.copyWith(color: mf.text3),
           ),
         ],
@@ -461,24 +464,6 @@ class _CaptureScreenState extends State<CaptureScreen> {
     border: Border.all(color: mf.border),
     borderRadius: BorderRadius.circular(MfRadius.lg),
   );
-}
-
-/// "just now" / "N min ago" / "N h ago" / "12 Mar 2026". The server's
-/// created_at is UTC 'YYYY-MM-DD HH:MM:SS' with no zone suffix — pin it to
-/// UTC before going local.
-String _relTime(String? createdAt) {
-  if (createdAt == null || createdAt.isEmpty) return '';
-  var text = createdAt.replaceFirst(' ', 'T');
-  // The server sends ISO UTC with a Z suffix; tolerate zone-less values too.
-  if (!text.endsWith('Z') && !text.contains('+')) text = '${text}Z';
-  final utc = DateTime.tryParse(text);
-  if (utc == null) return '';
-  final local = utc.toLocal();
-  final diff = DateTime.now().difference(local);
-  if (diff.inSeconds < 60) return 'just now'; // covers small clock skew too
-  if (diff.inMinutes < 60) return '${diff.inMinutes} min ago';
-  if (diff.inHours < 24) return '${diff.inHours} h ago';
-  return formatDate(local.toIso8601String());
 }
 
 /// Mono caps section label (the kit's SectionLabel: margin 20/0/8).

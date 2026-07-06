@@ -49,8 +49,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       1 => (
         MfIcon(MfGlyphs.qr, size: 56, color: mf.accent),
         'Pair with your server.',
-        'Open my-flopy on the computer that runs your archive and scan the '
-            'code it shows. This phone will talk only to your own server.',
+        // Kit copy promises QR scanning; that arrives with the pairing PR —
+        // stay honest until then (review #39 observation).
+        'Open my-flopy on the computer that runs your archive and copy its '
+            'address into settings. This phone will talk only to your own '
+            'server.',
         'Set the server address',
         widget.onPair,
       ),

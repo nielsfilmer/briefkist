@@ -54,6 +54,20 @@ happen; don't wait.
    editable row, which double-displayed place once a place row exists.
    Suggest the design split them as built. (PR #36 QA.)
 
+10. **Capture/upload deviations (PR #39).** Pending-page tray scrolls
+    horizontally when pages overflow (kit mock never overflows); mobile
+    upload feedback is the row's "Uploading…" badge, not the kit's toast
+    (one signal, not two); recent-uploads lists render a quiet hint row when
+    empty/offline (kit only shows populated); capture/upload buttons disable
+    while an upload or the picker is in flight (double-tap guard); failed
+    pending rows show the failure detail as a wrapping line + dismiss ×
+    (multi-sentence copy can't live in a 24px pill); done rows are tappable
+    (open the filed document); desktop copy "Photos or PDFs" → "Photos"
+    (PDF import is a later phase); pending rows say "Letter · N pages";
+    onboarding step 2 says "copy its address into settings" until QR pairing
+    ships. Design could adopt the tray scroll, the badge-not-toast rule, and
+    the empty-list hints.
+
 ## Content / sample-data
 
 5. **"Phone · Jasmijn"** (desktop kit, Settings → paired devices) may be a

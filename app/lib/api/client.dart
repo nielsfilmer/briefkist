@@ -146,17 +146,22 @@ class FlopyClient {
   Future<int> uploadDocument(List<String> pagePaths) async {
     final req = http.MultipartRequest('POST', _uri('/api/documents'))
       ..headers.addAll(authHeaders);
-    for (final path in pagePaths) {
-      req.files.add(await http.MultipartFile.fromPath('files', path));
-    }
-    final http.StreamedResponse streamed;
+    final http.Response resp;
     try {
+      // Reading the page files can fail too (the OS may purge picker tmp
+      // files) — keep ALL I/O inside the taxonomy so callers always see
+      // ServerUnreachable/ApiError (review #39 blocking 1).
+      for (final path in pagePaths) {
+        req.files.add(await http.MultipartFile.fromPath('files', path));
+      }
       // Generous timeout: a multi-page HEIC upload over WiFi takes a while.
-      streamed = await _http.send(req).timeout(const Duration(minutes: 2));
+      final streamed = await _http
+          .send(req)
+          .timeout(const Duration(minutes: 2));
+      resp = await http.Response.fromStream(streamed);
     } on Exception catch (e) {
       throw ServerUnreachable(e);
     }
-    final resp = await http.Response.fromStream(streamed);
     if (resp.statusCode ~/ 100 != 2) {
       throw ApiError(resp.statusCode, resp.body);
     }
