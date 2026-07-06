@@ -34,6 +34,29 @@ itself once the address is right).
 
 ## Phone setup (first time, ~2 minutes)
 
+**With the native apps (preferred):**
+
+1. **Mint the desktop's own token once, via the CLI** (the deployed service
+   listens on the LAN address only, so there is no loopback bootstrap to
+   lean on). On the mini, from the repo checkout directory (or with the same
+   `FLOPY_DATA_DIR` the service uses):
+   `uv run python -m server.tokens_cli add "mini-desktop"` → copy the token.
+2. Run the desktop app (`cd app && flutter run -d macos`, or a built copy) →
+   Settings → Connection: enter `http://<mini-LAN-IP>:8484` + that token,
+   Save. (The address must be the LAN IP — the pairing card refuses to mint
+   codes for a loopback address, since no other device could reach it.)
+3. Settings → **Pair a device**: type a name for the phone (e.g.
+   "niels-iphone") → **Create pairing code** → a QR appears (or "Show token
+   instead"). The token is shown exactly once.
+4. On the iPhone: open the my-flopy app → onboarding → **Scan the code**
+   (or paste the token in settings). Done — capture away.
+5. Lost/stolen phone: desktop app → Settings → Paired devices → **Revoke**
+   (or `uv run python -m server.tokens_cli revoke "niels-iphone"` from the
+   checkout dir / with the service's `FLOPY_DATA_DIR`) — takes effect
+   immediately.
+
+**Web fallback (no app install):**
+
 1. On the mini, **from the repo checkout directory** (the tokens file lives in
    the data dir, which defaults to `<repo>/data/archive` — running the command
    elsewhere writes a tokens file the service never reads):
@@ -41,10 +64,7 @@ itself once the address is right).
    token (shown once). If you set `FLOPY_DATA_DIR`, export the same value for
    this command.
 2. On the phone (same Wi-Fi): open `http://<mini-LAN-IP>:8484`, tap **⚙︎**,
-   paste the token, Save.
-3. Share-sheet → **Add to Home Screen** for an app-like experience.
-4. Lost/stolen phone: `uv run python -m server.tokens_cli revoke "my-iphone"`
-   — takes effect immediately.
+   paste the token, Save. Share-sheet → **Add to Home Screen**.
 
 Camera note: the capture button uses the file-picker→camera hop (works over
 plain LAN HTTP). A live in-page camera preview needs HTTPS and is planned with

@@ -5,14 +5,16 @@ your physical (snail) mail** — with nothing ever leaving hardware you control.
 
 Snap a letter with your phone; a self-hosted backend on an always-on Apple Silicon
 **Mac mini** cleans the image, OCRs it, and uses a local vision-language model to
-extract structured metadata (sender, recipient, dates, amounts, references, document
-type) and tags, then files it into a searchable archive (full-text + semantic). Use
-it on the road via a private WireGuard/Tailscale overlay — **no cloud, no public
-ports, no third party in the data path.**
+extract archive metadata (category, correspondent + place, date, reference,
+subject, a short summary and curated keywords — it's an archive, not an
+invoicing tool), then files it into a searchable archive (full-text + semantic).
+Use it on the road via a private WireGuard/Tailscale overlay — **no cloud, no
+public ports, no third party in the data path.**
 
-> **Status:** executing — Phase 0 (feasibility spike) in build on the production
-> host (the owner's 8 GB M1 Mac mini). See the decision log at the top of
-> [plan.md](plan.md) for the 2026-07-03 reality-check amendments.
+> **Status:** executing — Phase 0 GO, the end-to-end slice + search live, and the
+> **native iOS + macOS apps (Flutter, one codebase in `app/`)** built against the
+> design system in `design/`. The web app stays as the zero-install fallback.
+> See the decision log at the top of [plan.md](plan.md).
 
 ## Documents
 
@@ -26,8 +28,8 @@ ports, no third party in the data path.**
 
 | Layer | Choice |
 |---|---|
-| App (v1) | Mobile-first web app served by the backend (Flutter native apps deferred) |
-| Capture (v1) | Phone browser camera + backend OpenCV cleanup |
+| Apps | **Flutter iOS + macOS** (`app/`, design system from `design/`) + web fallback served by the backend |
+| Capture | iOS document scanner (VisionKit) in the app; phone-browser camera in the web fallback; backend OpenCV cleanup |
 | OCR | Apple Vision vs PaddleOCR — Phase 0 benchmark picks the primary |
 | Understanding | Qwen3-VL-4B (2B fallback) via Ollama |
 | Search | SQLite FTS5 + sqlite-vec · bge-m3 embeddings |

@@ -1,10 +1,47 @@
-# Design feedback — running log for the Claude Design project
+# Design feedback — update prompt for the Claude Design project
+
+**Status: ready to send** (build-out complete 2026-07-06; the phase closes
+after the owner's real-device pass). This file doubles as the paste-ready
+prompt below and the repo's running deviation log.
+
+---
+
+## The prompt (paste into the Claude Design project chat)
+
+> The my-flopy design system was implemented as native Flutter apps (iOS +
+> macOS) — every screen in `ui_kits/` is now real software talking to the
+> FastAPI backend. Update the design project to match the as-built product.
+> The numbered findings below are the deltas; for each, either adopt it into
+> the kits/components/readme, or consciously reject it (and say why) so the
+> app can follow the design back. Key asks:
+>
+> 1. Document the platform translations (bundled fonts/icons, oklch→sRGB) in
+>    readme.md — the design stays the source of truth, the note prevents a
+>    future implementer reintroducing CDNs (findings 1–2).
+> 2. Adopt the interaction fixes the build surfaced: actionable-only edit
+>    affordances, selected-beats-hover chips, correspondent/place as separate
+>    rows with name-only display (findings 4, 6, 9).
+> 3. Rework the pairing screens around mint-on-demand (named tokens with
+>    server-enforced uniqueness) and add the mobile QR-scanner screen the kit
+>    lacks (finding 11).
+> 4. Add the capture/upload states the kits under-specified: scrolling pending
+>    tray, badge-not-toast upload feedback, empty/offline hint rows, failed
+>    rows with detail + dismiss (finding 10).
+> 5. Fix the copy that can't fit or is no longer true: the mobile search
+>    placeholder, ISO dates in editable rows (findings 3, 7).
+> 6. Sample data: answer the "Phone · Jasmijn" question (finding 5) and
+>    rename if real.
+>
+> The as-built implementation is at github.com/nielsfilmer/my-flopy under
+> `app/` (fresh screenshots of any screen can be captured on request).
+
+---
+
+## The findings (the log below is the prompt's payload)
 
 Deviations and findings accumulated while implementing the `design/` mirror as
-the native apps (`app/`). This file becomes the update prompt for the Claude
-Design project at the end of the Native apps phase — every entry is something
-the design should adopt, correct, or consciously reject. Add entries as they
-happen; don't wait.
+the native apps (`app/`) — each is something the design should adopt, correct,
+or consciously reject.
 
 ## Platform translations (design should document, not change)
 
