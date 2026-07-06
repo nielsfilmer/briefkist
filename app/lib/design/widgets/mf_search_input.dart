@@ -99,6 +99,3 @@ class _MfSearchInputState extends State<MfSearchInput> {
     );
   }
 }
-
-/// 2px plum focus ring drawn just outside the control (mirror: `outline: 2px
-/// solid var(--focus-ring); outline-offset: 1px`).
