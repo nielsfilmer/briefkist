@@ -268,6 +268,12 @@ observed running it.
   non-loopback needs `uv run python -m server.tokens_cli add <name>`.
 - **Benchmark / test set:** see `spike/README.md` and `testset/README.md`.
 - **Tests/lint:** `uv run pytest`, `uv run ruff check .`.
+- **Native apps (`app/`, Flutter):** from `app/` — `flutter run -d <simulator-id>`
+  (iOS; boot one via `xcrun simctl boot flopy-iphone`) or `flutter run -d macos`.
+  Checks: `flutter analyze`, `flutter test`. Color tokens are generated:
+  `uv run python scripts/gen_flutter_tokens.py` regenerates
+  `app/lib/design/tokens.g.dart` from `design/tokens/colors.css` after a
+  design re-mirror — never edit the .g.dart by hand.
 
 ## What this project is
 
@@ -328,6 +334,12 @@ build against the `design/` design system (decision log v0.5)**.
   (brand, tokens, components, mobile + desktop UI kits): the design source of
   truth for the native apps. **Vendored-asset dir — don't edit here**; change
   the Claude Design project and re-mirror (see `design/MIRROR.md`).
+- `app/` — the Flutter native apps (iOS + macOS, one codebase): `lib/design/`
+  is the design system translated from `design/` (generated color tokens +
+  hand-built Mf* widgets, bundled OFL fonts in `assets/fonts/`), `lib/dev/`
+  the widget gallery. Built per plan.md v0.5.
+- [scripts/gen_flutter_tokens.py](scripts/gen_flutter_tokens.py) — oklch→sRGB
+  token generator: `design/tokens/colors.css` → `app/lib/design/tokens.g.dart`.
 - [docs/RUNBOOK.md](docs/RUNBOOK.md) — operations: services, phone setup,
   backup, model knobs, known limitations. **The owner-facing doc.**
 - `deploy/` — launchd agent template + `install.sh` (installs/updates the
