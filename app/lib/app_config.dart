@@ -71,7 +71,8 @@ class AppConfig extends ChangeNotifier {
   /// ([serverHost] falls back to the raw URL when it can't parse).
   static bool isLoopbackServerUrl(String serverUrl) {
     final host = Uri.tryParse(_normalize(serverUrl))?.host ?? '';
-    return host == '127.0.0.1' || host == 'localhost' || host == '::1';
+    // 127/8 is all loopback, not just .0.0.1 (review #42 round 2).
+    return host.startsWith('127.') || host == 'localhost' || host == '::1';
   }
 
   static String _normalize(String url) {
