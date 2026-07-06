@@ -1,6 +1,6 @@
 // my-flopy — connection + appearance configuration, persisted locally with
-// shared_preferences. The server URL and device token are the pairing state
-// until the QR pairing flow lands (tracker #29, pairing PR).
+// shared_preferences. Populated by QR pairing (scan_pairing_screen) or the
+// manual server-address + token fields in settings.
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
