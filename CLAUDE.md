@@ -1,4 +1,7 @@
-# Claude project notes — my-flopy (local-first snail-mail archiver)
+# Claude project notes — Briefkist (local-first snail-mail archiver)
+
+> Product name: **Briefkist** (v0.6; repo/app renames in flight — code and
+> URLs may still say my-flopy until the rename PRs land).
 
 Persistent context for future Claude sessions on this repo. Read this first.
 
@@ -343,6 +346,12 @@ milestone "Native apps" — real-device pass + follow-ups still open)**.
   token generator: `design/tokens/colors.css` → `app/lib/design/tokens.g.dart`.
 - [docs/design-feedback.md](docs/design-feedback.md) — the as-built deviation
   log, finalized as the update prompt for the Claude Design project.
+- `docs/research/` — verbatim research reports feeding the v0.6
+  productization decisions (privacy architecture, licensing, positioning,
+  naming). Point-in-time; decisions themselves live in plan.md.
+- `LICENSE` (AGPL-3.0), `CONTRIBUTING.md` (DCO), `SECURITY.md`,
+  `CODE_OF_CONDUCT.md`, `.github/ISSUE_TEMPLATE/` — the open-source-launch
+  set (v0.6).
 - [docs/RUNBOOK.md](docs/RUNBOOK.md) — operations: services, phone setup,
   backup, model knobs, known limitations. **The owner-facing doc.**
 - `deploy/` — launchd agent template + `install.sh` (installs/updates the
