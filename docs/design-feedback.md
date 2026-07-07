@@ -164,10 +164,19 @@ or consciously reject.
     unlock ships; (c) ready card shows the server address + a hosted-
     quickstart link instead of the pairing QR (no pairing API yet);
     (d) provisioning headline region is dynamic, not hardcoded Falkenstein;
-    (e) account/signup pages use a quiet header, not the full SiteNav (nav
-    partial lives in the website build; duplicating would drift);
+    (e) the account page uses the signup flow's quiet header, not the
+    SiteNav/SiteFooter that Account.dc.html imports (the nav partial lives
+    in the website build; duplicating would drift — signup's design already
+    uses the quiet header);
     (f) the account step gained a sign-in toggle (resume + duplicate-email
-    flows need it — design lacks any sign-in screen); (g) the static site's
+    flows need it — design lacks any sign-in screen); the built pages set a
+    10-character password minimum where the mock validates 8;
+    (f2) the /account dashboard is a deliberate SUBSET of Account.dc.html:
+    unlock card, backups, storage meter, billing detail (incl. the cancel
+    flow) and the danger zone (export everything / delete instance) are not
+    built yet — devices/billing render as quiet coming-soon cards. The
+    export + delete affordances are part of the "full export always" brand
+    promise and return with the billing/unlock work, not dropped; (g) the static site's
     signup **mock** says "step 1 of 5" — at deploy time /signup shadows it
     and nav links move over, reconcile then. Also: the design's inline
     `display:flex` on step sections silently defeats the `hidden` attribute
