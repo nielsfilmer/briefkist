@@ -132,6 +132,21 @@ or consciously reject.
     please swap the token file upstream too; (f) pairing copy assumes the
     QR flow everywhere — web-fallback token paste is the headless reality.
 
+13. **Website claim-precision + copy corrections (2026-07-07, PR #50
+    review).** (a) The Security page's data-path stages 2/4/5, the threat
+    table's transit cell, the exact-claims blockquote, and the landing
+    honesty block now scope passphrase/at-rest-encryption and TLS claims to
+    the **hosted** service (self-host today: plaintext on your own disk +
+    LAN/overlay transport — the specs stated these as universal facts);
+    (b) the launch blog post drops the fictional "1.0" / "two years ago" /
+    "beta" history — it's an honest introduction post
+    (`introducing-briefkist`); (c) pricing toggle copy "two months free" was
+    mathematically wrong for both tiers (3 / 2.5 months) → "save up to 25%";
+    (d) nav "Sign in" → "Get started" (there is no sign-in yet); (e) first
+    visit honors `prefers-color-scheme` before the stored toggle choice
+    (the SiteNav spec defaulted light). Please fold these into the website
+    kits.
+
 ## Content / sample-data
 
 5. **"Phone · Jasmijn"** (desktop kit, Settings → paired devices) may be a

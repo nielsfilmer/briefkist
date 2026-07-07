@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Briefkist 1.0 — your mail stays home, now with a spare key we never hold</title>
-<meta name="description" content="The launch of Briefkist 1.0 — the same private, local-first archive for the paper mail of a household, and a way to have it without owning a server.">
+<title>Introducing Briefkist — your mail stays home</title>
+<meta name="description" content="Briefkist is open source — a private, local-first archive for the paper mail of a household, with hosted servers opening soon for those who don't want to run one.">
 <link rel="stylesheet" href="../assets/site.css">
-<script>try{if(localStorage.getItem("bk-theme")==="dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
+<script>try{var t=localStorage.getItem("bk-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
 <script src="../assets/site.js" defer></script>
 </head>
 <body>
@@ -30,7 +30,7 @@
         <svg class="icon-light-mode" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
         <svg class="icon-dark-mode" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
       </button>
-      <a href="../signup.html" class="bk-navlink">Sign in</a>
+      <a href="../signup.html" class="bk-navlink">Get started</a>
       <a href="../signup.html" class="hov-accent" style="display:inline-flex;align-items:center;height:36px;padding:0 14px;border-radius:var(--radius-md);text-decoration:none;font-family:var(--font-sans);font-size:var(--text-base);font-weight:var(--weight-semibold);background:var(--accent);color:var(--text-on-accent);white-space:nowrap">Get started</a>
     </div>
     <div class="hide-above-820" style="display:flex;align-items:center;gap:0;margin-left:auto">
@@ -59,7 +59,7 @@
     <a href="../pricing.html" class="bk-navlink-m ">Pricing</a>
     <a href="../security.html" class="bk-navlink-m ">Security</a>
     <a href="../docs/index.html" class="bk-navlink-m ">Docs</a>
-    <a href="../signup.html" class="bk-navlink-m">Sign in</a>
+    <a href="../signup.html" class="bk-navlink-m">Get started</a>
   </nav>
   <div style="padding:16px 36px;display:flex;flex-direction:column;gap:12px">
     <a href="../signup.html" class="hov-accent" style="display:inline-flex;align-items:center;justify-content:center;height:48px;border-radius:var(--radius-md);text-decoration:none;font-family:var(--font-sans);font-size:var(--text-md);font-weight:var(--weight-semibold);background:var(--accent);color:var(--text-on-accent)">Get started</a>
@@ -75,22 +75,22 @@
       <a href="index.html" class="hov-accent-underline" style="color:var(--text-2);text-decoration:none">blog</a>
     </nav>
 
-    <h1 style="margin:0 0 14px;font-family:var(--font-serif);font-weight:600;font-size:clamp(30px,3.6vw,40px);line-height:1.18;letter-spacing:-0.01em;text-wrap:pretty">Briefkist 1.0 — your mail stays home, now with a spare key we never hold</h1>
+    <h1 style="margin:0 0 14px;font-family:var(--font-serif);font-weight:600;font-size:clamp(30px,3.6vw,40px);line-height:1.18;letter-spacing:-0.01em;text-wrap:pretty">Introducing Briefkist — your mail stays home</h1>
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:36px">
-      <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3)">07 Jul 2026 · Niels Filmer · 6 min read</span>
+      <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3)">07 Jul 2026 · Niels Filmer · 5 min read</span>
     </div>
 
-    <p style="margin:0 0 20px;font-size:var(--text-md);line-height:1.65;color:var(--text-1);text-wrap:pretty">Two years ago this project was a Mac mini in a cupboard and a working name that turned out to belong to someone else. Today it is Briefkist: the same private, local-first archive for the paper mail of a household — and, for the first time, a way to have it without owning a server.</p>
-    <p style="margin:0 0 20px;font-size:var(--text-base);line-height:1.65;color:var(--text-2)">The principle hasn't moved a centimeter. A letter is photographed on your phone, read and understood by AI on a single machine, and filed into an archive that answers questions like "the letter about the chimney inspection". No cloud, no telemetry, no third party in the data path.</p>
+    <p style="margin:0 0 20px;font-size:var(--text-md);line-height:1.65;color:var(--text-1);text-wrap:pretty">This project started a few weeks ago as a Mac mini in a cupboard and a working name that turned out to belong to someone else. Today it is Briefkist: a private, local-first archive for the paper mail of a household — open source, and soon available without owning a server.</p>
+    <p style="margin:0 0 20px;font-size:var(--text-base);line-height:1.65;color:var(--text-2)">The principle was fixed from the first commit. A letter is photographed on your phone, read and understood by AI on a single machine, and filed into an archive that answers questions like "the letter about the chimney inspection". No cloud, no telemetry, no third party in the data path.</p>
 
     <h2 style="margin:36px 0 12px;font-family:var(--font-serif);font-weight:600;font-size:var(--text-xl);line-height:var(--leading-xl)">What's new</h2>
-    <p style="margin:0 0 20px;font-size:var(--text-base);line-height:1.65;color:var(--text-2)">The server is now open source, AGPL-3.0, in the open on <a href="https://github.com/nielsfilmer/briefkist">GitHub</a>. Self-hosting is and will remain the full product — nothing is paywalled, nothing phones home.</p>
-    <p style="margin:0 0 20px;font-size:var(--text-base);line-height:1.65;color:var(--text-2)">And for households without a spare computer or the appetite to run one: we will now run a single-tenant server for you, in the EU, for €12 a month. Everything it stores is encrypted with a key derived from a passphrase only you hold — we keep only ciphertext. We wrote down exactly what that does and doesn't protect against on the <a href="../security.html">security page</a>, including the words we refuse to use for it.</p>
+    <p style="margin:0 0 20px;font-size:var(--text-base);line-height:1.65;color:var(--text-2)">The server is open source, AGPL-3.0, in the open on <a href="https://github.com/nielsfilmer/briefkist">GitHub</a>. Self-hosting is and will remain the full product — nothing is paywalled, nothing phones home.</p>
+    <p style="margin:0 0 20px;font-size:var(--text-base);line-height:1.65;color:var(--text-2)">And for households without a spare computer or the appetite to run one: we are opening hosted servers — single-tenant, in the EU, €12 a month. Everything one stores will be encrypted with a key derived from a passphrase only you hold — we will keep only ciphertext. We wrote down exactly what that does and doesn't protect against on the <a href="../security.html">security page</a>, including the words we refuse to use for it.</p>
 
     <blockquote style="margin:28px 0;padding:4px 0 4px 20px;border-left:2px solid var(--accent);font-family:var(--font-serif);font-size:var(--text-md);line-height:var(--leading-md);font-style:italic;color:var(--text-1)">A privacy product that can't tell you its weakest moment doesn't know its own strength. Ours is the seconds a letter spends in RAM being read — and we put that in the marketing.</blockquote>
 
     <h2 style="margin:36px 0 12px;font-family:var(--font-serif);font-weight:600;font-size:var(--text-xl);line-height:var(--leading-xl)">What's next</h2>
-    <p style="margin:0 0 20px;font-size:var(--text-base);line-height:1.65;color:var(--text-2)">Honest comparisons, starting with "Briefkist vs Paperless-ngx" and "when NOT to use Briefkist" — because a tool for trust should be easy to rule out. If you've been running the beta at home: thank you, and your archive migrates in place.</p>
+    <p style="margin:0 0 20px;font-size:var(--text-base);line-height:1.65;color:var(--text-2)">Hosted servers open; then honest comparisons, starting with "Briefkist vs Paperless-ngx" and "when NOT to use Briefkist" — because a tool for trust should be easy to rule out. If you want it today, <a href="../docs/index.html">self-hosting is ready</a> — the full product, free, on your own hardware.</p>
 
     <div style="margin-top:44px;padding-top:24px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between">
       <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3)">filed under · announcements</span>

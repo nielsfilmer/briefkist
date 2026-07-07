@@ -24,7 +24,7 @@ HEAD = """<!doctype html>
 <title>{{title}}</title>
 <meta name="description" content="{{description}}">
 <link rel="stylesheet" href="{{root}}assets/site.css">
-<script>try{if(localStorage.getItem("bk-theme")==="dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
+<script>try{var t=localStorage.getItem("bk-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
 <script src="{{root}}assets/site.js" defer></script>
 </head>
 <body>
@@ -50,7 +50,13 @@ def parse_page(text):
 
 
 def substitute(text, variables):
-    return VAR_RE.sub(lambda m: variables.get(m.group(1), ""), text)
+    def lookup(m):
+        name = m.group(1)
+        if name not in variables:
+            raise KeyError(f"unknown template variable {{{{{name}}}}}")
+        return variables[name]
+
+    return VAR_RE.sub(lookup, text)
 
 
 def build():

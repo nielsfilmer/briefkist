@@ -334,6 +334,10 @@ milestone "Native apps" — real-device pass + follow-ups still open)**.
 - `web/` — the v1 web app served by the backend: phone capture page + archive
   browse/search/correct (vanilla JS, mobile-first, dark-mode aware). Stays as
   the zero-install fallback; restyle to the design system is a follow-up.
+- `website/` — the public marketing + docs site (briefkist.eu): stdlib-only
+  static builder (`website/build.py`), `src/` (partials, pages, self-hosted
+  fonts), committed `dist/`. Built from the `design/website/` specs; content
+  corrections are logged in docs/design-feedback.md entries 12–13.
 - [design/](design/MIRROR.md) — **verbatim mirror of the Claude Design project**
   (brand, tokens, components, mobile + desktop UI kits): the design source of
   truth for the native apps. **Vendored-asset dir — don't edit here**; change

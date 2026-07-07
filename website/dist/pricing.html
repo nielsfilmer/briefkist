@@ -6,7 +6,7 @@
 <title>Pricing — Briefkist</title>
 <meta name="description" content="The product is the same everywhere — nothing is paywalled. Self-host free forever, or get a hosted single-tenant server in the EU from €9/mo.">
 <link rel="stylesheet" href="assets/site.css">
-<script>try{if(localStorage.getItem("bk-theme")==="dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
+<script>try{var t=localStorage.getItem("bk-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
 <script src="assets/site.js" defer></script>
 </head>
 <body>
@@ -30,7 +30,7 @@
         <svg class="icon-light-mode" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
         <svg class="icon-dark-mode" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
       </button>
-      <a href="signup.html" class="bk-navlink">Sign in</a>
+      <a href="signup.html" class="bk-navlink">Get started</a>
       <a href="signup.html" class="hov-accent" style="display:inline-flex;align-items:center;height:36px;padding:0 14px;border-radius:var(--radius-md);text-decoration:none;font-family:var(--font-sans);font-size:var(--text-base);font-weight:var(--weight-semibold);background:var(--accent);color:var(--text-on-accent);white-space:nowrap">Get started</a>
     </div>
     <div class="hide-above-820" style="display:flex;align-items:center;gap:0;margin-left:auto">
@@ -59,7 +59,7 @@
     <a href="pricing.html" class="bk-navlink-m is-active">Pricing</a>
     <a href="security.html" class="bk-navlink-m ">Security</a>
     <a href="docs/index.html" class="bk-navlink-m ">Docs</a>
-    <a href="signup.html" class="bk-navlink-m">Sign in</a>
+    <a href="signup.html" class="bk-navlink-m">Get started</a>
   </nav>
   <div style="padding:16px 36px;display:flex;flex-direction:column;gap:12px">
     <a href="signup.html" class="hov-accent" style="display:inline-flex;align-items:center;justify-content:center;height:48px;border-radius:var(--radius-md);text-decoration:none;font-family:var(--font-sans);font-size:var(--text-md);font-weight:var(--weight-semibold);background:var(--accent);color:var(--text-on-accent)">Get started</a>
@@ -75,7 +75,7 @@
       <p style="margin:0;font-size:var(--text-md);line-height:var(--leading-md);color:var(--text-2);max-width:62ch;text-wrap:pretty">The product is the same everywhere — nothing is paywalled. You are choosing who runs the server, and prices include VAT.</p>
       <div style="display:inline-flex;gap:4px;padding:4px;border:1px solid var(--border);border-radius:999px;background:var(--surface-card);align-self:flex-start;margin-top:8px" role="group" aria-label="Billing period">
         <button id="bk-monthly" class="bk-seg on" aria-pressed="true">Monthly</button>
-        <button id="bk-annual" class="bk-seg" aria-pressed="false">Annual — two months free</button>
+        <button id="bk-annual" class="bk-seg" aria-pressed="false">Annual — save up to 25%</button>
       </div>
     </div>
   </section>
@@ -164,7 +164,7 @@
             <span>How does billing work?</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none;color:var(--text-3)" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
           </summary>
-          <p style="margin:0;padding:0 20px 18px;font-size:var(--text-sm);line-height:var(--leading-sm);color:var(--text-2);max-width:64ch">Monthly or annual, prices include VAT. Card, SEPA direct debit or iDEAL. Annual billing is simply two months free — no other difference. Invoices land in your account dashboard.</p>
+          <p style="margin:0;padding:0 20px 18px;font-size:var(--text-sm);line-height:var(--leading-sm);color:var(--text-2);max-width:64ch">Monthly or annual, prices include VAT. Card, SEPA direct debit or iDEAL. Annual billing is simply cheaper — €9 instead of €12, €19 instead of €24 — no other difference. Invoices land in your account dashboard.</p>
         </details>
         <details class="bk-faq" style="border-top:1px solid var(--border)">
           <summary class="hov-bg" style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 20px;cursor:pointer;font-family:var(--font-sans);font-size:var(--text-base);font-weight:var(--weight-semibold);color:var(--text-1)">
