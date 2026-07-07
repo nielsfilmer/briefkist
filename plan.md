@@ -134,7 +134,9 @@ pricing, naming).
     (SaaS control plane: provisioning/billing/tenant dashboard; private —
     operational glue, never touches document data). Contributions under
     **DCO, no CLA** (accepting the known trade-off: no future relicensing
-    without contributor consent).
+    without contributor consent). **Interim state:** until the split lands,
+    `app/` remains in this repo and is AGPL-3.0 like everything else — the
+    Apache-2.0 grant begins at the split, not before.
 20. **Hosted offering architecture ("Pattern C on A")**: per-tenant
     single-tenant VM in an EU datacenter (Hetzner ARM class; CPU inference —
     async letters tolerate minutes/page), LUKS at rest PLUS application-level
@@ -174,6 +176,10 @@ The core loop:
    (semantic search).
 
 ### Non-negotiable constraint: local-first, zero cloud
+*(scoped 2026-07-07, v0.6: this section describes the self-host path — the
+promise fully kept. The hosted tier trades it explicitly per decision #20:
+single-tenant EU VM, key only the customer holds, plaintext only in RAM
+during processing.)*
 
 Every stage — OCR, VLM inference, embeddings, search, storage — runs on hardware you
 control (your Mac, a home server, or a NAS). **No third-party API calls, no telemetry,
