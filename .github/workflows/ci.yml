@@ -10,6 +10,8 @@ on:
 
 permissions:
   contents: read
+  # dorny/paths-filter reads the PR's changed files via the API
+  pull-requests: read
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
