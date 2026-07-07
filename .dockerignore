@@ -1,0 +1,10 @@
+# Keep the build context to what the Dockerfile COPYs: pyproject.toml,
+# uv.lock, server/, spike/, web/.
+*
+!pyproject.toml
+!uv.lock
+!server
+!spike
+!web
+**/__pycache__
+**/.DS_Store

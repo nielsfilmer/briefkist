@@ -28,9 +28,19 @@ _ocr_engine = None
 def _ocr():
     global _ocr_engine
     if _ocr_engine is None:
-        from spike.ocr_engines import AppleVisionOCR
+        from spike.ocr_engines import AppleVisionOCR, PaddleOCREngine
 
-        _ocr_engine = AppleVisionOCR()
+        # config.OCR_ENGINE: apple_vision on macOS, paddleocr elsewhere
+        # (plan.md §6.2); FLOPY_OCR_ENGINE overrides.
+        engines = {cls.name: cls for cls in (AppleVisionOCR, PaddleOCREngine)}
+        try:
+            cls = engines[config.OCR_ENGINE]
+        except KeyError:
+            raise ValueError(
+                f"unknown FLOPY_OCR_ENGINE {config.OCR_ENGINE!r}; "
+                f"choose one of {sorted(engines)}"
+            ) from None
+        _ocr_engine = cls()
     return _ocr_engine
 
 
