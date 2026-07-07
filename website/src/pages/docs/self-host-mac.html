@@ -1,0 +1,107 @@
+<!--
+title: Self-host on a Mac (native) — Briefkist docs
+description: Run Briefkist natively on a Mac mini — the setup the author runs at home, with Apple Vision OCR and Metal-accelerated local AI.
+active: docs
+-->
+<main style="min-height:100vh;background:var(--surface-page);color:var(--text-1);font-family:var(--font-sans)">
+  <div style="max-width:1120px;margin:0 auto;padding:clamp(28px,4vw,44px) 24px clamp(48px,6vw,72px);display:flex;gap:56px;align-items:flex-start">
+
+    <article style="flex:1;min-width:0;max-width:720px">
+      <nav aria-label="Breadcrumb" style="display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);margin-bottom:20px">
+        <a href="index.html" class="hov-accent-underline" style="color:var(--text-3);text-decoration:none">docs</a>
+        <span>/</span>
+        <span>self-hosting</span>
+        <span>/</span>
+        <span style="color:var(--text-2)">mac-native</span>
+      </nav>
+
+      <h1 style="margin:0 0 10px;font-family:var(--font-serif);font-weight:600;font-size:clamp(28px,3.2vw,36px);line-height:1.2;letter-spacing:-0.01em">Self-host on a Mac (native)</h1>
+      <p style="margin:0 0 8px;font-size:var(--text-md);line-height:var(--leading-md);color:var(--text-2);text-wrap:pretty">The setup the author runs at home: a Mac mini in a cupboard, the server as a background service, local AI on Apple silicon. About fifteen minutes.</p>
+      <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3)">last updated 07 Jul 2026 · applies to server 1.x</span>
+
+      <div style="margin:28px 0 0;padding:16px 18px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface-card);display:flex;gap:12px;align-items:flex-start">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:2px" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <span style="font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--text-3)">note</span>
+          <p style="margin:0;font-size:var(--text-sm);line-height:var(--leading-sm);color:var(--text-2)">Prefer containers? The <a href="self-host-linux.html">Linux guide</a> uses Docker Compose. On a Mac, though, the native install is the better path: it gets Apple Vision OCR and Metal-accelerated AI, which Docker on macOS cannot pass through.</p>
+        </div>
+      </div>
+
+      <h2 id="requirements" style="margin:40px 0 12px;font-family:var(--font-serif);font-weight:600;font-size:var(--text-xl);line-height:var(--leading-xl)">What you need</h2>
+      <p style="margin:0 0 16px;font-size:var(--text-base);line-height:var(--leading-base);color:var(--text-2)">Any Mac with Apple silicon works. The archive itself is small — the letters of a household for a decade fit in a few gigabytes; the AI models take the most room.</p>
+      <div style="overflow-x:auto;margin:0 0 8px">
+        <div style="min-width:480px;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden">
+          <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;background:var(--surface-card)">
+            <div style="padding:10px 16px;font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--text-3)"></div>
+            <div style="padding:10px 16px;font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--text-3);border-left:1px solid var(--border)">minimum</div>
+            <div style="padding:10px 16px;font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--text-3);border-left:1px solid var(--border)">recommended</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;border-top:1px solid var(--border)"><div style="padding:12px 16px;font-size:var(--text-sm);font-weight:var(--weight-semibold)">Machine</div><div style="padding:12px 16px;font-size:var(--text-sm);color:var(--text-2);border-left:1px solid var(--border)">M1, 8 GB</div><div style="padding:12px 16px;font-size:var(--text-sm);color:var(--text-2);border-left:1px solid var(--border)">M2 or later, 16 GB</div></div>
+          <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;border-top:1px solid var(--border)"><div style="padding:12px 16px;font-size:var(--text-sm);font-weight:var(--weight-semibold)">Free disk</div><div style="padding:12px 16px;font-size:var(--text-sm);color:var(--text-2);border-left:1px solid var(--border)">20 GB</div><div style="padding:12px 16px;font-size:var(--text-sm);color:var(--text-2);border-left:1px solid var(--border)">50 GB</div></div>
+          <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;border-top:1px solid var(--border)"><div style="padding:12px 16px;font-size:var(--text-sm);font-weight:var(--weight-semibold)">macOS</div><div style="padding:12px 16px;font-size:var(--text-sm);color:var(--text-2);border-left:1px solid var(--border)">14 Sonoma</div><div style="padding:12px 16px;font-size:var(--text-sm);color:var(--text-2);border-left:1px solid var(--border)">15 or later</div></div>
+          <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;border-top:1px solid var(--border)"><div style="padding:12px 16px;font-size:var(--text-sm);font-weight:var(--weight-semibold)">Network</div><div style="padding:12px 16px;font-size:var(--text-sm);color:var(--text-2);border-left:1px solid var(--border)">Home LAN</div><div style="padding:12px 16px;font-size:var(--text-sm);color:var(--text-2);border-left:1px solid var(--border)">LAN + a VPN (Tailscale or WireGuard) for scanning away from home</div></div>
+        </div>
+      </div>
+      <p style="margin:0 0 16px;font-size:var(--text-base);line-height:var(--leading-base);color:var(--text-2)">You also need the command-line basics: <a href="https://brew.sh">Homebrew</a>, plus <code style="font-family:var(--font-mono);font-size:var(--text-sm);background:var(--surface-inset);padding:1px 5px;border-radius:var(--radius-sm)">git</code> and <a href="https://docs.astral.sh/uv/">uv</a> (both installable with Homebrew).</p>
+
+      <h2 id="install" style="margin:40px 0 12px;font-family:var(--font-serif);font-weight:600;font-size:var(--text-xl);line-height:var(--leading-xl)">Install</h2>
+      <p style="margin:0 0 16px;font-size:var(--text-base);line-height:var(--leading-base);color:var(--text-2)">First the AI runtime. Ollama runs the vision and embedding models locally; the two pulls are the only downloads the pipeline ever needs:</p>
+      <pre style="margin:0 0 16px;padding:16px 18px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface-inset);overflow-x:auto;font-family:var(--font-mono);font-size:var(--text-sm);line-height:var(--leading-base);color:var(--text-1)"><code>brew install ollama uv
+brew services start ollama
+ollama pull qwen3-vl:4b-instruct
+ollama pull bge-m3</code></pre>
+      <p style="margin:0 0 16px;font-size:var(--text-base);line-height:var(--leading-base);color:var(--text-2)">Then the server itself. The install script registers it as a login service (launchd) bound to this Mac's LAN address, so it starts with the machine and restarts if it crashes:</p>
+      <pre style="margin:0 0 16px;padding:16px 18px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface-inset);overflow-x:auto;font-family:var(--font-mono);font-size:var(--text-sm);line-height:var(--leading-base);color:var(--text-1)"><code>git clone https://github.com/nielsfilmer/briefkist.git
+cd briefkist
+bash deploy/install.sh            # binds this Mac's primary LAN IP
+# or pin an explicit address:
+bash deploy/install.sh 192.168.1.76</code></pre>
+      <p style="margin:0 0 16px;font-size:var(--text-base);line-height:var(--leading-base);color:var(--text-2)">Check it's alive — the web app is served on port 8484 (a 401 from the API also means alive; every endpoint is authenticated):</p>
+      <pre style="margin:0 0 16px;padding:16px 18px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface-inset);overflow-x:auto;font-family:var(--font-mono);font-size:var(--text-sm);line-height:var(--leading-base);color:var(--text-1)"><code>curl -i http://&lt;LAN-IP&gt;:8484/api/status</code></pre>
+
+      <div style="margin:0 0 16px;padding:16px 18px;border:1px solid var(--warn);border-radius:var(--radius-md);background:var(--warn-tint);display:flex;gap:12px;align-items:flex-start">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:2px" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <span style="font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--text-2)">caution</span>
+          <p style="margin:0;font-size:var(--text-sm);line-height:var(--leading-sm);color:var(--text-1)">The server binds one specific address and refuses wildcard binds by design — your archive is never exposed on every interface. Keep it on the LAN (or a Tailscale/WireGuard address); don't port-forward it to the internet. If the Mac's LAN IP changes, re-run <code style="font-family:var(--font-mono)">bash deploy/install.sh</code> — and give the machine a static IP in your router so it stops happening.</p>
+        </div>
+      </div>
+      <p style="margin:0 0 16px;font-size:var(--text-base);line-height:var(--leading-base);color:var(--text-2)">Updating later is the same two commands: <code style="font-family:var(--font-mono);font-size:var(--text-sm);background:var(--surface-inset);padding:1px 5px;border-radius:var(--radius-sm)">git pull</code>, then re-run <code style="font-family:var(--font-mono);font-size:var(--text-sm);background:var(--surface-inset);padding:1px 5px;border-radius:var(--radius-sm)">bash deploy/install.sh</code>. Logs live at <code style="font-family:var(--font-mono);font-size:var(--text-sm);background:var(--surface-inset);padding:1px 5px;border-radius:var(--radius-sm)">~/Library/Logs/briefkist/server.log</code>.</p>
+
+      <h2 id="pairing" style="margin:40px 0 12px;font-family:var(--font-serif);font-weight:600;font-size:var(--text-xl);line-height:var(--leading-xl)">Pair your phone</h2>
+      <p style="margin:0 0 16px;font-size:var(--text-base);line-height:var(--leading-base);color:var(--text-2)">Each device gets its own token, minted on the Mac. From the repo directory:</p>
+      <pre style="margin:0 0 16px;padding:16px 18px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface-inset);overflow-x:auto;font-family:var(--font-mono);font-size:var(--text-sm);line-height:var(--leading-base);color:var(--text-1)"><code>uv run python -m server.tokens_cli add "my-iphone"</code></pre>
+      <p style="margin:0 0 16px;font-size:var(--text-base);line-height:var(--leading-base);color:var(--text-2)">The token is shown exactly once — copy it. On the phone (same Wi-Fi): open <code style="font-family:var(--font-mono);font-size:var(--text-sm);background:var(--surface-inset);padding:1px 5px;border-radius:var(--radius-sm)">http://&lt;LAN-IP&gt;:8484</code>, tap the settings gear, paste the token, save — then use the share sheet's "Add to Home Screen" so the archive sits next to your other apps. This phone talks only to your own server; the token works nowhere else, and you can revoke it at any time with <code style="font-family:var(--font-mono);font-size:var(--text-sm);background:var(--surface-inset);padding:1px 5px;border-radius:var(--radius-sm)">uv run python -m server.tokens_cli revoke "my-iphone"</code>.</p>
+
+      <h2 id="first-letter" style="margin:40px 0 12px;font-family:var(--font-serif);font-weight:600;font-size:var(--text-xl);line-height:var(--leading-xl)">File your first letter</h2>
+      <p style="margin:0 0 16px;font-size:var(--text-base);line-height:var(--leading-base);color:var(--text-2)">Photograph any letter from today's pile. Processing is asynchronous — roughly twenty to thirty seconds per page on a Mac mini — and the recent-uploads list updates live until the letter is filed with a sender, date, summary and keywords, all extracted on the Mac in the cupboard. Nothing left the house. Any field the model got wrong can be corrected inline in the letter's detail view.</p>
+
+      <h2 id="backup" style="margin:40px 0 12px;font-family:var(--font-serif);font-weight:600;font-size:var(--text-xl);line-height:var(--leading-xl)">Back it up</h2>
+      <p style="margin:0 0 16px;font-size:var(--text-base);line-height:var(--leading-base);color:var(--text-2)">Everything lives under the data directory (default <code style="font-family:var(--font-mono);font-size:var(--text-sm);background:var(--surface-inset);padding:1px 5px;border-radius:var(--radius-sm)">data/archive/</code> in the repo): one SQLite database plus the image folders. Copying that folder to an external disk is a complete backup — do it periodically until scheduled encrypted backups land.</p>
+
+      <div style="display:flex;gap:16px;margin-top:48px;flex-wrap:wrap">
+        <a href="self-host-linux.html" class="hov-bg" style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:16px 18px;border:1px solid var(--border);border-radius:var(--radius-md);text-decoration:none">
+          <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);letter-spacing:var(--tracking-caps);text-transform:uppercase">← previous</span>
+          <span style="font-size:var(--text-sm);font-weight:var(--weight-semibold);color:var(--text-1)">Self-host on Linux (Docker Compose)</span>
+        </a>
+        <a href="hosted-quickstart.html" class="hov-bg" style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:16px 18px;border:1px solid var(--border);border-radius:var(--radius-md);text-decoration:none;text-align:right">
+          <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);letter-spacing:var(--tracking-caps);text-transform:uppercase">next →</span>
+          <span style="font-size:var(--text-sm);font-weight:var(--weight-semibold);color:var(--text-1)">Hosted quickstart</span>
+        </a>
+      </div>
+    </article>
+
+    <aside class="hide-below-900" style="width:220px;flex:none;position:sticky;top:84px;display:flex;flex-direction:column;gap:2px">
+      <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);letter-spacing:var(--tracking-caps);text-transform:uppercase;padding:6px 10px 8px">on this page</span>
+      <a href="#requirements" class="hov-toc" style="padding:6px 10px;border-left:2px solid var(--border);font-size:var(--text-sm);color:var(--text-2);text-decoration:none">What you need</a>
+      <a href="#install" class="hov-toc" style="padding:6px 10px;border-left:2px solid var(--border);font-size:var(--text-sm);color:var(--text-2);text-decoration:none">Install</a>
+      <a href="#pairing" class="hov-toc" style="padding:6px 10px;border-left:2px solid var(--border);font-size:var(--text-sm);color:var(--text-2);text-decoration:none">Pair your phone</a>
+      <a href="#first-letter" class="hov-toc" style="padding:6px 10px;border-left:2px solid var(--border);font-size:var(--text-sm);color:var(--text-2);text-decoration:none">File your first letter</a>
+      <a href="#backup" class="hov-toc" style="padding:6px 10px;border-left:2px solid var(--border);font-size:var(--text-sm);color:var(--text-2);text-decoration:none">Back it up</a>
+      <a href="https://github.com/nielsfilmer/briefkist/edit/main/website/src/pages/docs/self-host-mac.html" class="hov-accent-text" style="margin-top:16px;padding:6px 10px;display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);text-decoration:none">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>
+        edit on GitHub
+      </a>
+    </aside>
+  </div>
+</main>

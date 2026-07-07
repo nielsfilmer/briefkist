@@ -119,6 +119,19 @@ or consciously reject.
     arm's length). Design could adopt the mint-on-demand card, spec the
     scanner screen, and bless the QR contrast/size rules.
 
+12. **Website build corrections (2026-07-07).** The as-built site diverges
+    from the website kits where the kits described fiction: (a) the
+    `curl get.briefkist.eu/mac | sh` installer doesn't exist — docs show the
+    real clone + install.sh / docker compose paths (an installer script is a
+    good future ask); (b) the self-host server has no passphrase-encrypted
+    archive (that's the hosted design) — the Mac-guide passphrase caution
+    moved to the hosted quickstart; (c) fake docs article counts ("4
+    articles") became honest "coming soon" states; (d) sample server output
+    (`1.4.2 … :8420`) corrected to the real port/checks; (e) tokens/fonts.css
+    still carries the Google Fonts @import — the built site self-hosts fonts;
+    please swap the token file upstream too; (f) pairing copy assumes the
+    QR flow everywhere — web-fallback token paste is the headless reality.
+
 ## Content / sample-data
 
 5. **"Phone · Jasmijn"** (desktop kit, Settings → paired devices) may be a
