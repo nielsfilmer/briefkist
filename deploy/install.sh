@@ -30,6 +30,10 @@ sed -e "s|__UV__|$UV_BIN|g" \
     -e "s|__LOGDIR__|$LOGDIR|g" \
     "$REPO/deploy/$LABEL.plist.template" > "$PLIST_DEST"
 
+# One-time migration: unload the pre-rename agent if present, or the two
+# KeepAlive agents fight over the same address (rename review, PR #46).
+launchctl bootout "gui/$(id -u)/nl.eviloverlord.flopy" 2>/dev/null || true
+rm -f "$HOME/Library/LaunchAgents/nl.eviloverlord.flopy.plist"
 launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null || true
 launchctl bootstrap "gui/$(id -u)" "$PLIST_DEST"
 

@@ -72,6 +72,64 @@ wheels = [
 ]
 
 [[package]]
+name = "briefkist"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "fastapi" },
+    { name = "httpx" },
+    { name = "numpy" },
+    { name = "opencv-python-headless" },
+    { name = "pillow" },
+    { name = "pillow-heif" },
+    { name = "pydantic" },
+    { name = "pyobjc-framework-quartz", marker = "sys_platform == 'darwin'" },
+    { name = "pyobjc-framework-vision", marker = "sys_platform == 'darwin'" },
+    { name = "python-multipart" },
+    { name = "rapidfuzz" },
+    { name = "sqlite-vec" },
+    { name = "uvicorn" },
+]
+
+[package.optional-dependencies]
+paddle = [
+    { name = "paddleocr" },
+    { name = "paddlepaddle" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", specifier = ">=0.111" },
+    { name = "httpx", specifier = ">=0.27" },
+    { name = "numpy", specifier = ">=1.26" },
+    { name = "opencv-python-headless", specifier = ">=4.9" },
+    { name = "paddleocr", marker = "extra == 'paddle'", specifier = ">=2.8" },
+    { name = "paddlepaddle", marker = "extra == 'paddle'", specifier = ">=3.0" },
+    { name = "pillow", specifier = ">=10.0" },
+    { name = "pillow-heif", specifier = ">=0.16" },
+    { name = "pydantic", specifier = ">=2.7" },
+    { name = "pyobjc-framework-quartz", marker = "sys_platform == 'darwin'", specifier = ">=10.0" },
+    { name = "pyobjc-framework-vision", marker = "sys_platform == 'darwin'", specifier = ">=10.0" },
+    { name = "python-multipart", specifier = ">=0.0.9" },
+    { name = "rapidfuzz", specifier = ">=3.6" },
+    { name = "sqlite-vec", specifier = "==0.1.6" },
+    { name = "uvicorn", specifier = ">=0.30" },
+]
+provides-extras = ["paddle"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "ruff", specifier = ">=0.4" },
+]
+
+[[package]]
 name = "certifi"
 version = "2026.6.17"
 source = { registry = "https://pypi.org/simple" }
@@ -344,64 +402,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/46/f5/dac0afb55069c1507adfbf75c2156235490e6844f721b0cf4cc417014077/modelscope_hub-0.1.6.tar.gz", hash = "sha256:2af6ca996fb59a865fe86e0e11905a6f04e5be075fbba23e97cf489b30343fcf", size = 124619, upload-time = "2026-07-02T16:27:16.637Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c9/84/05efda0ed661960c993c26d4476b05bd4c942d8eb2e857bbcac74bf03ea8/modelscope_hub-0.1.6-py3-none-any.whl", hash = "sha256:d4cab02533885ee9420f075899ff585c038f0b6c8489896cb083d8bfad4e1461", size = 133850, upload-time = "2026-07-02T16:27:15.396Z" },
-]
-
-[[package]]
-name = "my-flopy"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "fastapi" },
-    { name = "httpx" },
-    { name = "numpy" },
-    { name = "opencv-python-headless" },
-    { name = "pillow" },
-    { name = "pillow-heif" },
-    { name = "pydantic" },
-    { name = "pyobjc-framework-quartz", marker = "sys_platform == 'darwin'" },
-    { name = "pyobjc-framework-vision", marker = "sys_platform == 'darwin'" },
-    { name = "python-multipart" },
-    { name = "rapidfuzz" },
-    { name = "sqlite-vec" },
-    { name = "uvicorn" },
-]
-
-[package.optional-dependencies]
-paddle = [
-    { name = "paddleocr" },
-    { name = "paddlepaddle" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "pytest" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "fastapi", specifier = ">=0.111" },
-    { name = "httpx", specifier = ">=0.27" },
-    { name = "numpy", specifier = ">=1.26" },
-    { name = "opencv-python-headless", specifier = ">=4.9" },
-    { name = "paddleocr", marker = "extra == 'paddle'", specifier = ">=2.8" },
-    { name = "paddlepaddle", marker = "extra == 'paddle'", specifier = ">=3.0" },
-    { name = "pillow", specifier = ">=10.0" },
-    { name = "pillow-heif", specifier = ">=0.16" },
-    { name = "pydantic", specifier = ">=2.7" },
-    { name = "pyobjc-framework-quartz", marker = "sys_platform == 'darwin'", specifier = ">=10.0" },
-    { name = "pyobjc-framework-vision", marker = "sys_platform == 'darwin'", specifier = ">=10.0" },
-    { name = "python-multipart", specifier = ">=0.0.9" },
-    { name = "rapidfuzz", specifier = ">=3.6" },
-    { name = "sqlite-vec", specifier = "==0.1.6" },
-    { name = "uvicorn", specifier = ">=0.30" },
-]
-provides-extras = ["paddle"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "pytest", specifier = ">=8.0" },
-    { name = "ruff", specifier = ">=0.4" },
 ]
 
 [[package]]
