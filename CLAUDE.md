@@ -87,6 +87,9 @@ Every task ends with a pull request. Do **not** push directly to `main`.
    waiting, and notify the user in batch when a testable deliverable exists, not per
    PR. Outward-facing gates unrelated to merging — publishing, deleting remote
    resources, spending — still require the user.)*
+   **Verify CI is green as its own step before merging — never chain
+   `gh pr merge` off `gh pr checks --watch | tail` (the pipe eats the failure
+   exit code; PR #50 merged with red main that way, repaired in #52).**
 
 ### Review-prompt template
 
