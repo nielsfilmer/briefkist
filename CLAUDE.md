@@ -275,12 +275,9 @@ observed running it.
   (`FLOPY_OCR_ENGINE` overrides).
 - **Benchmark / test set:** see `spike/README.md` and `testset/README.md`.
 - **Tests/lint:** `uv run pytest`, `uv run ruff check .`.
-- **Native apps (`app/`, Flutter):** from `app/` — `flutter run -d <simulator-id>`
-  (iOS; boot one via `xcrun simctl boot flopy-iphone`) or `flutter run -d macos`.
-  Checks: `flutter analyze`, `flutter test`. Color tokens are generated:
-  `uv run python scripts/gen_flutter_tokens.py` regenerates
-  `app/lib/design/tokens.g.dart` from `design/tokens/colors.css` after a
-  design re-mirror — never edit the .g.dart by hand.
+- **Native apps (Flutter):** live in the separate
+  [briefkist-app](https://github.com/nielsfilmer/briefkist-app) repo — see its
+  README for run/build instructions.
 
 ## What this project is
 
@@ -295,7 +292,8 @@ the owner controls** — remote ("on the road") access is via a private
 WireGuard/Tailscale overlay, not the public
 internet. Stack (v0.2, amended 2026-07-03; native apps added 2026-07-06 v0.5 —
 see plan.md decision log): **Flutter native apps** (iOS + macOS, one codebase in
-`app/`, built against `design/`) alongside the **web app** fallback
+the separate briefkist-app repo since the 2026-07-07 subtree split, built
+against `design/` here) alongside the **web app** fallback
 (mobile capture page + desktop browse, served by the backend),
 **FastAPI** backend, **Ollama** running **Qwen3-VL-4B** (2B fallback) + OCR (Apple
 Vision vs PaddleOCR, benchmarked in Phase 0), **SQLite FTS5 + sqlite-vec**, **bge-m3**
@@ -342,12 +340,15 @@ milestone "Native apps" — real-device pass + follow-ups still open)**.
   (brand, tokens, components, mobile + desktop UI kits): the design source of
   truth for the native apps. **Vendored-asset dir — don't edit here**; change
   the Claude Design project and re-mirror (see `design/MIRROR.md`).
-- `app/` — the Flutter native apps (iOS + macOS, one codebase): `lib/design/`
-  is the design system translated from `design/` (generated color tokens +
-  hand-built Mf* widgets, bundled OFL fonts in `assets/fonts/`), `lib/dev/`
-  the widget gallery. Built per plan.md v0.5.
+- Native apps (Flutter, iOS + macOS) — live in
+  [github.com/nielsfilmer/briefkist-app](https://github.com/nielsfilmer/briefkist-app)
+  (Apache-2.0, subtree-split 2026-07-07 with history preserved; was `app/`
+  here). The design source of truth stays here in `design/`.
 - [scripts/gen_flutter_tokens.py](scripts/gen_flutter_tokens.py) — oklch→sRGB
-  token generator: `design/tokens/colors.css` → `app/lib/design/tokens.g.dart`.
+  token generator: `design/tokens/colors.css` → `tokens.g.dart`. The script
+  stays here with the design mirror; its OUTPUT lives in the app repo — pass
+  the output path (required arg), e.g.
+  `uv run python scripts/gen_flutter_tokens.py ../briefkist-app/lib/design/tokens.g.dart`.
 - [docs/design-feedback.md](docs/design-feedback.md) — the as-built deviation
   log, finalized as the update prompt for the Claude Design project.
 - `docs/research/` — verbatim research reports feeding the v0.6
@@ -364,8 +365,9 @@ milestone "Native apps" — real-device pass + follow-ups still open)**.
   distribution path (v0.6): PaddleOCR image with baked-in PP-OCRv5 models,
   compose stack with an internal-only (zero-egress) Ollama service. See
   RUNBOOK "Docker (Linux)".
-- `.github/workflows/ci.yml` — CI: ruff + pytest (ubuntu), Flutter checks on
-  `app/**` changes, Docker build (pushes `ghcr.io/nielsfilmer/briefkist` on main).
+- `.github/workflows/ci.yml` — CI: ruff + pytest (ubuntu), Docker build
+  (pushes `ghcr.io/nielsfilmer/briefkist` on main). Flutter checks live in
+  the briefkist-app repo's own CI.
 - `tests/` — pytest suite (`uv run pytest`).
 - `data/` — generated/captured data, **gitignored** (synthetic set under
   `data/testset/`, real letters under `data/testset-real/`).

@@ -1,6 +1,7 @@
-# CI (closes #10): mechanical merge gate — ruff + pytest on ubuntu, Flutter
-# checks when app/ changes, and a Docker build proving the Linux distribution
-# path (pushed to GHCR on main).
+# CI (closes #10): mechanical merge gate — ruff + pytest on ubuntu, and a
+# Docker build proving the Linux distribution path (pushed to GHCR on main).
+# Flutter app checks live in github.com/nielsfilmer/briefkist-app since the
+# app/ subtree split (plan.md decision #19).
 name: CI
 
 on:
@@ -10,8 +11,6 @@ on:
 
 permissions:
   contents: read
-  # dorny/paths-filter reads the PR's changed files via the API
-  pull-requests: read
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -32,39 +31,6 @@ jobs:
       - run: uv sync --frozen
       - run: uv run ruff check .
       - run: uv run pytest -q
-
-  changes:
-    name: detect changed paths
-    runs-on: ubuntu-latest
-    outputs:
-      app: ${{ steps.filter.outputs.app }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            app:
-              - 'app/**'
-
-  flutter:
-    name: flutter analyze + test
-    needs: changes
-    if: needs.changes.outputs.app == 'true'
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: app
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: 3.44.x
-          channel: stable
-          cache: true
-      - run: flutter pub get
-      - run: flutter analyze
-      - run: flutter test
 
   docker:
     name: docker build (+ push on main)
