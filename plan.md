@@ -1,13 +1,14 @@
 # Snail-Mail Archiver — Project Plan
 
 > A fully local, self-hosted system to photograph, read, tag, archive, and search
-> physical mail. Capture with a phone, process on your own hardware, and never let a
-> single byte leave your network.
+> physical mail. Capture with a phone, process on your own hardware — or on a
+> single-tenant hosted server under a key only you hold (v0.6) — and never let
+> a third party into the data path.
 
 - **Owner:** niels@eviloverlord.nl
-- **Status:** Executing (v0.3) — Phase 0 spike complete: **GO** (see `docs/phase0/VERDICT.md`); Phase 1–2 build in flight
-- **Last updated:** 2026-07-03
-- **Working name:** *my-flopy* (rename later, e.g. "Postvault", "Briefkist", "Mailcrate")
+- **Status:** Executing (v0.6) — apps built; productization (open-source launch + website + hosted SaaS) in flight (milestone "Productization", tracker #44)
+- **Last updated:** 2026-07-07
+- **Name:** **Briefkist** *(decision log #18; formerly working name my-flopy)*
 
 ## Decision log — 2026-07-03 (v0.2, execution-start reality check)
 
@@ -112,6 +113,49 @@ application, this is genuinely just an archive for snail mail."*
     list, per the design). The backend grows minimal pairing/device endpoints
     on top of the existing per-device token auth; the CLI path stays.
 
+## Decision log — 2026-07-07 (v0.6, productization — owner directive)
+
+The owner: turn the project into a public product — open-source self-host,
+a website, and a paid hosted offering. Research inputs preserved verbatim in
+`docs/research/` (privacy architecture, distribution/licensing, positioning/
+pricing, naming).
+
+18. **The product is named Briefkist** (letter-chest, NL; near-parses in DE).
+    "my-flopy" collides permanently with USGS FloPy; "Postvault" with a live
+    same-category app. Briefkist survived two full collision rounds (App
+    Store, Play, GitHub, PyPI, domains .com/.app/.io/.nl all free, trademark
+    web-scan clean — manual EUIPO check + domain registration are owner
+    actions in flight).
+19. **Repo split, three repos**: `briefkist` (this repo — server, pipeline,
+    web fallback, design mirror; **AGPL-3.0**, public), `briefkist-app`
+    (the Flutter apps, split out with history; **Apache-2.0**, public —
+    permissive avoids the App Store/GPL conflict without a CLA, and open
+    clients are what make the privacy promise auditable), `briefkist-cloud`
+    (SaaS control plane: provisioning/billing/tenant dashboard; private —
+    operational glue, never touches document data). Contributions under
+    **DCO, no CLA** (accepting the known trade-off: no future relicensing
+    without contributor consent). **Interim state:** until the split lands,
+    `app/` remains in this repo and is AGPL-3.0 like everything else — the
+    Apache-2.0 grant begins at the split, not before.
+20. **Hosted offering architecture ("Pattern C on A")**: per-tenant
+    single-tenant VM in an EU datacenter (Hetzner ARM class; CPU inference —
+    async letters tolerate minutes/page), LUKS at rest PLUS application-level
+    envelope encryption under a key derived from a passphrase **only the
+    customer holds**; the server keeps the unwrapped key in RAM only during
+    unlocked sessions/ingest. Confidential computing rejected for v1 (no
+    budget-EU availability, unverifiable for consumers). **Claim discipline
+    is load-bearing:** never "zero-knowledge", never "end-to-end encrypted"
+    (FTC-v-Zoom trap); the honest claim is Proton-incoming-mail-style —
+    ciphertext at rest under the customer's key, plaintext exists only in
+    the tenant's private RAM during processing, no third party ever.
+21. **Pricing (launch)**: self-host free forever (full product, no paywalled
+    features — Immich model); hosted **€12/mo (€9/mo annual)**; dedicated
+    €24/€19. VAT-inclusive. The customer-held key is the differentiator no
+    hosted-Paperless competitor offers.
+22. **The self-host path keeps equal dignity forever** — it IS the privacy
+    promise fully kept; hosted is the convenience trade, stated plainly
+    (§5.1's own VPS caveat becomes the product's honesty page).
+
 ---
 
 ## 1. Goal
@@ -132,6 +176,10 @@ The core loop:
    (semantic search).
 
 ### Non-negotiable constraint: local-first, zero cloud
+*(scoped 2026-07-07, v0.6: this section describes the self-host path — the
+promise fully kept. The hosted tier trades it explicitly per decision #20:
+single-tenant EU VM, key only the customer holds, plaintext only in RAM
+during processing.)*
 
 Every stage — OCR, VLM inference, embeddings, search, storage — runs on hardware you
 control (your Mac, a home server, or a NAS). **No third-party API calls, no telemetry,
