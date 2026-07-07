@@ -14,11 +14,11 @@ import 'mobile/mobile_shell.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final config = await AppConfig.load();
-  runApp(MyFlopyApp(config: config));
+  runApp(BriefkistApp(config: config));
 }
 
-class MyFlopyApp extends StatelessWidget {
-  const MyFlopyApp({super.key, required this.config});
+class BriefkistApp extends StatelessWidget {
+  const BriefkistApp({super.key, required this.config});
 
   final AppConfig config;
 
