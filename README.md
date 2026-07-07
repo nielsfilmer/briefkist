@@ -10,13 +10,16 @@ keywords — then files it into an archive you can search by words or by
 meaning. It is an archive, not an invoicing tool.
 
 **Nothing ever leaves hardware you control.** No cloud APIs, no telemetry, no
-third party in the data path. The AI runs on your machine; the process that
-sees your documents in plaintext has no route to the internet. Remote access
-is over a private WireGuard/Tailscale overlay — no public ports.
+third party in the data path. The AI runs on your machine, and the
+architecture is built to keep it that way: on the Docker stack the model
+runtime — which holds your documents in plaintext during inference — sits on
+an internal network with no internet route at all. Remote access is designed
+overlay-only (WireGuard/Tailscale) — no public ports, ever.
 
 ## Install
 
-Two supported paths — same product, full features on both:
+Two supported paths — the same product on both (the OCR engine differs per
+platform; see the table below):
 
 - **Linux (Docker Compose)** — any box you own: a NUC, a home server, an old
   desktop. `docker compose pull && docker compose up -d`, pull the two models
@@ -54,8 +57,12 @@ pipeline, roadmap, risks — is in **[plan.md](plan.md)**.
 
 This is a privacy project first:
 
-- The OCR/VLM processes run with **no network egress** — documents cannot
-  leave, even if a dependency misbehaves (plan.md §5.1).
+- On Docker, the model runtime (Ollama) is **egress-locked by network
+  topology** — the container that runs inference has no internet route, even
+  if a dependency misbehaves. Extending that lockdown to every process that
+  touches a document (OCR, worker; native macOS included) is the §5.1 design
+  and tracked work, not yet fully wired — plan.md §5.1 and docs/RUNBOOK.md
+  state exactly what is enforced today.
 - The server **refuses to bind 0.0.0.0** on bare metal; exposure is an
   explicit, host-level decision.
 - Every device gets its **own revocable token**; the phone talks only to your
