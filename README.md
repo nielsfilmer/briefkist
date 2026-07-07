@@ -12,8 +12,9 @@ Use it on the road via a private WireGuard/Tailscale overlay — **no cloud, no
 public ports, no third party in the data path.**
 
 > **Status:** executing — Phase 0 GO, the end-to-end slice + search live, and the
-> **native iOS + macOS apps (Flutter, one codebase in `app/`)** built against the
-> design system in `design/`. The web app stays as the zero-install fallback.
+> **native iOS + macOS apps (Flutter, one codebase in
+> [briefkist-app](https://github.com/nielsfilmer/briefkist-app))** built against
+> the design system in `design/`. The web app stays as the zero-install fallback.
 > See the decision log at the top of [plan.md](plan.md).
 
 ## Documents
@@ -28,7 +29,7 @@ public ports, no third party in the data path.**
 
 | Layer | Choice |
 |---|---|
-| Apps | **Flutter iOS + macOS** (`app/`, design system from `design/`) + web fallback served by the backend |
+| Apps | **Flutter iOS + macOS** ([briefkist-app](https://github.com/nielsfilmer/briefkist-app), Apache-2.0; design system from `design/` here) + web fallback served by the backend |
 | Capture | iOS document scanner (VisionKit) in the app; phone-browser camera in the web fallback; backend OpenCV cleanup |
 | OCR | Apple Vision vs PaddleOCR — Phase 0 benchmark picks the primary |
 | Understanding | Qwen3-VL-4B (2B fallback) via Ollama |

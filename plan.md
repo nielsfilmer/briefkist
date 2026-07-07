@@ -100,7 +100,8 @@ application, this is genuinely just an archive for snail mail."*
     identity + design system + all screens (mobile & desktop) in Claude Design;
     a verbatim mirror lives in `design/` (see `design/MIRROR.md`) and is the
     design source of truth. Deliverables: a fully working **iOS app** and
-    **macOS desktop app** (one Flutter codebase in `app/`), plus a documented
+    **macOS desktop app** (one Flutter codebase in `app/` — since split out to
+    the briefkist-app repo, decision #19), plus a documented
     design-feedback loop back into Claude Design.
 15. **The web app (`web/`) stays as the zero-install fallback**, served by the
     backend as today; restyling it to the new design system is a filed
@@ -136,7 +137,8 @@ pricing, naming).
     **DCO, no CLA** (accepting the known trade-off: no future relicensing
     without contributor consent). **Interim state:** until the split lands,
     `app/` remains in this repo and is AGPL-3.0 like everything else — the
-    Apache-2.0 grant begins at the split, not before.
+    Apache-2.0 grant begins at the split, not before. (split executed
+    2026-07-07 — briefkist-app carries the history.)
 20. **Hosted offering architecture ("Pattern C on A")**: per-tenant
     single-tenant VM in an EU datacenter (Hetzner ARM class; CPU inference —
     async letters tolerate minutes/page), LUKS at rest PLUS application-level
@@ -544,7 +546,8 @@ At this scale (thousands of docs) everything is fast enough; the real constraint
 ### 6.7 Cross-platform app framework (desktop + mobile, one codebase)
 - **Re-amended 2026-07-06 — the Flutter phase is live (decision log v0.5).** Xcode
   26.6 is now installed on the (macOS 26.5-upgraded) host, so the deferral reason is
-  gone: the native apps are being built in `app/` against the `design/` design
+  gone: the native apps are being built in `app/` (since split out to the
+  briefkist-app repo, decision #19) against the `design/` design
   system. The web UI stays as the zero-install fallback. The 2026-07-03 deferral
   below is kept for history.
 - **Amended 2026-07-03 — v1 ships a web UI, Flutter is deferred.** The host has no
@@ -710,7 +713,8 @@ and corrections are audited for §12.)*
   log #11.)*
 
 ### Phase — Native apps *(inserted 2026-07-06, decision log v0.5)*
-- **Flutter iOS + macOS apps** (one codebase, `app/`) built against the design
+- **Flutter iOS + macOS apps** (one codebase, `app/` — since split out to the
+  briefkist-app repo, decision #19) built against the design
   system mirrored in `design/`: archive browse/search/detail with inline
   correction, mobile capture (VisionKit scanner; photo-library fallback) +
   desktop drag-and-drop upload, onboarding, settings.

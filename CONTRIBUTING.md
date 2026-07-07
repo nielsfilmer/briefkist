@@ -1,9 +1,10 @@
 # Contributing to Briefkist
 
-Thanks for wanting to help. Everything in this repo is **AGPL-3.0** —
-including `app/` for as long as it lives here. (The apps are slated to move
-to a separate Apache-2.0 repo, plan.md decision #19; until that split lands,
-contributions to `app/` are AGPL like everything else.)
+Thanks for wanting to help. Everything in this repo is **AGPL-3.0**. (The
+Flutter apps moved to their own **Apache-2.0** repo,
+[briefkist-app](https://github.com/nielsfilmer/briefkist-app), on 2026-07-07
+— plan.md decision #19; contribute app changes there under that repo's
+terms.)
 
 ## Ground rules
 
