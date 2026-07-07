@@ -1,4 +1,4 @@
-// my-flopy — API models, mirroring the FastAPI backend's JSON
+// Briefkist — API models, mirroring the FastAPI backend's JSON
 // (server/store.py projections). Keep field names in sync with the server.
 
 import 'dart:convert';
@@ -227,7 +227,7 @@ String pairingPayload({required String serverUrl, required String token}) =>
     '{"flopy":1,"url":${_jsonString(serverUrl)},"token":${_jsonString(token)}}';
 
 /// Parse a scanned pairing QR; returns (url, token) or null when it isn't
-/// a my-flopy pairing code.
+/// a Briefkist pairing code.
 (String, String)? parsePairingPayload(String raw) {
   try {
     final decoded = jsonDecode(raw);

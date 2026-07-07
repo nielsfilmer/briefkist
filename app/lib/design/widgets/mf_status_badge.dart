@@ -1,4 +1,4 @@
-// my-flopy design system — status badge. Source: design/components/display/StatusBadge.jsx
+// Briefkist design system — status badge. Source: design/components/display/StatusBadge.jsx
 //
 // Full-round 24px pill with a 7px dot of the current color. Tint background +
 // tone text per status; the processing dot pulses opacity 1 → 0.3 → 1 over

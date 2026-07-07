@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>My Flopy</string>
+	<string>Briefkist</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -15,7 +15,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>my_flopy</string>
+	<string>Briefkist</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -27,11 +27,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>my-flopy photographs your letters. Images go only to your own archive server.</string>
+	<string>Briefkist photographs your letters. Images go only to your own archive server.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>my-flopy lets you pick letter photos to file. Images go only to your own archive server.</string>
+	<string>Briefkist lets you pick letter photos to file. Images go only to your own archive server.</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>my-flopy talks only to your own archive server on your home network.</string>
+	<string>Briefkist talks only to your own archive server on your home network.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

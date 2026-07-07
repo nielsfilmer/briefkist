@@ -1,4 +1,4 @@
-// my-flopy design system — document card. Source: design/components/display/DocumentCard.jsx
+// Briefkist design system — document card. Source: design/components/display/DocumentCard.jsx
 
 import 'package:flutter/material.dart';
 

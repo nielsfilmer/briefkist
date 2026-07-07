@@ -1,4 +1,4 @@
-// my-flopy design system — tab bar. Source: design/components/navigation/TabBar.jsx
+// Briefkist design system — tab bar. Source: design/components/navigation/TabBar.jsx
 
 import 'package:flutter/material.dart';
 

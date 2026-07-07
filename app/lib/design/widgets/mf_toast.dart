@@ -1,4 +1,4 @@
-// my-flopy design system — toast. Source: design/components/feedback/Toast.jsx
+// Briefkist design system — toast. Source: design/components/feedback/Toast.jsx
 
 import 'dart:async';
 

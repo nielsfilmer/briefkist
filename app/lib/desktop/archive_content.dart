@@ -1,4 +1,4 @@
-// my-flopy — desktop archive browse (grid/table, states).
+// Briefkist — desktop archive browse (grid/table, states).
 // Source: design/ui_kits/desktop/kit.desktop.jsx
 
 import 'package:flutter/material.dart';

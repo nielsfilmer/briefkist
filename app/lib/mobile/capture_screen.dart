@@ -1,4 +1,4 @@
-// my-flopy — capture screen. Source: design/ui_kits/mobile/kit.mobile.jsx
+// Briefkist — capture screen. Source: design/ui_kits/mobile/kit.mobile.jsx
 
 import 'dart:io';
 

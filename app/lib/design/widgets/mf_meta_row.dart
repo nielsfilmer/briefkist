@@ -1,4 +1,4 @@
-// my-flopy design system — metadata row with inline correction. Source: design/components/display/MetaRow.jsx
+// Briefkist design system — metadata row with inline correction. Source: design/components/display/MetaRow.jsx
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

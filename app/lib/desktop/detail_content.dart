@@ -1,4 +1,4 @@
-// my-flopy — desktop document detail (side-by-side image + metadata).
+// Briefkist — desktop document detail (side-by-side image + metadata).
 // Source: design/ui_kits/desktop/kit.desktop.jsx
 
 import 'package:flutter/material.dart';

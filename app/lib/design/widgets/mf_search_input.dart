@@ -1,4 +1,4 @@
-// my-flopy design system — search input. Source: design/components/inputs/SearchInput.jsx
+// Briefkist design system — search input. Source: design/components/inputs/SearchInput.jsx
 
 import 'package:flutter/material.dart';
 

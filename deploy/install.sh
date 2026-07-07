@@ -1,14 +1,14 @@
 #!/bin/bash
-# Install (or reinstall) the my-flopy server as a launchd user agent.
+# Install (or reinstall) the Briefkist server as a launchd user agent.
 # Usage: bash deploy/install.sh [LAN_IP]
 #   LAN_IP  interface address to bind (default: this Mac's primary LAN IP).
 #           Never a wildcard — the server refuses 0.0.0.0/:: (plan.md §5.1).
 set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
-LABEL="nl.eviloverlord.flopy"
+LABEL="app.briefkist.server"
 PLIST_DEST="$HOME/Library/LaunchAgents/$LABEL.plist"
-LOGDIR="$HOME/Library/Logs/flopy"
+LOGDIR="$HOME/Library/Logs/briefkist"
 DATA_DIR="${FLOPY_DATA_DIR:-$REPO/data/archive}"
 UV_BIN="$(command -v uv || echo /opt/homebrew/bin/uv)"
 
@@ -30,6 +30,10 @@ sed -e "s|__UV__|$UV_BIN|g" \
     -e "s|__LOGDIR__|$LOGDIR|g" \
     "$REPO/deploy/$LABEL.plist.template" > "$PLIST_DEST"
 
+# One-time migration: unload the pre-rename agent if present, or the two
+# KeepAlive agents fight over the same address (rename review, PR #46).
+launchctl bootout "gui/$(id -u)/nl.eviloverlord.flopy" 2>/dev/null || true
+rm -f "$HOME/Library/LaunchAgents/nl.eviloverlord.flopy.plist"
 launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null || true
 launchctl bootstrap "gui/$(id -u)" "$PLIST_DEST"
 

@@ -1,4 +1,4 @@
-// my-flopy — document detail screen. Source: design/ui_kits/mobile/kit.mobile.jsx
+// Briefkist — document detail screen. Source: design/ui_kits/mobile/kit.mobile.jsx
 
 import 'package:flutter/material.dart';
 

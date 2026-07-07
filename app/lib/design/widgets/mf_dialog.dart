@@ -1,4 +1,4 @@
-// my-flopy design system — dialog. Source: design/components/feedback/Dialog.jsx
+// Briefkist design system — dialog. Source: design/components/feedback/Dialog.jsx
 
 import 'package:flutter/material.dart';
 

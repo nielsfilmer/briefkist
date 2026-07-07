@@ -1,9 +1,9 @@
 // parsePairingPayload: the scanner runs EVERY detected barcode through this
-// parser, so anything that isn't exactly a my-flopy pairing payload must come
+// parser, so anything that isn't exactly a Briefkist pairing payload must come
 // back null (PR #42 — pairing).
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:my_flopy/api/models.dart';
+import 'package:briefkist/api/models.dart';
 
 void main() {
   test('valid payload round-trips through pairingPayload', () {

@@ -1,4 +1,4 @@
-// my-flopy — desktop shell: top bar + sidebar + main content.
+// Briefkist — desktop shell: top bar + sidebar + main content.
 // Source: design/ui_kits/desktop/kit.desktop.jsx
 
 import 'package:flutter/material.dart';

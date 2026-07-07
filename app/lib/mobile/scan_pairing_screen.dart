@@ -1,8 +1,8 @@
-// my-flopy — QR pairing scanner. Source: design/ui_kits/mobile/kit.mobile.jsx
+// Briefkist — QR pairing scanner. Source: design/ui_kits/mobile/kit.mobile.jsx
 // (OnboardingScreen step 2 "Scan the code" flow).
 //
 // Full-screen pushed route over the live camera. Every detected barcode is
-// run through [parsePairingPayload]; the first valid my-flopy payload stops
+// run through [parsePairingPayload]; the first valid Briefkist payload stops
 // the camera and pops with [ScanPairingScanned]. The route's popped value is
 // a [ScanPairingResult]? — null means the user simply closed the scanner.
 
@@ -90,7 +90,7 @@ class _ScanPairingScreenState extends State<ScanPairingScreen>
       final raw = barcode.rawValue;
       if (raw == null) continue;
       final parsed = parsePairingPayload(raw);
-      if (parsed == null) continue; // not a my-flopy code — keep scanning
+      if (parsed == null) continue; // not a Briefkist code — keep scanning
       _handled = true;
       unawaited(_controller.stop());
       final (url, token) = parsed;
@@ -231,7 +231,7 @@ class _ScanPairingScreenState extends State<ScanPairingScreen>
               icon: MfIcon(MfGlyphs.camera, size: 40, color: mf.text3),
               title: 'Camera unavailable',
               body: e.errorCode == MobileScannerErrorCode.permissionDenied
-                  ? 'my-flopy has no camera permission. Allow the camera in '
+                  ? 'Briefkist has no camera permission. Allow the camera in '
                         'the system settings, or paste the token instead.'
                   : 'No usable camera on this device. Paste the token '
                         'instead.',

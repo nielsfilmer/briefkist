@@ -1,4 +1,4 @@
-// my-flopy design system — icon button. Source: design/components/actions/IconButton.jsx
+// Briefkist design system — icon button. Source: design/components/actions/IconButton.jsx
 //
 // Square, transparent, quiet: text-2 icon on nothing; hover = one paper step
 // (surface-hover) + text-1, press = surface-pressed. Sizes sm/md/lg =

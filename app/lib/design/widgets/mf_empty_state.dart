@@ -1,4 +1,4 @@
-// my-flopy design system — empty state. Source: design/components/display/EmptyState.jsx
+// Briefkist design system — empty state. Source: design/components/display/EmptyState.jsx
 
 import 'package:flutter/material.dart';
 

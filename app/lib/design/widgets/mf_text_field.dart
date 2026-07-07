@@ -1,4 +1,4 @@
-// my-flopy design system — text field. Source: design/components/inputs/TextField.jsx
+// Briefkist design system — text field. Source: design/components/inputs/TextField.jsx
 
 import 'package:flutter/material.dart';
 

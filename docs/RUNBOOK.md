@@ -1,4 +1,4 @@
-# my-flopy runbook (v1 — Phase 1 thin slice on the Mac mini)
+# Briefkist runbook (v1 — Phase 1 thin slice on the Mac mini)
 
 The production host is the owner's always-on 8 GB M1 Mac mini. Everything runs
 as native processes (plan.md decision log #3). Two services:
@@ -6,7 +6,7 @@ as native processes (plan.md decision log #3). Two services:
 | Service | How it runs | Check |
 |---|---|---|
 | **Ollama** (VLM + embeddings) | `brew services start ollama` (login item, binds 127.0.0.1:11434) | `ollama ps` |
-| **my-flopy server** | launchd agent `nl.eviloverlord.flopy` (see below) | `curl -i http://<LAN-IP>:8484/api/status` — **a 401 also means alive** (auth is on every endpoint; add `-H "Authorization: Bearer <token>"` for the real payload) |
+| **Briefkist server** | launchd agent `app.briefkist.server` (see below) | `curl -i http://<LAN-IP>:8484/api/status` — **a 401 also means alive** (auth is on every endpoint; add `-H "Authorization: Bearer <token>"` for the real payload) |
 
 Models in use (already pulled): `qwen3-vl:4b-instruct` (extractor — always the
 `-instruct` tag, see plan decision log #8), `qwen3-vl:2b-instruct` (speed
@@ -19,12 +19,18 @@ bash deploy/install.sh            # binds this Mac's primary LAN IP
 bash deploy/install.sh 192.168.1.76   # or an explicit interface address
 ```
 
-Re-run after `git pull` (it re-substitutes paths and restarts). The server
+Re-run after `git pull` (it re-substitutes paths and restarts). **Upgrading a
+pre-rename install:** install.sh now boots out the old
+`nl.eviloverlord.flopy` agent automatically; if you installed the service
+before the Briefkist rename and don't re-run install.sh, unload it once by hand:
+`launchctl bootout gui/$(id -u)/nl.eviloverlord.flopy && rm
+~/Library/LaunchAgents/nl.eviloverlord.flopy.plist` (removing the plist
+matters — RunAtLoad would re-bootstrap it at next login). The server
 refuses wildcard binds by design (§5.1) — always a specific address.
 
-- Logs: `~/Library/Logs/flopy/server.log`
-- Restart: `launchctl kickstart -k gui/$(id -u)/nl.eviloverlord.flopy`
-- Remove: `launchctl bootout gui/$(id -u)/nl.eviloverlord.flopy && rm ~/Library/LaunchAgents/nl.eviloverlord.flopy.plist`
+- Logs: `~/Library/Logs/briefkist/server.log`
+- Restart: `launchctl kickstart -k gui/$(id -u)/app.briefkist.server`
+- Remove: `launchctl bootout gui/$(id -u)/app.briefkist.server && rm ~/Library/LaunchAgents/app.briefkist.server.plist`
 
 Troubleshooting: **repeating bind errors in the log** usually mean the mini's
 LAN IP changed (DHCP) — re-run `bash deploy/install.sh` to pick up the new
@@ -48,7 +54,7 @@ itself once the address is right).
 3. Settings → **Pair a device**: type a name for the phone (e.g.
    "niels-iphone") → **Create pairing code** → a QR appears (or "Show token
    instead"). The token is shown exactly once.
-4. On the iPhone: open the my-flopy app → onboarding → **Scan the code**
+4. On the iPhone: open the Briefkist app → onboarding → **Scan the code**
    (or paste the token in settings). Done — capture away.
 5. Lost/stolen phone: desktop app → Settings → Paired devices → **Revoke**
    (or `uv run python -m server.tokens_cli revoke "niels-iphone"` from the

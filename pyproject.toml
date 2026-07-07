@@ -1,5 +1,5 @@
 [project]
-name = "my-flopy"
+name = "briefkist"
 version = "0.1.0"
 description = "Local-first snail-mail archiver (see plan.md)"
 requires-python = ">=3.12,<3.13"

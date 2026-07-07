@@ -1,5 +1,5 @@
-name: my_flopy
-description: "my-flopy — private, local-first snail-mail archive (iOS + macOS client)."
+name: briefkist
+description: "Briefkist — private, local-first snail-mail archive (iOS + macOS client)."
 publish_to: 'none'
 
 version: 1.0.0+1

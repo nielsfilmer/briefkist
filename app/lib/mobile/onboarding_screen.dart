@@ -1,4 +1,4 @@
-// my-flopy — onboarding. Source: design/ui_kits/mobile/kit.mobile.jsx
+// Briefkist — onboarding. Source: design/ui_kits/mobile/kit.mobile.jsx
 
 import 'package:flutter/material.dart';
 
@@ -43,7 +43,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       0 => (
         MfMark(size: 64, color: mf.accent),
         'Your mail stays home.',
-        'my-flopy turns paper letters into a searchable archive — processed '
+        'Briefkist turns paper letters into a searchable archive — processed '
             'entirely on your own server. No cloud, no telemetry. Nothing '
             'ever leaves hardware you own.',
         'Continue',
@@ -52,7 +52,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       1 => (
         MfIcon(MfGlyphs.qr, size: 56, color: mf.accent),
         'Pair with your server.',
-        'Open my-flopy on the computer that runs your archive and scan the '
+        'Open Briefkist on the computer that runs your archive and scan the '
             'code it shows. This phone will talk only to your own server.',
         'Scan the code',
         widget.onScan,

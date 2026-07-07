@@ -1,4 +1,4 @@
-// my-flopy design system — privacy mark. Source: design/components/display/PrivacyMark.jsx
+// Briefkist design system — privacy mark. Source: design/components/display/PrivacyMark.jsx
 //
 // The quiet "home" reassurance token shown wherever data moves: a 13px house
 // glyph + a mono 12px caption (0.04em tracking = 0.48 at 12px). Informational,

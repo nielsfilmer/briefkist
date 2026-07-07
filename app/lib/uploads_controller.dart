@@ -1,4 +1,4 @@
-// my-flopy — recent-uploads state shared by the mobile capture screen and
+// Briefkist — recent-uploads state shared by the mobile capture screen and
 // the desktop upload view: newest documents with their processing status,
 // polled while anything is still in flight (queued/processing), plus the
 // local upload-in-progress entries.

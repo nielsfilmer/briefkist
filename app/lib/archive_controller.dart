@@ -1,4 +1,4 @@
-// my-flopy — shared archive browse/search state for the mobile and desktop
+// Briefkist — shared archive browse/search state for the mobile and desktop
 // layouts: filters, debounced querying, and the content states of the design
 // (populated / loading / empty / offline / error, plus no-matches).
 

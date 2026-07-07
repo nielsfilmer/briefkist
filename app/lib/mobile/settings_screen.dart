@@ -1,4 +1,4 @@
-// my-flopy — settings screen. Source: design/ui_kits/mobile/kit.mobile.jsx
+// Briefkist — settings screen. Source: design/ui_kits/mobile/kit.mobile.jsx
 // (SettingsScreen + PairSheet).
 
 import 'package:flutter/material.dart';
@@ -312,7 +312,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           padding: const EdgeInsets.only(top: 24),
           child: Center(
             child: Text(
-              'my-flopy 1.0 · self-hosted',
+              'Briefkist 1.0 · self-hosted',
               style: MfType.monoXs.copyWith(color: mf.text3),
             ),
           ),
@@ -518,7 +518,7 @@ class _PairSheetBodyState extends State<_PairSheetBody> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'On the new device, open my-flopy and scan this code. The device '
+          'On the new device, open Briefkist and scan this code. The device '
           'gets its own token — you can revoke it any time.',
           style: MfType.base.copyWith(color: mf.text2),
         ),

@@ -1,4 +1,4 @@
-// my-flopy — archive browse/search screen. Source: design/ui_kits/mobile/kit.mobile.jsx
+// Briefkist — archive browse/search screen. Source: design/ui_kits/mobile/kit.mobile.jsx
 
 import 'package:flutter/material.dart';
 

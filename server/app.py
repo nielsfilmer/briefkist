@@ -37,7 +37,7 @@ async def _lifespan(app: FastAPI):
     worker.stop()
 
 
-app = FastAPI(title="my-flopy", lifespan=_lifespan)
+app = FastAPI(title="Briefkist", lifespan=_lifespan)
 
 Device = Annotated[str, Depends(auth.require_token)]
 
