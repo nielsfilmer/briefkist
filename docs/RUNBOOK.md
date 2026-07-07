@@ -22,8 +22,10 @@ bash deploy/install.sh 192.168.1.76   # or an explicit interface address
 Re-run after `git pull` (it re-substitutes paths and restarts). **Upgrading a
 pre-rename install:** install.sh now boots out the old
 `nl.eviloverlord.flopy` agent automatically; if you installed the service
-before the Briefkist rename and don't re-run install.sh, unload it once by
-hand: `launchctl bootout gui/$(id -u)/nl.eviloverlord.flopy`. The server
+before the Briefkist rename and don't re-run install.sh, unload it once by hand:
+`launchctl bootout gui/$(id -u)/nl.eviloverlord.flopy && rm
+~/Library/LaunchAgents/nl.eviloverlord.flopy.plist` (removing the plist
+matters — RunAtLoad would re-bootstrap it at next login). The server
 refuses wildcard binds by design (§5.1) — always a specific address.
 
 - Logs: `~/Library/Logs/briefkist/server.log`
