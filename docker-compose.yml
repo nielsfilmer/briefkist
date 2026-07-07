@@ -61,7 +61,8 @@ services:
       retries: 3
 
   ollama:
-    image: ollama/ollama:latest
+    # Pinned (repo stance: version combos are landmines); bump deliberately.
+    image: ollama/ollama:0.13.5
     restart: unless-stopped
     volumes:
       - ollama-models:/root/.ollama

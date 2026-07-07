@@ -71,5 +71,7 @@ def validate_bind_host() -> None:
     if unspecified:
         raise SystemExit(
             f"Refusing to bind {HOST!r} (plan.md §5.1: no public exposure). "
-            "Set FLOPY_HOST to a specific interface address."
+            "Set FLOPY_HOST to a specific interface address (in a container, "
+            "set FLOPY_ALLOW_CONTAINER_BIND=1 and control exposure via "
+            "the port mapping instead)."
         )

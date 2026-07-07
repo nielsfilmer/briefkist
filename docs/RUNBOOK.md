@@ -62,6 +62,9 @@ Notes:
   running container needs no network beyond Ollama.
 - **Egress lockdown by topology**: Ollama sits on an internal-only Docker
   network with zero internet route; only Briefkist's port is published.
+  Caveat (PR #47 review): the Briefkist container itself — which runs the
+  worker + OCR in-process — keeps normal egress, unavoidable while it also
+  serves the published port. Full worker/network split is a follow-up.
 - **Exposure = the port mapping.** The compose file publishes on `127.0.0.1`
   by default — change it to your LAN or Tailscale address (§5.1: never a bare
   `"8484:8484"`, that's every interface).
