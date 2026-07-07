@@ -152,6 +152,28 @@ or consciously reject.
     (the SiteNav spec defaulted light). Please fold these into the website
     kits.
 
+14. **Hosted signup/account pages as built (2026-07-07, briefkist-cloud
+    PR #10).** The control plane now serves the real `/signup` + `/account`
+    pages, built from `Signup.dc.html` / `Account.dc.html` with these
+    deviations: (a) **5 steps → 4** — the passphrase ceremony and payment
+    steps don't exist yet (they return with the unlock + billing work); a
+    new step 3 "Name your server" (server name + EU region) was needed by
+    the API and is missing from the design; (b) passphrase/key copy removed
+    wherever it asserted an encryption that isn't shipped (plan-step intro,
+    account-step "that comes next", provisioning captions) — restore when
+    unlock ships; (c) ready card shows the server address + a hosted-
+    quickstart link instead of the pairing QR (no pairing API yet);
+    (d) provisioning headline region is dynamic, not hardcoded Falkenstein;
+    (e) account/signup pages use a quiet header, not the full SiteNav (nav
+    partial lives in the website build; duplicating would drift);
+    (f) the account step gained a sign-in toggle (resume + duplicate-email
+    flows need it — design lacks any sign-in screen); (g) the static site's
+    signup **mock** says "step 1 of 5" — at deploy time /signup shadows it
+    and nav links move over, reconcile then. Also: the design's inline
+    `display:flex` on step sections silently defeats the `hidden` attribute
+    — the built pages reassert `[hidden]{display:none}`; worth fixing in
+    the design system so the next consumer doesn't trip on it.
+
 ## Content / sample-data
 
 5. **"Phone · Jasmijn"** (desktop kit, Settings → paired devices) may be a
