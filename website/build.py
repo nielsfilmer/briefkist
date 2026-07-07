@@ -24,7 +24,9 @@ HEAD = """<!doctype html>
 <title>{{title}}</title>
 <meta name="description" content="{{description}}">
 <link rel="stylesheet" href="{{root}}assets/site.css">
-<script>try{var t=localStorage.getItem("bk-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
+<script>try{var t=localStorage.getItem("bk-theme");
+if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme: dark)").matches))
+document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
 <script src="{{root}}assets/site.js" defer></script>
 </head>
 <body>
