@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Briefkist — your mail stays home</title>
+<meta name="description" content="Turn the paper mail piling up at home into a private, searchable family archive. AI that runs entirely on hardware you control.">
+<link rel="stylesheet" href="assets/site.css">
+<script>try{var t=localStorage.getItem("bk-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
+<script src="assets/site.js" defer></script>
+</head>
+<body>
+<div style="position:sticky;top:0;z-index:60;background:var(--surface-page);border-bottom:1px solid var(--border)">
+  <div style="max-width:1120px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;gap:20px">
+    <a href="index.html" style="display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--text-1);flex:none" aria-label="Briefkist home">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h12.5L20 7.5V20H4Z"></path><path d="M8 4v2.6l4 3 4-3V4"></path><path d="M8 20v-5.5h8V20"></path></svg>
+      <span style="font-family:var(--font-serif);font-size:19px;font-weight:600;letter-spacing:-0.01em">briefkist</span>
+    </a>
+    <nav class="hide-below-820" style="display:flex;gap:2px;flex:1" aria-label="Site">
+      <a href="index.html" class="bk-navlink is-active" aria-current="page">Product</a>
+      <a href="pricing.html" class="bk-navlink " >Pricing</a>
+      <a href="security.html" class="bk-navlink " >Security</a>
+      <a href="docs/index.html" class="bk-navlink " >Docs</a>
+    </nav>
+    <div class="hide-below-820" style="display:flex;align-items:center;gap:8px;flex:none;margin-left:auto">
+      <a href="https://github.com/nielsfilmer/briefkist" class="hov-surface" style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:var(--radius-md);color:var(--text-2)" aria-label="Source on GitHub" title="Source on GitHub">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg>
+      </a>
+      <button data-bk="theme" class="hov-surface" style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:var(--radius-md);border:none;background:transparent;color:var(--text-2);cursor:pointer" aria-label="Toggle dark mode">
+        <svg class="icon-light-mode" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+        <svg class="icon-dark-mode" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
+      </button>
+      <a href="signup.html" class="bk-navlink">Get started</a>
+      <a href="signup.html" class="hov-accent" style="display:inline-flex;align-items:center;height:36px;padding:0 14px;border-radius:var(--radius-md);text-decoration:none;font-family:var(--font-sans);font-size:var(--text-base);font-weight:var(--weight-semibold);background:var(--accent);color:var(--text-on-accent);white-space:nowrap">Get started</a>
+    </div>
+    <div class="hide-above-820" style="display:flex;align-items:center;gap:0;margin-left:auto">
+      <button data-bk="theme" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:var(--radius-md);border:none;background:transparent;color:var(--text-2);cursor:pointer" aria-label="Toggle dark mode">
+        <svg class="icon-light-mode" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+        <svg class="icon-dark-mode" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
+      </button>
+      <button data-bk="open-menu" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:var(--radius-md);border:none;background:transparent;color:var(--text-1);cursor:pointer" aria-label="Open menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h16"></path></svg>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="bk-drawer" id="bk-drawer" style="position:fixed;inset:0;z-index:100;background:var(--surface-page);flex-direction:column">
+  <div style="height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border)">
+    <span style="display:flex;align-items:center;gap:9px;color:var(--text-1)">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h12.5L20 7.5V20H4Z"></path><path d="M8 4v2.6l4 3 4-3V4"></path><path d="M8 20v-5.5h8V20"></path></svg>
+      <span style="font-family:var(--font-serif);font-size:19px;font-weight:600">briefkist</span>
+    </span>
+    <button data-bk="close-menu" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:var(--radius-md);border:none;background:transparent;color:var(--text-1);cursor:pointer" aria-label="Close menu">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+    </button>
+  </div>
+  <nav style="display:flex;flex-direction:column;padding:16px 24px;gap:2px" aria-label="Site">
+    <a href="index.html" class="bk-navlink-m is-active">Product</a>
+    <a href="pricing.html" class="bk-navlink-m ">Pricing</a>
+    <a href="security.html" class="bk-navlink-m ">Security</a>
+    <a href="docs/index.html" class="bk-navlink-m ">Docs</a>
+    <a href="signup.html" class="bk-navlink-m">Get started</a>
+  </nav>
+  <div style="padding:16px 36px;display:flex;flex-direction:column;gap:12px">
+    <a href="signup.html" class="hov-accent" style="display:inline-flex;align-items:center;justify-content:center;height:48px;border-radius:var(--radius-md);text-decoration:none;font-family:var(--font-sans);font-size:var(--text-md);font-weight:var(--weight-semibold);background:var(--accent);color:var(--text-on-accent)">Get started</a>
+    <a href="https://github.com/nielsfilmer/briefkist" class="hov-bg" style="display:inline-flex;align-items:center;justify-content:center;height:48px;border-radius:var(--radius-md);text-decoration:none;font-family:var(--font-sans);font-size:var(--text-md);font-weight:var(--weight-semibold);background:var(--surface-card);color:var(--text-1);border:1px solid var(--border-strong)">Source on GitHub</a>
+  </div>
+  <div style="margin-top:auto;padding:24px;font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3)">free to self-host · AGPL-3.0</div>
+</div>
+<main style="min-height:100vh;background:var(--surface-page);color:var(--text-1);font-family:var(--font-sans)">
+
+  <!-- hero -->
+  <section style="border-bottom:1px solid var(--border)">
+    <div style="max-width:1120px;margin:0 auto;padding:clamp(48px,7vw,88px) 24px clamp(48px,6vw,72px);display:flex;flex-wrap:wrap;gap:48px;align-items:center">
+      <div style="flex:1 1 440px;min-width:320px;display:flex;flex-direction:column;gap:20px">
+        <span style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--text-3)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M9 22V12h6v10"></path></svg>
+          on your server · private · archival
+        </span>
+        <h1 style="margin:0;font-family:var(--font-serif);font-weight:600;font-size:clamp(32px,4.2vw,50px);line-height:1.16;letter-spacing:-0.015em;text-wrap:pretty">Turn the paper mail piling up at home into a private, searchable family archive.</h1>
+        <p style="margin:0;font-size:var(--text-md);line-height:var(--leading-md);color:var(--text-2);max-width:56ch;text-wrap:pretty">Photograph a letter with your phone. Your own server reads it, understands it, and files it — sender, date, summary, keywords — with AI that runs entirely on hardware you control.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:4px">
+          <a href="pricing.html" class="hov-accent" style="display:inline-flex;align-items:center;justify-content:center;height:48px;padding:0 22px;border-radius:var(--radius-md);text-decoration:none;font-size:var(--text-md);font-weight:var(--weight-semibold);background:var(--accent);color:var(--text-on-accent)">Get a hosted server</a>
+          <a href="docs/index.html" class="hov-bg" style="display:inline-flex;align-items:center;justify-content:center;height:48px;padding:0 22px;border-radius:var(--radius-md);text-decoration:none;font-size:var(--text-md);font-weight:var(--weight-semibold);background:var(--surface-card);color:var(--text-1);border:1px solid var(--border-strong)">Self-host free</a>
+        </div>
+        <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3)">AGPL-3.0 · hosted from €9/mo · full export anytime</span>
+      </div>
+      <div style="flex:1 1 420px;min-width:300px">
+        <div style="border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface-card);padding:10px;box-shadow:var(--shadow-raised)">
+          <div style="width:100%;aspect-ratio:16/10.5;border-radius:var(--radius-md);overflow:hidden">
+            <img class="bk-hero-shot" src="assets/screenshots/archive-light.png" width="1206" height="2622" alt="The Briefkist archive on a phone: a searchable list of filed letters with sender, date, category and summary">
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 6px 2px">
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3)">the archive · light &amp; dark</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3)">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M9 22V12h6v10"></path></svg>
+              on your server
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- how it works -->
+  <section style="background:var(--surface-card);border-bottom:1px solid var(--border)">
+    <div style="max-width:1120px;margin:0 auto;padding:clamp(48px,6vw,80px) 24px">
+      <h2 style="margin:0 0 8px;font-family:var(--font-serif);font-weight:600;font-size:clamp(26px,3vw,34px);line-height:1.2;letter-spacing:-0.01em">How it works</h2>
+      <p style="margin:0 0 40px;font-size:var(--text-base);line-height:var(--leading-base);color:var(--text-2);max-width:60ch">Three steps between the doormat and a filed, findable document.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px">
+        <div style="display:flex;flex-direction:column;gap:14px;padding:24px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface-page)">
+          <span style="color:var(--accent)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"></path><circle cx="12" cy="13" r="3"></circle></svg></span>
+          <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);letter-spacing:var(--tracking-caps);text-transform:uppercase">step 1</span>
+          <h3 style="margin:0;font-family:var(--font-serif);font-size:var(--text-lg);font-weight:600">Photograph the letter</h3>
+          <p style="margin:0;font-size:var(--text-sm);line-height:var(--leading-sm);color:var(--text-2)">One photo per page, straight from the app. Multi-page letters are kept together.</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;padding:24px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface-page)">
+          <span style="color:var(--accent)">
+            <svg width="52" height="28" viewBox="0 0 52 28" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true">
+              <circle cx="14" cy="14" r="12" stroke-width="1.5" stroke-dasharray="3.5 4"></circle>
+              <text x="14" y="12.5" text-anchor="middle" font-family="Source Code Pro, monospace" font-size="5.5" fill="currentColor" stroke="none">FILED</text>
+              <text x="14" y="19" text-anchor="middle" font-family="Source Code Pro, monospace" font-size="5.5" fill="currentColor" stroke="none">LOCAL</text>
+              <path d="M30 9c3-2 5 2 8 0s5 2 8 0" stroke-width="1.5"></path>
+              <path d="M30 14c3-2 5 2 8 0s5 2 8 0" stroke-width="1.5"></path>
+              <path d="M30 19c3-2 5 2 8 0s5 2 8 0" stroke-width="1.5"></path>
+            </svg>
+          </span>
+          <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);letter-spacing:var(--tracking-caps);text-transform:uppercase">step 2</span>
+          <h3 style="margin:0;font-family:var(--font-serif);font-size:var(--text-lg);font-weight:600">Your server reads it</h3>
+          <p style="margin:0;font-size:var(--text-sm);line-height:var(--leading-sm);color:var(--text-2)">OCR and AI on your own hardware extract the sender, date, summary and keywords — then file it.</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;padding:24px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface-page)">
+          <span style="color:var(--accent)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg></span>
+          <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);letter-spacing:var(--tracking-caps);text-transform:uppercase">step 3</span>
+          <h3 style="margin:0;font-family:var(--font-serif);font-size:var(--text-lg);font-weight:600">Find anything</h3>
+          <p style="margin:0;font-size:var(--text-sm);line-height:var(--leading-sm);color:var(--text-2)">Search by words or meaning. "The letter about the chimney inspection" works.</p>
+        </div>
+      </div>
+
+      <!-- data path diagram -->
+      <div style="margin-top:32px;padding:28px 24px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface-page)">
+        <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);letter-spacing:var(--tracking-caps);text-transform:uppercase">the data path — all of it</span>
+        <div class="hide-below-720" style="display:flex;align-items:center;gap:16px;margin-top:20px">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 12px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface-card)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-2)" aria-hidden="true"><rect width="14" height="20" x="5" y="2" rx="2"></rect><path d="M12 18h.01"></path></svg>
+            <span style="font-size:var(--text-sm);font-weight:var(--weight-semibold)">Your phone</span>
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3)">captures pages</span>
+          </div>
+          <svg width="28" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none" aria-hidden="true"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg>
+          <div style="flex:1.3;display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 12px;border:1px solid var(--accent);border-radius:var(--radius-md);background:var(--accent-tint)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)" aria-hidden="true"><rect x="2" y="2" width="20" height="8" rx="2"></rect><rect x="2" y="14" width="20" height="8" rx="2"></rect><path d="M6 6h.01"></path><path d="M6 18h.01"></path></svg>
+            <span style="font-size:var(--text-sm);font-weight:var(--weight-semibold)">Your server</span>
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3)">OCR + local AI</span>
+          </div>
+          <svg width="28" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none" aria-hidden="true"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 12px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface-card)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-2)" aria-hidden="true"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg>
+            <span style="font-size:var(--text-sm);font-weight:var(--weight-semibold)">Your archive</span>
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3)">searchable, yours</span>
+          </div>
+          <div style="width:1px;align-self:stretch;background:var(--border);margin:0 8px"></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 12px;border:1px dashed var(--border-strong);border-radius:var(--radius-md)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="m2 2 20 20"></path><path d="M5.782 5.782A7 7 0 0 0 9 19h8.5a4.5 4.5 0 0 0 1.307-.193"></path><path d="M21.532 16.5A4.5 4.5 0 0 0 17.5 10h-1.79A7.008 7.008 0 0 0 10 5.07"></path></svg>
+            <span style="font-size:var(--text-sm);font-weight:var(--weight-semibold);color:var(--text-3)">The cloud</span>
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3)">never involved</span>
+          </div>
+        </div>
+        <div class="hide-above-720" style="display:flex;flex-direction:column;align-items:stretch;gap:10px;margin-top:20px">
+          <div style="display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface-card)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-2);flex:none" aria-hidden="true"><rect width="14" height="20" x="5" y="2" rx="2"></rect><path d="M12 18h.01"></path></svg>
+            <span style="font-size:var(--text-sm);font-weight:var(--weight-semibold)">Your phone</span>
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);margin-left:auto">captures pages</span>
+          </div>
+          <svg width="24" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="align-self:center" aria-hidden="true"><path d="M12 5v14"></path><path d="m6 13 6 6 6-6"></path></svg>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--accent);border-radius:var(--radius-md);background:var(--accent-tint)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent);flex:none" aria-hidden="true"><rect x="2" y="2" width="20" height="8" rx="2"></rect><rect x="2" y="14" width="20" height="8" rx="2"></rect><path d="M6 6h.01"></path><path d="M6 18h.01"></path></svg>
+            <span style="font-size:var(--text-sm);font-weight:var(--weight-semibold)">Your server</span>
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);margin-left:auto">OCR + local AI</span>
+          </div>
+          <svg width="24" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="align-self:center" aria-hidden="true"><path d="M12 5v14"></path><path d="m6 13 6 6 6-6"></path></svg>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface-card)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-2);flex:none" aria-hidden="true"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg>
+            <span style="font-size:var(--text-sm);font-weight:var(--weight-semibold)">Your archive</span>
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);margin-left:auto">searchable, yours</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px;border:1px dashed var(--border-strong);border-radius:var(--radius-md);margin-top:6px">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3);flex:none" aria-hidden="true"><path d="m2 2 20 20"></path><path d="M5.782 5.782A7 7 0 0 0 9 19h8.5a4.5 4.5 0 0 0 1.307-.193"></path><path d="M21.532 16.5A4.5 4.5 0 0 0 17.5 10h-1.79A7.008 7.008 0 0 0 10 5.07"></path></svg>
+            <span style="font-size:var(--text-sm);font-weight:var(--weight-semibold);color:var(--text-3)">The cloud</span>
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);margin-left:auto">never involved</span>
+          </div>
+        </div>
+        <p style="margin:16px 0 0;font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3)">no cloud services · no telemetry · no third party, ever</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- concrete nouns -->
+  <section style="border-bottom:1px solid var(--border)">
+    <div style="max-width:1120px;margin:0 auto;padding:clamp(48px,6vw,80px) 24px">
+      <h2 style="margin:0 0 8px;font-family:var(--font-serif);font-weight:600;font-size:clamp(26px,3vw,34px);line-height:1.2;letter-spacing:-0.01em;text-wrap:pretty">Tax letters. Insurance policies. The municipality. Hospital appointments.</h2>
+      <p style="margin:0 0 28px;font-size:var(--text-base);line-height:var(--leading-base);color:var(--text-2);max-width:64ch">The mail that runs a household — filed under fourteen quiet categories, titled in the letter's own language, dated unambiguously.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:10px">
+        <span style="display:inline-flex;align-items:center;padding:7px 15px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-card);font-size:var(--text-sm);color:var(--text-2)">government</span>
+        <span style="display:inline-flex;align-items:center;padding:7px 15px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-card);font-size:var(--text-sm);color:var(--text-2)">medical</span>
+        <span style="display:inline-flex;align-items:center;padding:7px 15px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-card);font-size:var(--text-sm);color:var(--text-2)">insurance</span>
+        <span style="display:inline-flex;align-items:center;padding:7px 15px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-card);font-size:var(--text-sm);color:var(--text-2)">bank</span>
+        <span style="display:inline-flex;align-items:center;padding:7px 15px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-card);font-size:var(--text-sm);color:var(--text-2)">utility</span>
+        <span style="display:inline-flex;align-items:center;padding:7px 15px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-card);font-size:var(--text-sm);color:var(--text-2)">telecom</span>
+        <span style="display:inline-flex;align-items:center;padding:7px 15px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-card);font-size:var(--text-sm);color:var(--text-2)">legal</span>
+        <span style="display:inline-flex;align-items:center;padding:7px 15px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-card);font-size:var(--text-sm);color:var(--text-2)">employment</span>
+        <span style="display:inline-flex;align-items:center;padding:7px 15px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-card);font-size:var(--text-sm);color:var(--text-2)">education</span>
+        <span style="display:inline-flex;align-items:center;padding:7px 15px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-card);font-size:var(--text-sm);color:var(--text-2)">housing</span>
+        <span style="display:inline-flex;align-items:center;padding:7px 15px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-card);font-size:var(--text-sm);color:var(--text-2)">commercial</span>
+        <span style="display:inline-flex;align-items:center;padding:7px 15px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-card);font-size:var(--text-sm);color:var(--text-2)">membership</span>
+        <span style="display:inline-flex;align-items:center;padding:7px 15px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-card);font-size:var(--text-sm);color:var(--text-2)">personal</span>
+        <span style="display:inline-flex;align-items:center;padding:7px 15px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-card);font-size:var(--text-sm);color:var(--text-2)">other</span>
+      </div>
+      <p style="margin:20px 0 0;font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3)">an archive, not a finance tool — no amounts, no due dates, no bills to chase</p>
+    </div>
+  </section>
+
+  <!-- honesty block -->
+  <section style="border-bottom:1px solid var(--border)">
+    <div style="max-width:1120px;margin:0 auto;padding:clamp(48px,6vw,80px) 24px">
+      <h2 style="margin:0 0 8px;font-family:var(--font-serif);font-weight:600;font-size:clamp(26px,3vw,34px);line-height:1.2;letter-spacing:-0.01em">What we protect against — and what we don't</h2>
+      <p style="margin:0 0 32px;font-size:var(--text-base);line-height:var(--leading-base);color:var(--text-2);max-width:64ch">Privacy tools should say both. The short version is here; the full threat model is on the <a href="security.html">security page</a>.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px">
+        <div style="padding:24px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface-card);display:flex;flex-direction:column;gap:14px">
+          <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);letter-spacing:var(--tracking-caps);text-transform:uppercase">protected against</span>
+          <div style="display:flex;gap:10px;align-items:flex-start"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:3px" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><span style="font-size:var(--text-sm);line-height:var(--leading-sm);color:var(--text-1)">Cloud providers reading, indexing or training on your documents — there is no cloud in the path.</span></div>
+          <div style="display:flex;gap:10px;align-items:flex-start"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:3px" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><span style="font-size:var(--text-sm);line-height:var(--leading-sm);color:var(--text-1)">A network observer on the way to your server — every request is token-authenticated, and traffic runs over TLS (hosted) or stays on your own network or encrypted overlay (self-host).</span></div>
+          <div style="display:flex;gap:10px;align-items:flex-start"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:3px" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><span style="font-size:var(--text-sm);line-height:var(--leading-sm);color:var(--text-1)">On hosted: anyone with the server's disks, including us — stored data is ciphertext under a key only you hold.</span></div>
+          <div style="display:flex;gap:10px;align-items:flex-start"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:3px" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><span style="font-size:var(--text-sm);line-height:var(--leading-sm);color:var(--text-1)">Losing the paper — the scan, summary and searchable text outlive the original.</span></div>
+        </div>
+        <div style="padding:24px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface-card);display:flex;flex-direction:column;gap:14px">
+          <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);letter-spacing:var(--tracking-caps);text-transform:uppercase">not protected against</span>
+          <div style="display:flex;gap:10px;align-items:flex-start"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round" style="flex:none;margin-top:3px" aria-hidden="true"><path d="M5 12h14"></path></svg><span style="font-size:var(--text-sm);line-height:var(--leading-sm);color:var(--text-2)">Malware on your own phone or computer — it sees what you see.</span></div>
+          <div style="display:flex;gap:10px;align-items:flex-start"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round" style="flex:none;margin-top:3px" aria-hidden="true"><path d="M5 12h14"></path></svg><span style="font-size:var(--text-sm);line-height:var(--leading-sm);color:var(--text-2)">Someone who has your passphrase — it is the key; treat it like one.</span></div>
+          <div style="display:flex;gap:10px;align-items:flex-start"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round" style="flex:none;margin-top:3px" aria-hidden="true"><path d="M5 12h14"></path></svg><span style="font-size:var(--text-sm);line-height:var(--leading-sm);color:var(--text-2)">Physical access to your own unlocked server at home — that machine is yours to secure.</span></div>
+          <div style="display:flex;gap:10px;align-items:flex-start"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round" style="flex:none;margin-top:3px" aria-hidden="true"><path d="M5 12h14"></path></svg><span style="font-size:var(--text-sm);line-height:var(--leading-sm);color:var(--text-2)">A lost passphrase — we cannot reset it, and that is the point. Losing it loses the archive.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- two-path fork -->
+  <section style="background:var(--surface-card);border-bottom:1px solid var(--border)">
+    <div style="max-width:1120px;margin:0 auto;padding:clamp(48px,6vw,80px) 24px">
+      <h2 style="margin:0 0 8px;font-family:var(--font-serif);font-weight:600;font-size:clamp(26px,3vw,34px);line-height:1.2;letter-spacing:-0.01em">Two ways to run it. The same product.</h2>
+      <p style="margin:0 0 32px;font-size:var(--text-base);line-height:var(--leading-base);color:var(--text-2);max-width:64ch">Nothing is paywalled. The choice is only who runs the server.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px">
+        <div style="padding:28px;border:1px solid var(--border-strong);border-radius:var(--radius-lg);background:var(--surface-page);display:flex;flex-direction:column;gap:14px">
+          <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);letter-spacing:var(--tracking-caps);text-transform:uppercase">self-host</span>
+          <h3 style="margin:0;font-family:var(--font-serif);font-size:var(--text-xl);font-weight:600">Free forever</h3>
+          <p style="margin:0;font-size:var(--text-sm);line-height:var(--leading-sm);color:var(--text-2)">Run the server on a Mac mini or any Linux box at home. The full product, the full privacy promise: nothing ever leaves hardware you own. AGPL-3.0, no paywalled features, no account with us at all.</p>
+          <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3)">the full product · nothing held back</span>
+          <a href="docs/index.html" class="hov-bg" style="display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 20px;border-radius:var(--radius-md);text-decoration:none;font-size:var(--text-base);font-weight:var(--weight-semibold);background:var(--surface-card);color:var(--text-1);border:1px solid var(--border-strong);margin-top:auto">Read the install guide</a>
+        </div>
+        <div style="padding:28px;border:1px solid var(--border-strong);border-radius:var(--radius-lg);background:var(--surface-page);display:flex;flex-direction:column;gap:14px">
+          <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);letter-spacing:var(--tracking-caps);text-transform:uppercase">hosted</span>
+          <h3 style="margin:0;font-family:var(--font-serif);font-size:var(--text-xl);font-weight:600">€12/mo — or €9/mo billed annually</h3>
+          <p style="margin:0;font-size:var(--text-sm);line-height:var(--leading-sm);color:var(--text-2)">We run a single-tenant server for you in the EU. Everything stored is encrypted with a key derived from a passphrase only you hold — we keep only ciphertext. VAT included, cancel any time, full export always.</p>
+          <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3)">single-tenant · EU · your key, not ours</span>
+          <a href="signup.html" class="hov-accent" style="display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 20px;border-radius:var(--radius-md);text-decoration:none;font-size:var(--text-base);font-weight:var(--weight-semibold);background:var(--accent);color:var(--text-on-accent);margin-top:auto">Get a hosted server</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- trust strip -->
+  <section>
+    <div style="max-width:1120px;margin:0 auto;padding:clamp(36px,5vw,56px) 24px;display:flex;flex-wrap:wrap;gap:24px 48px;align-items:center;justify-content:space-between">
+      <a href="https://github.com/nielsfilmer/briefkist" class="hov-text1" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:var(--text-2)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg>
+        <span style="font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:var(--tracking-caps);text-transform:uppercase">AGPL-3.0 · source on GitHub</span>
+      </a>
+      <span style="font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--text-2)">EU-only infrastructure</span>
+      <span style="font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--text-2)">no third party in the data path</span>
+      <span style="font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--text-2)">your subscription funds the open source</span>
+    </div>
+  </section>
+
+</main>
+<footer style="border-top:1px solid var(--border);background:var(--surface-page)">
+  <div style="max-width:1120px;margin:0 auto;padding:48px 24px 32px;display:flex;flex-wrap:wrap;gap:40px">
+    <div style="flex:2 1 260px;min-width:220px;display:flex;flex-direction:column;gap:12px">
+      <span style="display:flex;align-items:center;gap:9px;color:var(--text-1)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h12.5L20 7.5V20H4Z"></path><path d="M8 4v2.6l4 3 4-3V4"></path><path d="M8 20v-5.5h8V20"></path></svg>
+        <span style="font-family:var(--font-serif);font-size:17px;font-weight:600">briefkist</span>
+      </span>
+      <p style="margin:0;font-family:var(--font-sans);font-size:var(--text-sm);line-height:var(--leading-sm);color:var(--text-2);max-width:280px">Your mail stays home. A private, searchable archive for the letters in your life — on hardware you control.</p>
+      <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);letter-spacing:var(--tracking-caps);text-transform:uppercase">no third party in the data path</span>
+    </div>
+    <nav style="flex:1 1 140px;display:flex;flex-direction:column;gap:10px" aria-label="Product">
+      <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);letter-spacing:var(--tracking-caps);text-transform:uppercase;margin-bottom:2px">Product</span>
+      <a href="pricing.html" class="hov-underline" style="font-family:var(--font-sans);font-size:var(--text-sm);color:var(--text-2);text-decoration:none">Pricing</a>
+      <a href="security.html" class="hov-underline" style="font-family:var(--font-sans);font-size:var(--text-sm);color:var(--text-2);text-decoration:none">Security &amp; data path</a>
+      <a href="docs/index.html" class="hov-underline" style="font-family:var(--font-sans);font-size:var(--text-sm);color:var(--text-2);text-decoration:none">Docs</a>
+      <a href="signup.html" class="hov-underline" style="font-family:var(--font-sans);font-size:var(--text-sm);color:var(--text-2);text-decoration:none">Your account</a>
+    </nav>
+    <nav style="flex:1 1 140px;display:flex;flex-direction:column;gap:10px" aria-label="Project">
+      <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);letter-spacing:var(--tracking-caps);text-transform:uppercase;margin-bottom:2px">Project</span>
+      <a href="https://github.com/nielsfilmer/briefkist" class="hov-underline" style="font-family:var(--font-sans);font-size:var(--text-sm);color:var(--text-2);text-decoration:none">Source code</a>
+      <a href="security.html" class="hov-underline" style="font-family:var(--font-sans);font-size:var(--text-sm);color:var(--text-2);text-decoration:none">Security policy</a>
+      <a href="#" aria-disabled="true" title="coming soon" style="font-family:var(--font-sans);font-size:var(--text-sm);color:var(--text-2);text-decoration:none">Status <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3)">(coming soon)</span></a>
+      <a href="blog/index.html" class="hov-underline" style="font-family:var(--font-sans);font-size:var(--text-sm);color:var(--text-2);text-decoration:none">Blog</a>
+    </nav>
+    <nav style="flex:1 1 140px;display:flex;flex-direction:column;gap:10px" aria-label="Legal">
+      <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);letter-spacing:var(--tracking-caps);text-transform:uppercase;margin-bottom:2px">Legal</span>
+      <a href="legal.html#imprint" class="hov-underline" style="font-family:var(--font-sans);font-size:var(--text-sm);color:var(--text-2);text-decoration:none">Imprint</a>
+      <a href="legal.html#privacy" class="hov-underline" style="font-family:var(--font-sans);font-size:var(--text-sm);color:var(--text-2);text-decoration:none">Privacy</a>
+      <a href="legal.html#terms" class="hov-underline" style="font-family:var(--font-sans);font-size:var(--text-sm);color:var(--text-2);text-decoration:none">Terms</a>
+    </nav>
+  </div>
+  <div style="max-width:1120px;margin:0 auto;padding:0 24px 32px;display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between">
+    <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3)">AGPL-3.0 · EU-only infrastructure · your subscription funds the open source</span>
+    <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3)">© 2026 Briefkist</span>
+  </div>
+</footer>
+
+</body>
+</html>

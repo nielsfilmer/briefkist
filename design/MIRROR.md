@@ -18,6 +18,15 @@ be edited.)
 > icons locally; no CDN, no outbound fetch.** Don't copy those references
 > into product code.
 
+**Update 2026-07-07:** the upstream project was renamed to **Briefkist** and
+extended with the public-website designs; `readme.md` (re-mirrored — now
+includes the adopted as-built rules) and the new `website/` directory
+(13 page specs in Design Canvas `.dc.html` format + `support.js`/
+`image-slot.js` preview runtime + `logo-evolution.svg`) reflect that. The
+component/kit/token files below are still the 2026-07-06 mirror — their
+upstream content is unchanged except wordmark casing; re-mirror on next
+design change.
+
 Mirrored (the implementable truth):
 
 - `readme.md` — brand identity, voice & tone, visual foundations (verbatim).

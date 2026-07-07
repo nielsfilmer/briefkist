@@ -1,4 +1,6 @@
-# my-flopy — Design System
+# Briefkist — Design System
+
+*(Renamed from the working name "my-flopy" — the old name collided with an existing package. All brand attributes unchanged.)*
 
 A private, local-first snail-mail archive. A phone photo of a physical letter becomes a clean, searchable, auto-tagged archive entry — processed entirely on hardware the owner controls (a Mac mini at home, reached over a private VPN). No cloud, no telemetry, no third party in the data path. It is an **archive**, not a finance tool: no amounts, no due dates, no bills.
 
@@ -31,7 +33,24 @@ The feel: a beautifully kept personal filing cabinet that happens to be smart. W
 - Titles are the document's own subject, in the document's language ("Wijziging zorgverzekering 2026"). UI chrome stays in the UI language.
 - Dates: absolute and unambiguous — "12 Mar 2026" (day month-abbrev year), never "3/12".
 - Categories are a closed list of 14: government, medical, insurance, bank, utility, telecom, legal, employment, education, housing, commercial, membership, personal, other. Shown as neutral chips, never color-coded per category.
-- Metadata is always editable in place; corrected fields get a small "corrected" tick, never a warning color.
+- The pencil edit affordance appears only when a field is actually wired to save — never a dead button (as-built rule, adopted).
+
+## Platform translations (as built — do not reintroduce CDNs)
+
+The shipped native apps (Flutter, iOS + macOS — `app/` in github.com/nielsfilmer/briefkist) translate this design as follows. The design stays the source of truth; these notes prevent regressions:
+
+- **Fonts & icons are bundled, not CDN-loaded.** Lora / Source Sans 3 / Source Code Pro ship as local OFL binaries; the used Lucide glyphs ship as local path data. The Google Fonts `@import` and Lucide CDN links in this project are web-preview conveniences only — production surfaces must bundle (local-first).
+- **oklch → sRGB.** Flutter has no oklch; tokens are converted deterministically with CSS Color 4 reference math and clamped (`scripts/gen_flutter_tokens.py`). Perceptually identical on sRGB displays. No design action.
+
+## Interaction rules surfaced by the build (adopted)
+
+- **Dates:** editable metadata rows show and accept ISO (`2026-03-12`, mono) — the server only accepts ISO on save and a display/edit split isn't worth a two-value row. Lists, cards and prose keep "12 Mar 2026".
+- **Correspondent and place are separate rows** in detail (separately corrected fields); correspondent displays name-only.
+- **Selected chips stay selected under hover** — hover never repaints the accent tint.
+- **Category quick-row shows all 14 categories**, horizontally scrolling; no curated subset.
+- **Upload feedback is the row's status badge, not a toast** — one signal, not two. Pending-page trays scroll horizontally on overflow. Empty/offline upload lists show a quiet hint row. Failed rows show the failure detail as a wrapping line with a dismiss × (multi-sentence copy can't live in a pill). Done rows open the filed document. Capture/upload buttons disable while an upload is in flight.
+- **Pairing is mint-on-demand:** tokens are minted per named device (server-enforced name uniqueness) — name field → "Create pairing code", never an always-visible QR. QRs render black-on-white, never themed (scanner contrast); 200px on phone screens. The mobile QR-scanner screen uses forced-dark chrome over the live camera feed. Device rows carry Revoke + "this device" on all platforms.
+- **Mobile search placeholder** is the short form "Search your mail"; the long "… — words or meaning" form is desktop-only.
 
 ## Visual foundations
 
@@ -48,7 +67,7 @@ The feel: a beautifully kept personal filing cabinet that happens to be smart. W
 
 ## Iconography
 
-- Stroke icons, 1.75px, rounded caps — **Lucide** via CDN (substitution: no bespoke set exists yet; flagged for later replacement with a custom set). Icons inherit `currentColor`.
+- Stroke icons, 1.75px, rounded caps — **Lucide**. Web previews may load it from CDN; shipped apps bundle the used glyphs as local path data (local-first). Icons inherit `currentColor`.
 - The mark (see `assets/`) is a floppy-disk outline whose label area is an envelope flap — one continuous geometric shape, works at 16px.
 - No emoji, no filled icon styles, no two-tone.
 
@@ -64,6 +83,7 @@ The feel: a beautifully kept personal filing cabinet that happens to be smart. W
 - `guidelines/` — foundation specimen cards (Design System tab)
 - `components/` — actions, inputs, display, feedback, navigation
 - `ui_kits/mobile/`, `ui_kits/desktop/` — full screens, light/dark toggle built in
+- Website (root `*.dc.html`) — public site: `Landing`, `Pricing`, `Security`, `Docs` + `Docs Article`, `Signup` (interactive hosted flow), `Account` (hosted dashboard), `Legal`, `Blog Article`, `404`, `Status Reference`; shared `SiteNav`/`SiteFooter` (theme toggle persists via `bk-theme` in localStorage)
 - `SKILL.md` — agent skill entry point
 
 ### Intentional additions

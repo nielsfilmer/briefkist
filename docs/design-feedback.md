@@ -124,6 +124,34 @@ or consciously reject.
     arm's length). Design could adopt the mint-on-demand card, spec the
     scanner screen, and bless the QR contrast/size rules.
 
+12. **Website build corrections (2026-07-07).** The as-built site diverges
+    from the website kits where the kits described fiction: (a) the
+    `curl get.briefkist.eu/mac | sh` installer doesn't exist — docs show the
+    real clone + install.sh / docker compose paths (an installer script is a
+    good future ask); (b) the self-host server has no passphrase-encrypted
+    archive (that's the hosted design) — the Mac-guide passphrase caution
+    moved to the hosted quickstart; (c) fake docs article counts ("4
+    articles") became honest "coming soon" states; (d) sample server output
+    (`1.4.2 … :8420`) corrected to the real port/checks; (e) tokens/fonts.css
+    still carries the Google Fonts @import — the built site self-hosts fonts;
+    please swap the token file upstream too; (f) pairing copy assumes the
+    QR flow everywhere — web-fallback token paste is the headless reality.
+
+13. **Website claim-precision + copy corrections (2026-07-07, PR #50
+    review).** (a) The Security page's data-path stages 2/4/5, the threat
+    table's transit cell, the exact-claims blockquote, and the landing
+    honesty block now scope passphrase/at-rest-encryption and TLS claims to
+    the **hosted** service (self-host today: plaintext on your own disk +
+    LAN/overlay transport — the specs stated these as universal facts);
+    (b) the launch blog post drops the fictional "1.0" / "two years ago" /
+    "beta" history — it's an honest introduction post
+    (`introducing-briefkist`); (c) pricing toggle copy "two months free" was
+    mathematically wrong for both tiers (3 / 2.5 months) → "save up to 25%";
+    (d) nav "Sign in" → "Get started" (there is no sign-in yet); (e) first
+    visit honors `prefers-color-scheme` before the stored toggle choice
+    (the SiteNav spec defaulted light). Please fold these into the website
+    kits.
+
 ## Content / sample-data
 
 5. **"Phone · Jasmijn"** (desktop kit, Settings → paired devices) may be a

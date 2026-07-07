@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="styles.css">
+  <script>try{if(localStorage.getItem("bk-theme")==="dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
+  <style>
+    html,body{margin:0;background:var(--surface-page)}
+    a{color:var(--text-link)}
+    a:hover{color:var(--accent-hover)}
+  </style>
+</helmet>
+
+<div data-screen-label="404" style="min-height:100vh;background:var(--surface-page);color:var(--text-1);font-family:var(--font-sans);display:flex;flex-direction:column">
+  <dc-import name="SiteNav" active="" hint-size="100%,60px"></dc-import>
+
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:64px 24px;text-align:center">
+    <svg width="140" height="96" viewBox="0 0 140 96" fill="none" stroke="var(--text-3)" stroke-linecap="round">
+      <circle cx="48" cy="48" r="40" stroke-width="1.5" stroke-dasharray="4 6"></circle>
+      <text x="48" y="42" text-anchor="middle" font-family="Source Code Pro, monospace" font-size="13" fill="var(--text-3)" stroke="none">404</text>
+      <text x="48" y="60" text-anchor="middle" font-family="Source Code Pro, monospace" font-size="8" letter-spacing="1" fill="var(--text-3)" stroke="none">NOT FOUND</text>
+      <path d="M96 32c4-3 7 3 11 0s7 3 11 0s7 3 11 0" stroke-width="1.5"></path>
+      <path d="M96 44c4-3 7 3 11 0s7 3 11 0s7 3 11 0" stroke-width="1.5"></path>
+      <path d="M96 56c4-3 7 3 11 0s7 3 11 0s7 3 11 0" stroke-width="1.5"></path>
+    </svg>
+    <div style="display:flex;flex-direction:column;gap:10px;max-width:44ch">
+      <h1 style="margin:0;font-family:var(--font-serif);font-weight:600;font-size:clamp(26px,3vw,34px);line-height:1.2">Lost in the post</h1>
+      <p style="margin:0;font-size:var(--text-base);line-height:var(--leading-base);color:var(--text-2)">This page isn't in the archive. It may have moved, or the address was mistyped — it happens to the best correspondents.</p>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+      <a href="Landing.dc.html" style="display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 20px;border-radius:var(--radius-md);text-decoration:none;font-size:var(--text-base);font-weight:var(--weight-semibold);background:var(--accent);color:var(--text-on-accent)" style-hover="background:var(--accent-hover)" style-focus="outline:2px solid var(--focus-ring);outline-offset:2px">Back to the front page</a>
+      <a href="Docs.dc.html" style="display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 20px;border-radius:var(--radius-md);text-decoration:none;font-size:var(--text-base);font-weight:var(--weight-semibold);background:var(--surface-card);color:var(--text-1);border:1px solid var(--border-strong)" style-hover="background:var(--surface-hover)" style-focus="outline:2px solid var(--focus-ring);outline-offset:2px">Search the docs</a>
+    </div>
+    <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3)">return to sender · briefkist.eu</span>
+  </div>
+
+  <dc-import name="SiteFooter" hint-size="100%,320px"></dc-import>
+</div>
+</x-dc>
+</body>
+</html>
