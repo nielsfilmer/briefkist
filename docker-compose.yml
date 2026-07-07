@@ -1,0 +1,105 @@
+# Briefkist — Docker Compose stack (the Linux install path; macOS users:
+# prefer the native install in docs/RUNBOOK.md — it gets Apple Vision OCR and
+# Metal-accelerated Ollama, and is what the author runs).
+#
+# Quickstart:
+#   1. docker compose pull   (or: docker compose build)
+#   2. Pull the models once (the `internal` network has no internet route BY
+#      DESIGN — egress lockdown, plan.md §5.1 — so grant egress temporarily):
+#        a. uncomment the "- default" line under ollama -> networks
+#        b. docker compose up -d ollama
+#           docker compose exec ollama ollama pull qwen3-vl:4b-instruct
+#           docker compose exec ollama ollama pull bge-m3
+#        c. re-comment "- default", then: docker compose up -d
+#      (Same install-time pattern as the baked-in PaddleOCR models: download
+#      once with egress, run forever without.)
+#   3. Mint a device token for your phone:
+#        docker compose exec briefkist python -m server.tokens_cli add my-phone
+#
+# Egress lockdown by topology: `internal` has internal: true (no gateway).
+# ollama — the process that holds documents in plaintext during inference —
+# sits ONLY on that network and cannot reach the internet at all. briefkist
+# additionally sits on the default network purely so its port can be
+# published; lock it down further at the host level (firewall) if desired.
+
+services:
+  briefkist:
+    image: ghcr.io/nielsfilmer/briefkist:latest
+    build: .  # `docker compose build` builds locally; `pull` uses GHCR
+    restart: unless-stopped
+    environment:
+      # Ollama runs as the compose service below; the server and the
+      # extraction pipeline both read FLOPY_OLLAMA_URL (server/config.py,
+      # spike/extract.py).
+      FLOPY_OLLAMA_URL: http://ollama:11434
+      # The image binds 0.0.0.0 *inside the container namespace*; the port
+      # mapping below is the real exposure decision (plan.md §5.1 moves to
+      # the host level here). This opt-in keeps the bare-metal wildcard-bind
+      # refusal intact — see server/config.py:validate_bind_host.
+      FLOPY_ALLOW_CONTAINER_BIND: "1"
+    ports:
+      # §5.1: publish on an EXPLICIT host interface, never 0.0.0.0. Replace
+      # 127.0.0.1 with the address your phone should reach, e.g. your LAN IP
+      # ("192.168.1.20:8484:8484") or your Tailscale IP. A bare "8484:8484"
+      # would expose the archive on every interface — don't.
+      - "127.0.0.1:8484:8484"
+    volumes:
+      - briefkist-data:/data # SQLite DB + originals/cleaned/thumbs
+    networks:
+      - default # only for the published port above
+      - internal
+    depends_on:
+      - ollama
+    healthcheck:
+      # /api/status answers 401 without a token — 401 still means alive.
+      test:
+        - CMD-SHELL
+        - code=$$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8484/api/status); [ "$$code" = 200 ] || [ "$$code" = 401 ]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+  ollama:
+    # Pinned (repo stance: version combos are landmines); bump deliberately.
+    image: ollama/ollama:0.13.5
+    restart: unless-stopped
+    volumes:
+      - ollama-models:/root/.ollama
+    networks:
+      - internal # ONLY internal: zero egress (see header comment)
+      # - default  # TEMPORARILY uncomment for the one-time `ollama pull`
+    # NVIDIA GPU (optional — CPU works; expect minutes/letter):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+volumes:
+  briefkist-data:
+  ollama-models:
+
+networks:
+  internal:
+    internal: true # no gateway — containers on only this network have no egress
+
+# --- Variant: external Ollama on the host --------------------------------
+# Docker on macOS cannot pass through Metal, and many self-hosters already
+# run Ollama natively. In that case: delete/ignore the ollama service above
+# and swap the briefkist service's Ollama wiring for:
+#
+#   briefkist:
+#     environment:
+#       FLOPY_OLLAMA_URL: http://host.docker.internal:11434
+#       FLOPY_ALLOW_CONTAINER_BIND: "1"
+#     extra_hosts:
+#       - "host.docker.internal:host-gateway"  # needed on Linux; built in on Docker Desktop
+#     networks:
+#       - default
+#
+# (host.docker.internal routes via the default network's gateway, so the
+# internal-only lockdown doesn't apply — your host Ollama's own network
+# posture is the lockdown boundary then.)

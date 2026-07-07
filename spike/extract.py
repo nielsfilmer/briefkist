@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import base64
 import io
+import os
 import time
 from pathlib import Path
 from typing import Literal
@@ -23,7 +24,9 @@ import httpx
 from PIL import Image
 from pydantic import BaseModel, Field
 
-OLLAMA_URL = "http://127.0.0.1:11434"
+# Same env the server reads (server/config.py) so a compose/remote Ollama
+# reaches the extraction path too; the default is the local host install.
+OLLAMA_URL = os.environ.get("FLOPY_OLLAMA_URL", "http://127.0.0.1:11434")
 # The bare `qwen3-vl:4b` tag is the *thinking* variant: it burns thousands of
 # reasoning tokens before the schema-constrained answer (observed: 12k chars of
 # thinking, done_reason=length, empty content). Extraction is mechanical — use

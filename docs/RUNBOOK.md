@@ -38,6 +38,41 @@ address, and give the mini a **DHCP reservation / static IP** in the router so
 it stops happening (launchd retries every 15 s by design, so it recovers by
 itself once the address is right).
 
+## Docker (Linux)
+
+The native macOS install above stays the primary, best-tested path — it is
+what the author runs, and it gets Apple Vision OCR plus Metal-accelerated
+Ollama. For Linux servers/NAS boxes there is a Docker Compose stack
+(`docker-compose.yml` at the repo root; image published as
+`ghcr.io/nielsfilmer/briefkist`):
+
+```bash
+docker compose pull            # or build locally: docker compose build
+# One-time model pull (the ollama service has no internet route by design —
+# follow the numbered steps in docker-compose.yml's header comment), then:
+docker compose up -d
+docker compose exec briefkist python -m server.tokens_cli add "my-phone"
+```
+
+Notes:
+
+- **OCR in the container is PaddleOCR** (Apple Vision doesn't exist off
+  macOS; engine selection is automatic per platform, override with
+  `FLOPY_OCR_ENGINE`). The PP-OCRv5 models are baked into the image, so the
+  running container needs no network beyond Ollama.
+- **Egress lockdown by topology**: Ollama sits on an internal-only Docker
+  network with zero internet route; only Briefkist's port is published.
+  Caveat (PR #47 review): the Briefkist container itself — which runs the
+  worker + OCR in-process — keeps normal egress, unavoidable while it also
+  serves the published port. Full worker/network split is a follow-up.
+- **Exposure = the port mapping.** The compose file publishes on `127.0.0.1`
+  by default — change it to your LAN or Tailscale address (§5.1: never a bare
+  `"8484:8484"`, that's every interface).
+- **Backup** = the `briefkist-data` volume (same contents as the native data
+  dir).
+- **Mac hosts: keep Ollama native** (Docker gets no Metal) — use the
+  external-Ollama variant commented at the bottom of `docker-compose.yml`.
+
 ## Phone setup (first time, ~2 minutes)
 
 **With the native apps (preferred):**

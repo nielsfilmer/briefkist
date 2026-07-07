@@ -20,11 +20,19 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# paddlepaddle wheels are hit-or-miss on macOS arm64; the benchmark treats a
-# missing PaddleOCR as "engine unavailable" rather than an error (plan.md §6.2)
+# The OCR engine off macOS (Apple Vision is darwin-only) — required in the
+# Docker image, optional on macOS where paddlepaddle wheels are hit-or-miss
+# (the benchmark treats a missing PaddleOCR as "engine unavailable" rather
+# than an error, plan.md §6.2).
+# PINNED as a pair: paddleocr/paddlepaddle version combos are landmines
+# (e.g. paddleocr 3.3 + paddle 3.0 broke in Docker on both archs — see
+# docs/research/oss-distribution-licensing.md §2). 3.4.1 + 3.3.1 is the exact
+# combo this repo's engine code (spike/ocr_engines.py, paddleocr 3.x pipeline
+# API, PP-OCRv5 models) was written and tested against — bump only as a pair,
+# with a benchmark re-run.
 paddle = [
-    "paddleocr>=2.8",
-    "paddlepaddle>=3.0",
+    "paddleocr==3.4.1",
+    "paddlepaddle==3.3.1",
 ]
 
 [dependency-groups]

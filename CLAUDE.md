@@ -269,6 +269,10 @@ observed running it.
   `FLOPY_DATA_DIR=/tmp/flopy-qa FLOPY_PORT=8998 uv run python -m server.app`.
   With no device tokens minted, loopback requests are allowed (bootstrap);
   non-loopback needs `uv run python -m server.tokens_cli add <name>`.
+- **Docker (Linux):** `docker compose up -d` — see the header comment in
+  `docker-compose.yml` (one-time Ollama model pull) and RUNBOOK "Docker
+  (Linux)". OCR off macOS is PaddleOCR, auto-selected per platform
+  (`FLOPY_OCR_ENGINE` overrides).
 - **Benchmark / test set:** see `spike/README.md` and `testset/README.md`.
 - **Tests/lint:** `uv run pytest`, `uv run ruff check .`.
 - **Native apps (`app/`, Flutter):** from `app/` — `flutter run -d <simulator-id>`
@@ -356,6 +360,12 @@ milestone "Native apps" — real-device pass + follow-ups still open)**.
   backup, model knobs, known limitations. **The owner-facing doc.**
 - `deploy/` — launchd agent template + `install.sh` (installs/updates the
   server as a login service bound to a specific LAN IP).
+- `Dockerfile` / `docker-compose.yml` / `.dockerignore` — the Linux
+  distribution path (v0.6): PaddleOCR image with baked-in PP-OCRv5 models,
+  compose stack with an internal-only (zero-egress) Ollama service. See
+  RUNBOOK "Docker (Linux)".
+- `.github/workflows/ci.yml` — CI: ruff + pytest (ubuntu), Flutter checks on
+  `app/**` changes, Docker build (pushes `ghcr.io/nielsfilmer/briefkist` on main).
 - `tests/` — pytest suite (`uv run pytest`).
 - `data/` — generated/captured data, **gitignored** (synthetic set under
   `data/testset/`, real letters under `data/testset-real/`).
