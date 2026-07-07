@@ -4,6 +4,11 @@
 after the owner's real-device pass). This file doubles as the paste-ready
 prompt below and the repo's running deviation log.
 
+> **Historical note (2026-07-07):** references to `app/` paths below (e.g.
+> `app/lib/design/tokens.g.dart`) predate the repo split — the Flutter apps
+> now live in [briefkist-app](https://github.com/nielsfilmer/briefkist-app)
+> (plan.md decision v0.6 #19). The frozen prompt text is left as written.
+
 ---
 
 ## The prompt (paste into the Claude Design project chat)
