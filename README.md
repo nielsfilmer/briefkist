@@ -1,53 +1,97 @@
 # Briefkist
 
-A fully local, self-hosted system to **photograph, read, tag, archive, and search
-your physical (snail) mail** — with nothing ever leaving hardware you control.
+**Turn the paper mail piling up at home into a private, searchable family
+archive — on a server you control.**
 
-Snap a letter with your phone; a self-hosted backend on an always-on Apple Silicon
-**Mac mini** cleans the image, OCRs it, and uses a local vision-language model to
-extract archive metadata (category, correspondent + place, date, reference,
-subject, a short summary and curated keywords — it's an archive, not an
-invoicing tool), then files it into a searchable archive (full-text + semantic).
-Use it on the road via a private WireGuard/Tailscale overlay — **no cloud, no
-public ports, no third party in the data path.**
+Photograph a letter with your phone. Your own server cleans the image, reads
+it (OCR), and uses a local vision-language model to understand it — category,
+sender and place, date, reference, subject, a short summary, curated
+keywords — then files it into an archive you can search by words or by
+meaning. It is an archive, not an invoicing tool.
 
-> **Status:** executing — Phase 0 GO, the end-to-end slice + search live, and the
-> **native iOS + macOS apps (Flutter, one codebase in
-> [briefkist-app](https://github.com/nielsfilmer/briefkist-app))** built against
-> the design system in `design/`. The web app stays as the zero-install fallback.
-> See the decision log at the top of [plan.md](plan.md).
+**Nothing ever leaves hardware you control.** No cloud APIs, no telemetry, no
+third party in the data path. The AI runs on your machine, and the
+architecture is built to keep it that way: on the Docker stack the model
+runtime — which holds your documents in plaintext during inference — sits on
+an internal network with no internet route at all. Remote access is designed
+overlay-only (WireGuard/Tailscale) — no public ports, ever.
 
-## Documents
+## Install
 
-- **[plan.md](plan.md)** — the canonical plan: goal, scope, architecture, remote-access
-  & leak-hardening (§5.1), technology decisions, data model, pipeline, roadmap,
-  measurables, and risks. **Start here.**
-- **[CLAUDE.md](CLAUDE.md)** — working conventions for Claude Code sessions on this repo
-  (PR-per-task workflow, review discipline, permission model, phase tracking).
+Two supported paths — the same product on both (the OCR engine differs per
+platform; see the table below):
 
-## Stack (v1 — see plan.md §6–§7 and the decision log)
+- **Linux (Docker Compose)** — any box you own: a NUC, a home server, an old
+  desktop. `docker compose pull && docker compose up -d`, pull the two models
+  once, mint a device token — the quickstart is at the top of
+  [docker-compose.yml](docker-compose.yml). Images are published to
+  `ghcr.io/nielsfilmer/briefkist`.
+- **macOS (native)** — what the author runs: an always-on Apple Silicon Mac
+  mini (8 GB is enough). Native gets Apple Vision OCR and Metal-accelerated
+  Ollama. Setup, operations, backup, and model knobs are in
+  [docs/RUNBOOK.md](docs/RUNBOOK.md); [deploy/](deploy/) installs it as a
+  login service.
+
+Then pair your devices: the **native iOS + macOS apps** live in
+[briefkist-app](https://github.com/nielsfilmer/briefkist-app) (Flutter, one
+codebase, Apache-2.0), and a zero-install **web app** (phone capture page +
+desktop browse) is served by the backend itself.
+
+## How it works
 
 | Layer | Choice |
 |---|---|
-| Apps | **Flutter iOS + macOS** ([briefkist-app](https://github.com/nielsfilmer/briefkist-app), Apache-2.0; design system from `design/` here) + web fallback served by the backend |
-| Capture | iOS document scanner (VisionKit) in the app; phone-browser camera in the web fallback; backend OpenCV cleanup |
-| OCR | Apple Vision vs PaddleOCR — Phase 0 benchmark picks the primary |
-| Understanding | Qwen3-VL-4B (2B fallback) via Ollama |
+| Apps | Flutter iOS + macOS ([briefkist-app](https://github.com/nielsfilmer/briefkist-app)) + web fallback served by the backend |
+| Capture | iOS document scanner (VisionKit) in the app; phone-browser camera in the web fallback; OpenCV cleanup server-side |
+| OCR | Apple Vision (macOS) or PaddleOCR (Linux, models baked into the image) |
+| Understanding | Qwen3-VL-4B (2B fallback) via Ollama — local, Apache-2.0-licensed weights |
 | Search | SQLite FTS5 + sqlite-vec · bge-m3 embeddings |
-| Backend | FastAPI — all native processes, no Docker |
-| Host | The owner's always-on 8 GB M1 Mac mini |
-| Remote access | Tailscale / WireGuard overlay |
+| Backend | FastAPI + SQLite — native processes on macOS, Compose stack on Linux |
+| Remote access | Tailscale / WireGuard overlay — never the public internet |
 
-## Development workflow
+The full design — goal, scope, architecture, the §5.1 remote-access and
+leak-hardening model, technology decisions with rationale, data model,
+pipeline, roadmap, risks — is in **[plan.md](plan.md)**.
 
-Every change goes on a feature branch → PR against `main` → parallel code + QA review →
-merge (merge gate delegated to Claude for this repo 2026-07-03 — see CLAUDE.md workflow
-step 5). Phase progress is tracked in GitHub milestones and
-`phase-tracker` issues, not in a roadmap checklist. See [CLAUDE.md](CLAUDE.md) for the
-full workflow, and run `/status` for the live per-phase snapshot.
+## Privacy stance
 
-## Privacy
+This is a privacy project first:
 
-This is a privacy project first. **Never commit** real mail, captured documents, `.env`
-files, model/API keys, or WireGuard/Tailscale keys — see `.gitignore`. The repo is
-public; the design docs are, the data never is.
+- On Docker, the model runtime (Ollama) is **egress-locked by network
+  topology** — the container that runs inference has no internet route, even
+  if a dependency misbehaves. Extending that lockdown to every process that
+  touches a document (OCR, worker; native macOS included) is the §5.1 design
+  and tracked work, not yet fully wired — plan.md §5.1 and docs/RUNBOOK.md
+  state exactly what is enforced today.
+- The server **refuses to bind 0.0.0.0** on bare metal; exposure is an
+  explicit, host-level decision.
+- Every device gets its **own revocable token**; the phone talks only to your
+  server.
+- Model and dependency licences are vetted for actual usability (EU included)
+  — see plan.md §6.3.
+
+We deliberately never describe Briefkist with the words "zero-knowledge" or
+"end-to-end encrypted" — precise claims only. What the system does and does
+not protect against is written out in plan.md §5.1.
+
+## Contributing
+
+Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) (DCO sign-off,
+no CLA; the privacy constraints are non-negotiable review criteria). Security
+reports: [SECURITY.md](SECURITY.md). This repo also carries the design system
+mirror ([design/](design/)) and the development conventions
+([CLAUDE.md](CLAUDE.md)); live phase state is on GitHub milestones.
+
+**Never commit** real mail, captured documents, `.env` files, model/API keys,
+or WireGuard/Tailscale keys — see `.gitignore`. The repo is public; the
+design docs are, the data never is.
+
+## License
+
+Copyright © 2026 Niels Filmer.
+
+The server (this repository) is licensed under the
+**[GNU AGPL-3.0](LICENSE)** — if you run a modified Briefkist for others over
+a network, you must offer them your modified source. The native apps
+([briefkist-app](https://github.com/nielsfilmer/briefkist-app)) are
+**Apache-2.0**. Rationale: plan.md decision log v0.6 #19.

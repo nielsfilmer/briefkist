@@ -29,6 +29,6 @@ terms.)
 
 ## Development setup
 
-See [CLAUDE.md](CLAUDE.md) "How to run it" (an adopter-facing README
-quickstart is in flight — tracker #44) for the dev workflow (Python via
+See the [README](README.md) "Install" section for running the product, and
+[CLAUDE.md](CLAUDE.md) "How to run it" for the dev workflow (Python via
 `uv`, tests via `uv run pytest`).
