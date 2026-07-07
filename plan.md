@@ -1,8 +1,9 @@
 # Snail-Mail Archiver — Project Plan
 
 > A fully local, self-hosted system to photograph, read, tag, archive, and search
-> physical mail. Capture with a phone, process on your own hardware, and never let a
-> single byte leave your network.
+> physical mail. Capture with a phone, process on your own hardware — or on a
+> single-tenant hosted server under a key only you hold (v0.6) — and never let
+> a third party into the data path.
 
 - **Owner:** niels@eviloverlord.nl
 - **Status:** Executing (v0.6) — apps built; productization (open-source launch + website + hosted SaaS) in flight (milestone "Productization", tracker #44)

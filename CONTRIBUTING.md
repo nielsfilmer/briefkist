@@ -1,7 +1,9 @@
 # Contributing to Briefkist
 
-Thanks for wanting to help. Briefkist (the server in this repo) is AGPL-3.0;
-the mobile/desktop apps live in their own repo under Apache-2.0.
+Thanks for wanting to help. Everything in this repo is **AGPL-3.0** —
+including `app/` for as long as it lives here. (The apps are slated to move
+to a separate Apache-2.0 repo, plan.md decision #19; until that split lands,
+contributions to `app/` are AGPL like everything else.)
 
 ## Ground rules
 
@@ -19,11 +21,13 @@ the mobile/desktop apps live in their own repo under Apache-2.0.
 ## Getting started
 
 - Bugs → GitHub Issues (use the template).
-- Features / direction → GitHub Discussions first; the roadmap lives in
-  [plan.md](plan.md) §10 and GitHub milestones.
+- Features / direction → open an issue for now (GitHub Discussions will be
+  enabled at launch); the roadmap lives in [plan.md](plan.md) §10 and GitHub
+  milestones.
 - Docs fixes are always welcome and merged fast.
 
 ## Development setup
 
-See the README quickstart and [CLAUDE.md](CLAUDE.md) "How to run it" for the
-dev workflow (Python via `uv`, tests via `uv run pytest`).
+See [CLAUDE.md](CLAUDE.md) "How to run it" (an adopter-facing README
+quickstart is in flight — tracker #44) for the dev workflow (Python via
+`uv`, tests via `uv run pytest`).

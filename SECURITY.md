@@ -8,7 +8,8 @@ lockdown on the processing path, no third parties) is described in
 ## Reporting a vulnerability
 
 Please report vulnerabilities privately via **GitHub Security Advisories**
-("Report a vulnerability" on this repo) — not in public issues.
+("Report a vulnerability" on this repo; enabled at public launch) — not in
+public issues.
 You'll get an acknowledgment within 72 hours. Coordinated disclosure
 appreciated; we'll credit you unless you prefer otherwise.
 
