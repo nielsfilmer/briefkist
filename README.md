@@ -88,7 +88,7 @@ design docs are, the data never is.
 
 ## License
 
-Copyright © 2026 Niels Filmer.
+Copyright © 2026 Evil Overlord B.V.
 
 The server (this repository) is licensed under the
 **[GNU AGPL-3.0](LICENSE)** — if you run a modified Briefkist for others over
