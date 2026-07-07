@@ -3,7 +3,7 @@
 
 import 'dart:ui';
 
-/// One resolved color palette (light or dark) of the my-flopy design tokens.
+/// One resolved color palette (light or dark) of the Briefkist design tokens.
 class MfColors {
   final Color paper0;
   final Color paper1;

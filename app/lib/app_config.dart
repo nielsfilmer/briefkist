@@ -1,4 +1,4 @@
-// my-flopy — connection + appearance configuration, persisted locally with
+// Briefkist — connection + appearance configuration, persisted locally with
 // shared_preferences. Populated by QR pairing (scan_pairing_screen) or the
 // manual server-address + token fields in settings.
 

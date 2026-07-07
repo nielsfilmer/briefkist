@@ -1,4 +1,4 @@
-// my-flopy design system — app header. Source: design/components/navigation/AppHeader.jsx
+// Briefkist design system — app header. Source: design/components/navigation/AppHeader.jsx
 
 import 'package:flutter/material.dart';
 

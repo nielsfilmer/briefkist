@@ -1,4 +1,4 @@
-// my-flopy — HTTP client for the self-hosted backend. The ONLY network
+// Briefkist — HTTP client for the self-hosted backend. The ONLY network
 // surface in the app, and it talks exclusively to the owner's server
 // (plan.md §5.1): base URL comes from user configuration, never a default
 // public host.

@@ -1,4 +1,4 @@
-// my-flopy — mobile shell. Source: design/ui_kits/mobile/kit.mobile.jsx
+// Briefkist — mobile shell. Source: design/ui_kits/mobile/kit.mobile.jsx
 
 import 'package:flutter/material.dart';
 

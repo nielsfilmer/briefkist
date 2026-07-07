@@ -6,8 +6,8 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:my_flopy/api/client.dart';
-import 'package:my_flopy/uploads_controller.dart';
+import 'package:briefkist/api/client.dart';
+import 'package:briefkist/uploads_controller.dart';
 
 FlopyClient _client(MockClientHandler handler) =>
     FlopyClient(baseUrl: 'http://test.invalid', inner: MockClient(handler));

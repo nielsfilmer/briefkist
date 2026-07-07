@@ -1,4 +1,4 @@
-// my-flopy — desktop settings (connection, pairing, server, preferences).
+// Briefkist — desktop settings (connection, pairing, server, preferences).
 // Source: design/ui_kits/desktop/kit.desktop.jsx (SettingsContent).
 
 import 'package:flutter/material.dart';
@@ -454,7 +454,7 @@ class _SettingsContentState extends State<SettingsContent> {
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 340),
                 child: Text(
-                  'Open my-flopy on the phone and scan this code. Each '
+                  'Open Briefkist on the phone and scan this code. Each '
                   'device gets its own token; revoke it here any time. The '
                   'code only works on your home network.',
                   style: MfType.sm.copyWith(color: mf.text2),

@@ -1,4 +1,4 @@
-// my-flopy — private, local-first snail-mail archive (iOS + macOS client).
+// Briefkist — private, local-first snail-mail archive (iOS + macOS client).
 // Adaptive shell: phone gets the tab-bar layout (design/ui_kits/mobile),
 // desktop gets the topbar + sidebar layout (design/ui_kits/desktop).
 
@@ -29,7 +29,7 @@ class MyFlopyApp extends StatelessWidget {
       child: ListenableBuilder(
         listenable: config,
         builder: (context, _) => MaterialApp(
-          title: 'my-flopy',
+          title: 'Briefkist',
           debugShowCheckedModeBanner: false,
           theme: mfThemeData(Brightness.light),
           darkTheme: mfThemeData(Brightness.dark),

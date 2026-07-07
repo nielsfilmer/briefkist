@@ -1,4 +1,4 @@
-// my-flopy — upload. Source: design/ui_kits/desktop/kit.desktop.jsx
+// Briefkist — upload. Source: design/ui_kits/desktop/kit.desktop.jsx
 
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_selector/file_selector.dart';

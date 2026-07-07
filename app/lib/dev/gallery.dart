@@ -1,4 +1,4 @@
-// my-flopy — dev gallery: every design-system widget in one scroll, for
+// Briefkist — dev gallery: every design-system widget in one scroll, for
 // eyeballing parity against design/ (the Claude Design mirror). Not part of
 // the product UI; reachable as the home screen until the app shell lands.
 

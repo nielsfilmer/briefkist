@@ -1,9 +1,9 @@
-// my-flopy design system — brand mark + wordmark. Source: design/assets/logo.svg
+// Briefkist design system — brand mark + wordmark. Source: design/assets/logo.svg
 // (glyph path bundled in mf_icons.dart as MfGlyphs.mark).
 //
 // The mark is a floppy-disk outline whose label area is an envelope flap —
 // one continuous geometric shape, works at 16px (design/readme.md
-// "Iconography"). The wordmark pairs it with "my-flopy" in Lora.
+// "Iconography"). The wordmark pairs it with "Briefkist" in Lora.
 
 import 'package:flutter/widgets.dart';
 
@@ -36,7 +36,7 @@ class MfWordmark extends StatelessWidget {
         const MfMark(size: 24),
         const SizedBox(width: 9),
         Text(
-          'my-flopy',
+          'Briefkist',
           style: TextStyle(
             fontFamily: MfFonts.serif,
             fontSize: 19,

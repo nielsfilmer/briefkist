@@ -122,7 +122,7 @@ def main() -> None:
         "",
         "import 'dart:ui';",
         "",
-        "/// One resolved color palette (light or dark) of the my-flopy design tokens.",
+        "/// One resolved color palette (light or dark) of the Briefkist design tokens.",
         "class MfColors {",
     ]
     names = list(light.keys())

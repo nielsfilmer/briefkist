@@ -1,4 +1,4 @@
-# my-flopy
+# Briefkist
 
 A fully local, self-hosted system to **photograph, read, tag, archive, and search
 your physical (snail) mail** — with nothing ever leaving hardware you control.

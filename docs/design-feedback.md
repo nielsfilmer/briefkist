@@ -8,7 +8,7 @@ prompt below and the repo's running deviation log.
 
 ## The prompt (paste into the Claude Design project chat)
 
-> The my-flopy design system was implemented as native Flutter apps (iOS +
+> The Briefkist design system was implemented as native Flutter apps (iOS +
 > macOS) — every screen in `ui_kits/` is now real software talking to the
 > FastAPI backend. Update the design project to match the as-built product.
 > The numbered findings below are the deltas; for each, either adopt it into

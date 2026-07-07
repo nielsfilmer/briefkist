@@ -4,7 +4,7 @@
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>nl.eviloverlord.flopy</string>
+  <string>app.briefkist.server</string>
 
   <key>ProgramArguments</key>
   <array>

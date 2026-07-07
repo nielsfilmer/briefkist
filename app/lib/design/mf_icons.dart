@@ -1,4 +1,4 @@
-// my-flopy design system — icon glyphs.
+// Briefkist design system — icon glyphs.
 // The exact stroke glyphs used by the design kits (design/ui_kits/*.jsx and
 // design/components/*.jsx): 24x24 viewBox, 1.75 stroke, round caps/joins,
 // currentColor. Bundled as SVG path data per plan.md decision v0.5 #16 —

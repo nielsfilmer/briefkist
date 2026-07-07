@@ -1,4 +1,4 @@
-// my-flopy design system — chip. Source: design/components/display/Chip.jsx
+// Briefkist design system — chip. Source: design/components/display/Chip.jsx
 //
 // Full-round 26px pill: surface-inset + text-2; interactive chips hover to
 // surface-pressed + text-1; selected = accent-tint bg, accent text, 1px

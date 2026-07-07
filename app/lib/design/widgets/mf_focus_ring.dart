@@ -1,4 +1,4 @@
-// my-flopy design system — shared keyboard-focus ring.
+// Briefkist design system — shared keyboard-focus ring.
 // 2px focusRing ring at 1px offset (the inputs' `outline-offset: 1px` in the
 // component sources; the ring sits 3px outside the child bounds: 1px offset
 // + 2px stroke). Drawn in a non-clipping Stack so it never shifts layout.

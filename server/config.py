@@ -11,6 +11,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+# env prefix FLOPY_ predates the Briefkist rename; kept for compatibility (rename tracked in #44)
 HOST = os.environ.get("FLOPY_HOST", "127.0.0.1")
 PORT = int(os.environ.get("FLOPY_PORT", "8484"))
 DATA_DIR = Path(os.environ.get("FLOPY_DATA_DIR", "data/archive")).resolve()

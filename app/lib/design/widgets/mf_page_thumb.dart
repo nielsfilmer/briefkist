@@ -1,4 +1,4 @@
-// my-flopy design system — page thumbnail. Source: design/components/display/PageThumb.jsx
+// Briefkist design system — page thumbnail. Source: design/components/display/PageThumb.jsx
 
 import 'package:flutter/material.dart';
 

@@ -1,4 +1,4 @@
-// my-flopy design system — button. Source: design/components/actions/Button.jsx
+// Briefkist design system — button. Source: design/components/actions/Button.jsx
 //
 // Variants: primary / secondary / destructive / ghost; sizes sm/md/lg
 // (32/40/48 tall). Hover = one paper step darker, press = one further step,

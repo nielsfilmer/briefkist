@@ -1,4 +1,4 @@
-// my-flopy design system — sheet. Source: design/components/feedback/Sheet.jsx
+// Briefkist design system — sheet. Source: design/components/feedback/Sheet.jsx
 
 import 'package:flutter/material.dart';
 

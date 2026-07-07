@@ -1,4 +1,4 @@
-/* my-flopy web app: capture (phone) + archive (any browser). No framework. */
+/* Briefkist web app: capture (phone) + archive (any browser). No framework. */
 "use strict";
 
 const $ = (sel) => document.querySelector(sel);

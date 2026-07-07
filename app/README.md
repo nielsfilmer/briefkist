@@ -1,6 +1,6 @@
-# my_flopy
+# briefkist
 
-A new Flutter project.
+Briefkist — the native iOS + macOS Flutter client.
 
 ## Getting Started
 

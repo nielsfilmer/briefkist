@@ -1,4 +1,4 @@
-// my-flopy design system — select. Source: design/components/inputs/Select.jsx
+// Briefkist design system — select. Source: design/components/inputs/Select.jsx
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

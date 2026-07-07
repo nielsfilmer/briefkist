@@ -2,8 +2,8 @@
 // build, and the shell renders without exceptions.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:my_flopy/app_config.dart';
-import 'package:my_flopy/main.dart';
+import 'package:briefkist/app_config.dart';
+import 'package:briefkist/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

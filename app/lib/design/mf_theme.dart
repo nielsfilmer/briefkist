@@ -1,4 +1,4 @@
-// my-flopy design system — theme layer.
+// Briefkist design system — theme layer.
 // Hand-translated from design/tokens/*.css (the Claude Design mirror);
 // colors come from the generated tokens.g.dart. Keep 1:1 with the mirror —
 // deviations belong in docs/design-feedback.md.
