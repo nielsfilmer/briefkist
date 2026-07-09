@@ -158,8 +158,9 @@ pricing, naming).
     deferred as post-v1 hardening (briefkist-cloud#27): its extra
     protection is chiefly against snapshotting an already-*unlocked* VM —
     a case the RAM-window claim already concedes — and it would land
-    hosted-only crypto inside the AGPL product. The §11 "stolen disk" row
-    and §5.x wording that imply app-level blob encryption ships in v1 are
+    hosted-only crypto inside the AGPL product. The §5.1 "stolen server
+    disk" threat-table row and the §10 Phase-3 "at-rest blob encryption"
+    item, which imply app-level blob encryption ships in v1, are
     superseded by this scoping until that hardening lands.
 21. **Pricing (launch)**: self-host free forever (full product, no paywalled
     features — Immich model); hosted **€12/mo (€9/mo annual)**; dedicated
