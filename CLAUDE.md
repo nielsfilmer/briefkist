@@ -172,8 +172,9 @@ source of truth; edit prompts there, not here.
   log / memory, whichever is the durable home) **in the same turn**, and say
   so in the reply. Being re-taught the same rule in a later session is a
   process bug, not a user quirk. If an unrelated PR is in flight, the rule
-  still lands the same turn — as its own micro-commit/PR off `main`; never
-  folded into the unrelated PR (one PR = one concern). In-session overrides of
+  still lands the same turn — as its own micro-commit/PR off `main` (or in
+  memory when a PR would be disproportionate); never folded into the
+  unrelated PR (one PR = one concern). In-session overrides of
   a workflow gate (e.g. "skip me as merge gate") count double: record the
   override, with its scope, in the same durable home immediately — or it
   silently expires with the session (this repo's own 2026-07-03 merge-gate
