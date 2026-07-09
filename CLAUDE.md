@@ -1,7 +1,7 @@
 # Claude project notes — Briefkist (local-first snail-mail archiver)
 
-> Product name: **Briefkist** (v0.6; repo/app renames in flight — code and
-> URLs may still say my-flopy until the rename PRs land).
+> Product name: **Briefkist** (repo: nielsfilmer/briefkist; apps:
+> nielsfilmer/briefkist-app; control plane: nielsfilmer/briefkist-cloud).
 
 Persistent context for future Claude sessions on this repo. Read this first.
 
@@ -21,15 +21,25 @@ Every task ends with a pull request. Do **not** push directly to `main`.
    flags anything the reviewer should look at.
 3. **Spawn the review agents — in parallel.** Two reviewers look at the PR at
    once; both must come back clean, and their findings are amendments under
-   step 4. Use the `Agent` tool (`subagent_type: "general-purpose"`) for each.
+   step 4. **Prefer the `/review-loop` skill when it's available** — it runs
+   steps 3–4 end-to-end (parallel spawn, app hosting for QA, the two-round
+   cap, durable capture of deferred remarks) and uses this repo's prompt
+   templates — the **`review-prompts` project skill**
+   (`.claude/skills/review-prompts/SKILL.md`, the source of truth for both
+   agent prompts) — so the static-analysis, spec-fidelity, and smell passes
+   still apply. Hand-rolled fallback: use the `Agent` tool
+   (`subagent_type: "general-purpose"`) for each.
    - **Senior-developer code review.** Framed as a senior dev reviewing the PR;
      give it the project goals (point it at plan.md and this file) and have it
      run a **static-analysis pass** (the repo's own linters/type-checkers/SAST,
-     scoped to the diff) and fold the results into its findings — see the
-     template's Static-analysis pass. It posts via
-     `gh pr review N -R nielsfilmer/my-flopy --comment` (or `--request-changes` if
-     its gh account is allowed — GitHub blocks self-review on your own PR, so it
-     falls back to `--comment`; flag blocking items explicitly in the body then).
+     scoped to the diff), a **spec-fidelity pass** (the diff against the
+     originating issue/spec: missing/partial requirements, scope creep,
+     implemented-but-wrong), and the **smell baseline** (a fixed set of Fowler
+     code smells as judgement calls), folding all three into its findings —
+     the full prompt lives in the `review-prompts` project skill. It posts via
+     `gh pr review N -R nielsfilmer/briefkist --comment` (or `--request-changes`
+     if its gh account is allowed — GitHub blocks self-review on your own PR, so
+     it falls back to `--comment`; flag blocking items explicitly in the body).
    - **QA agent — client-facing / visually-testable changes only.** Spawn it
      alongside the code reviewer. **The QA subagent can't start a server /
      long-running app itself** (interpreters and `npm run`-style commands are
@@ -91,111 +101,12 @@ Every task ends with a pull request. Do **not** push directly to `main`.
    `gh pr merge` off `gh pr checks --watch | tail` (the pipe eats the failure
    exit code; PR #50 merged with red main that way, repaired in #52).**
 
-### Review-prompt template
+### Review-agent prompt templates
 
-```
-You are a senior developer doing a code review on PR #N of nielsfilmer/my-flopy.
-Read the diff via `gh pr diff N -R nielsfilmer/my-flopy`, the full changed files for
-context, plan.md (especially §3 Scope + §6 Technology Decisions and the latest
-decisions), and CLAUDE.md in this repo.
-
-<If the repo has vendored-asset dirs, paste the "skip vendored dirs" paragraph
-from the disciplines below here, naming those dirs.>
-
-Static-analysis pass (run the repo's OWN deterministic tooling, then reason):
-
-1. Discover the toolchain — don't assume it. Find the checks this repo actually
-   gates on, in this order of authority:
-   - CI config (`.github/workflows/*`, etc.) — the definitive list of checks
-     that gate a merge; prefer the EXACT commands CI runs.
-   - A task runner: `Makefile` (`make lint`/`check`/`test`),
-     `.pre-commit-config.yaml`, `justfile`.
-   - Language config: package.json `scripts` (lint/typecheck) + eslint/biome/
-     prettier/tsconfig; pyproject/ruff/flake8/mypy/bandit; golangci-lint/go vet;
-     clippy/cargo fmt; Dart/Flutter (`dart analyze`, `dart format`), Python/FastAPI
-     (`ruff`, `mypy`, `bandit`) — the planned stack (see below); none set up yet.
-   If the repo declares no linters/type-checkers/SAST, say so and skip — do not
-   introduce new tools.
-2. Run them on the PR branch, SCOPED to the changed files (the merge-base..head
-   range), not the whole repo. Use each tool's diff/changed-files mode if it has
-   one.
-3. These commands run through interpreters/package-runners and are NOT
-   allowlisted (policy keeps them `ask`) — expect a permission prompt. If a tool
-   is denied, not installed, or errors, record it explicitly: "static-analysis
-   pass: <tool> NOT run (<reason>)". Never skip silently — a missing check must
-   be visible in the review.
-4. Fold the output into your findings:
-   - Dedupe against your own reasoned findings — if both flag the same line,
-     report once and attribute it to the tool (deterministic = high confidence).
-   - Separate PR-INTRODUCED from PRE-EXISTING. A finding on a line the PR didn't
-     touch is pre-existing → follow-up issue, not a blocker on this PR. Only
-     PR-introduced errors block.
-   - Auto-fixable lint/format nits → the "fix without asking" bucket; don't
-     escalate each one to the human. Real type errors, real lint errors, and
-     SAST findings the PR introduced → blocking.
-   - Label deterministic findings in the posted review (e.g. "via `ruff`", "via
-     `tsc`") so the human sees which are mechanical vs. reasoned.
-(Skip any vendored-asset dirs here too — don't run or report tooling on them.)
-
-Critically evaluate the change against EVERY decision and constraint in
-plan.md relevant to the diff — treat them as load-bearing; even minor
-deviations are worth flagging. Load-bearing constraints for this project:
-- **100% local / self-hosted. No cloud APIs, no telemetry, no third-party in the
-  data path.** Any outbound network call from the processing path is a blocking
-  defect. Models run on the owner's Mac mini; the phone talks only to that box
-  over a private overlay (§5, §5.1).
-- **Egress lockdown is a feature, not a nice-to-have** — the OCR/VLM and worker
-  processes must have no network access; flag anything that could exfiltrate a
-  document (§5.1).
-- **Model/dependency licences must be EU-usable and (ideally) Apache-2.0/MIT.**
-  NEVER introduce Llama Vision weights (not licensed to EU parties) or
-  Qwen2.5-VL-3B (research-only). See plan.md §6.3.
-- **OCR layer, not the VLM, is trusted for exact strings** (dates, references);
-  format-critical fields get deterministic validation (§6.4). *(v0.4: this is a
-  pure archive — financial fields don't exist; NEVER reintroduce IBAN/amount/
-  due-date extraction without an owner decision, see decision log v0.4.)*
-- **No public ports / no port-forwarding**; remote access is overlay-only (§5.1).
-
-Output: PR review comments via `gh pr review N -R nielsfilmer/my-flopy --comment`
-(or `--request-changes` if allowed). Don't approve unless genuinely clean. If
-GitHub blocks request-changes (self-review), fall back to `--comment` and flag
-blocking issues explicitly.
-```
-
-### QA-prompt template
-
-(Spawn in parallel with the reviewer, for client-facing / visually-testable
-changes only — see step 3, "QA agent". Skip otherwise.)
-
-```
-You are a QA engineer verifying PR #N of nielsfilmer/my-flopy by EXERCISING the
-running app, not reading the diff. An instance is ALREADY RUNNING for you at <URL>,
-and a rendered screenshot of it is at <SCREENSHOT PATH> (Read it as an image). Do
-NOT try to start the app yourself — interpreters / `npm run` are blocked in your
-sandbox and you don't need them: hit the running <URL> (curl its endpoints, or
-drive it with a browser if you have one) and use the screenshot for the visual
-pass. Read `gh pr diff N -R nielsfilmer/my-flopy` and CLAUDE.md to learn what changed.
-
-Verify:
-- It works: the happy path + the specific change behaves as intended.
-- Frontend → pixel-perfect against the design reference — the mirror in `design/`
-  (tokens in `design/tokens/`, screen truth in `design/ui_kits/`, brand rules in
-  `design/readme.md`): spacing, colour, type, and the correct states.
-- What a QAer normally tests: edge cases, empty/loading/error states, invalid
-  input + boundaries, and regressions in adjacent features. Checks that need a
-  live browser you may not have (responsive/mobile resize, keyboard + a11y,
-  WebSocket reconnect) — attempt them if you have browser automation against the
-  URL, otherwise verify the wiring from the served output + diff and say which
-  you couldn't exercise.
-
-Cite evidence: the handed-over screenshot, the endpoint responses, the served
-output. Post findings via
-`gh pr review N -R nielsfilmer/my-flopy --comment` (or `--request-changes` if allowed;
-GitHub blocks self-review on your own PR, so fall back to `--comment` and flag
-blocking issues explicitly). Be specific — what you did, what you saw, expected
-vs actual. Don't pass on "looks plausible from the diff"; only on what you
-observed running it.
-```
+Both prompt templates (senior-dev review with the static-analysis,
+spec-fidelity, and smell passes; QA agent) live in the **`review-prompts`
+project skill** — `.claude/skills/review-prompts/SKILL.md`. That file is the
+source of truth; edit prompts there, not here.
 
 ### Workflow disciplines
 
@@ -216,6 +127,9 @@ observed running it.
   task, open a `follow-up`-labelled issue against the right milestone. Open a
   phase's tracker first; close the tracker + milestone together to mark the phase
   done.
+  - **Starting a phase includes decomposing it.** When a phase's scope spans
+    multiple work items, break it into milestoned issues at phase start — the
+    tracker lists them — rather than discovering the breakdown mid-phase.
   - Tooling: **`/status`** (runs `scripts/status.sh`) prints the live per-phase
     snapshot; **`/phase`** does the lifecycle write ops (`start` = milestone +
     tracker issue, `complete` = close both together, `follow-up` = file a
@@ -240,6 +154,25 @@ observed running it.
     delegated to Claude for this repo — see workflow step 5. Merging a clean,
     reviewed PR is allowed; closing/deleting others' work or any non-merge
     outward-facing action still isn't.)*
+- **Teach-it-once.** When the user states a workflow rule, a correction, or a
+  standing preference in conversation, write it into this file (or memory, if
+  cross-repo) **in the same turn**, and say so — as its own micro-commit/PR if
+  an unrelated PR is in flight. Being re-taught a rule in a later session is a
+  process bug.
+- **Third-party dashboard handoffs happen as one batched checklist.** When
+  steps must happen in an external web console (hosting panel, DNS, Mollie,
+  OAuth…), hand the user one batched checklist of all their-side steps, link
+  official docs instead of narrating UI from memory, and state exactly what to
+  paste back — confirmations and non-secret IDs only. No step-at-a-time
+  ping-pong.
+- **No secrets in chat.** Never ask the user to paste a secret value into the
+  conversation — transcripts persist them. Secrets go into an env file /
+  keychain (e.g. `~/.briefkist-cloud.env`, chmod 600) via a command typed in a
+  real terminal; verify presence/shape only (length, prefix), never content.
+  If a secret lands in chat, flag it for rotation.
+- **Permission-friction habits.** Multi-line bodies go through `--body-file` /
+  a temp file, never inline in the command; avoid compound `cd X && …` — use
+  absolute paths.
 - **The reviewer runs deterministic tooling, not just its judgment.** LLM review
   is unreliable at exactly what linters/type-checkers/SAST are reliable at; the
   senior-dev review must run the repo's own checks on the diff and fold them in
@@ -395,6 +328,6 @@ issue milestoned to it. Deferred/later-phase work = a `follow-up`-labelled issue
 against the right milestone. `/status` reads live state; `/phase` does the write ops.
 
 - Current anchor: **Phase 1 — End-to-end thin slice** — milestone #2 +
-  `phase-tracker` issue [#17](https://github.com/nielsfilmer/my-flopy/issues/17).
+  `phase-tracker` issue [#17](https://github.com/nielsfilmer/briefkist/issues/17).
   (Phase 0 closed 2026-07-03: milestone #1 + issue #1, verdict GO.) Roadmap of
   all phases is in plan.md §10.
