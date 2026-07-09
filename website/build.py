@@ -67,6 +67,18 @@ def build():
     DIST.mkdir(parents=True)
     shutil.copytree(SRC / "assets", DIST / "assets")
 
+    # Verbatim passthrough: fully self-contained files (e.g. the investor
+    # deck) that must NOT get the page shell/nav/footer. Copied as-is; not
+    # linked from nav/footer, so they're reachable only by direct URL.
+    static_dir = SRC / "static"
+    if static_dir.exists():
+        for f in sorted(static_dir.rglob("*")):
+            if f.is_file():
+                out = DIST / f.relative_to(static_dir)
+                out.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(f, out)
+                print(f"static {f.relative_to(static_dir)}")
+
     nav = (SRC / "partials" / "nav.html").read_text()
     footer = (SRC / "partials" / "footer.html").read_text()
 
