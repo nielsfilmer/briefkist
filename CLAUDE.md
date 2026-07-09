@@ -128,12 +128,25 @@ source of truth; edit prompts there, not here.
   phase's tracker first; close the tracker + milestone together to mark the phase
   done.
   - **Starting a phase includes decomposing it.** When a phase's scope spans
-    multiple work items, break it into milestoned issues at phase start — the
-    tracker lists them — rather than discovering the breakdown mid-phase.
+    more than a couple of PRs, break it into **tracer-bullet issues** under the
+    milestone — vertical slices, each demoable/verifiable on its own and sized
+    to one PR (one PR = one concern), never a horizontal layer. Create them in
+    dependency order, each stating **"Blocked by: #N"** for the issues that
+    gate it (use GitHub's native blocked-by relationship where available; a
+    no-blocker issue can start immediately). Agree the slice granularity and
+    blocking edges with the user before filing. The tracker issue's
+    definition-of-done then *references* those issues instead of restating them
+    as checkboxes (file the slices, then edit the tracker body to link them —
+    the tracker opens first, before slice numbers exist), and work proceeds
+    along the frontier: any open issue whose blockers are all closed. (Adapted
+    from mattpocock/skills' `to-tickets`; wide mechanical refactors are the
+    exception — sequence those expand–contract: add the new form beside the
+    old, migrate call sites in batches, remove the old form — rather than
+    forcing a vertical slice.)
   - Tooling: **`/status`** (runs `scripts/status.sh`) prints the live per-phase
     snapshot; **`/phase`** does the lifecycle write ops (`start` = milestone +
-    tracker issue, `complete` = close both together, `follow-up` = file a
-    deferred task). `scripts/status.sh` is allowlisted in `.claude/settings.json`
+    tracker issue + scope decomposition per above, `complete` = close both
+    together, `follow-up` = file a deferred task). `scripts/status.sh` is allowlisted in `.claude/settings.json`
     as `Bash(bash scripts/status.sh)`.
 - **Permission patterns split across global vs project `settings.json` by
   shape**:
@@ -155,10 +168,16 @@ source of truth; edit prompts there, not here.
     reviewed PR is allowed; closing/deleting others' work or any non-merge
     outward-facing action still isn't.)*
 - **Teach-it-once.** When the user states a workflow rule, a correction, or a
-  standing preference in conversation, write it into this file (or memory, if
-  cross-repo) **in the same turn**, and say so — as its own micro-commit/PR if
-  an unrelated PR is in flight. Being re-taught a rule in a later session is a
-  process bug.
+  standing preference in conversation, write it into this file (or the decision
+  log / memory, whichever is the durable home) **in the same turn**, and say
+  so in the reply. Being re-taught the same rule in a later session is a
+  process bug, not a user quirk. If an unrelated PR is in flight, the rule
+  still lands the same turn — as its own micro-commit/PR off `main`; never
+  folded into the unrelated PR (one PR = one concern). In-session overrides of
+  a workflow gate (e.g. "skip me as merge gate") count double: record the
+  override, with its scope, in the same durable home immediately — or it
+  silently expires with the session (this repo's own 2026-07-03 merge-gate
+  amendment is the precedent).
 - **Third-party dashboard handoffs happen as one batched checklist.** When
   steps must happen in an external web console (hosting panel, DNS, Mollie,
   OAuth…), hand the user one batched checklist of all their-side steps, link
@@ -177,11 +196,14 @@ source of truth; edit prompts there, not here.
   is unreliable at exactly what linters/type-checkers/SAST are reliable at; the
   senior-dev review must run the repo's own checks on the diff and fold them in
   (deduped, PR-introduced-only, auto-nits fixed without asking) — see the
-  Static-analysis pass in the review-prompt template. A check it couldn't run is
+  Static-analysis pass in the `review-prompts` skill. A check it couldn't run is
   reported as a gap, never skipped silently. The policy-consistent way to cut the
   resulting permission prompts is a single narrow repo wrapper (e.g.
   `Bash(make review-checks)` in the project allowlist), not opening the whole
-  `npx`/`npm run`/interpreter surface.
+  `npx`/`npm run`/interpreter surface. Alongside it, the review's spec-fidelity
+  pass and smell baseline (both adapted from mattpocock/skills' two-axis
+  `code-review`, MIT) cover what tooling can't: delivery against the
+  originating spec, and design judgement calls.
 - **The senior-dev review skips vendored-asset directories by default.** If the
   repo vendors a tree from an external source (a design import, an SDK snapshot,
   third-party tokens), the reviewer should NOT flag its internal contents —
@@ -257,6 +279,9 @@ milestone "Native apps" — real-device pass + follow-ups still open)**.
   GitHub milestones/issues/PRs (backs `/status`).
 - `.claude/settings.json` — project permission allowlist (aggressive git/gh
   patterns + the status-script wrapper).
+- `.claude/skills/review-prompts/SKILL.md` — the review-agent prompt templates
+  (senior-dev with static-analysis + spec-fidelity + smell passes; QA) — the
+  source of truth workflow step 3 and `/review-loop` use.
 - [pyproject.toml](pyproject.toml) / `uv.lock` — Python project (managed with `uv`;
   run things via `uv run …` from the repo root).
 - [testset/](testset/README.md) — Phase 0 synthetic test-set generator (NL/DE/EN
