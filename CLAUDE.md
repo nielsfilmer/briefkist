@@ -99,7 +99,11 @@ Every task ends with a pull request. Do **not** push directly to `main`.
    resources, spending — still require the user.)*
    **Verify CI is green as its own step before merging — never chain
    `gh pr merge` off `gh pr checks --watch | tail` (the pipe eats the failure
-   exit code; PR #50 merged with red main that way, repaired in #52).**
+   exit code; PR #50 merged with red main that way, repaired in #52).** Use
+   `scripts/merge-when-green.sh <pr>` for the safe merge: it polls until the
+   check rollup is **non-empty AND all checks are terminal-passing**, treats an
+   empty/pending rollup as "keep waiting" (not green — PR #58 nearly merged on
+   an empty rollup), and refuses on any failing check or a timeout.
 
 ### Review-agent prompt templates
 
@@ -278,6 +282,9 @@ milestone "Native apps" — real-device pass + follow-ups still open)**.
 - [CLAUDE.md](CLAUDE.md) — this file: workflow + repo conventions for Claude.
 - [scripts/status.sh](scripts/status.sh) — prints the live per-phase status from
   GitHub milestones/issues/PRs (backs `/status`).
+- [scripts/merge-when-green.sh](scripts/merge-when-green.sh) — safe PR merge:
+  waits until the CI rollup is non-empty and all checks are terminal-passing,
+  refusing on empty/pending/failing (the workflow step-5 CI-green gate).
 - `.claude/settings.json` — project permission allowlist (aggressive git/gh
   patterns + the status-script wrapper).
 - `.claude/skills/review-prompts/SKILL.md` — the review-agent prompt templates
