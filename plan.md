@@ -150,6 +150,17 @@ pricing, naming).
     (FTC-v-Zoom trap); the honest claim is Proton-incoming-mail-style —
     ciphertext at rest under the customer's key, plaintext exists only in
     the tenant's private RAM during processing, no third party ever.
+    **v1 implementation scope (2026-07-09):** LUKS full-disk only —
+    per-tenant encrypted volume, customer passphrase unlocks it, the
+    open-source server untouched. This already delivers the honest claim
+    above (ciphertext at rest under the customer's key; plaintext only in
+    RAM during processing). Application-level envelope encryption is
+    deferred as post-v1 hardening (briefkist-cloud#27): its extra
+    protection is chiefly against snapshotting an already-*unlocked* VM —
+    a case the RAM-window claim already concedes — and it would land
+    hosted-only crypto inside the AGPL product. The §11 "stolen disk" row
+    and §5.x wording that imply app-level blob encryption ships in v1 are
+    superseded by this scoping until that hardening lands.
 21. **Pricing (launch)**: self-host free forever (full product, no paywalled
     features — Immich model); hosted **€12/mo (€9/mo annual)**; dedicated
     €24/€19. VAT-inclusive. The customer-held key is the differentiator no
