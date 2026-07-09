@@ -58,6 +58,10 @@ skips (stays green) until `DEPLOY_HOST` is set:
 - `DEPLOY_PATH` — the absolute webroot Caddy serves (e.g. `/var/www/briefkist`).
 - `DEPLOY_KNOWN_HOSTS` — output of `ssh-keyscan -t ed25519,rsa <host>`; pins
   the host key so the deploy can't be MITM'd.
+- `DEPLOY_SITE_URL` *(optional)* — URL the post-deploy liveness probe hits;
+  defaults to `https://<DEPLOY_HOST>/`. Set it (e.g. `https://briefkist.eu/`)
+  when `DEPLOY_HOST` is a bare IP, else the probe fails TLS validation and
+  false-reds an otherwise good deploy.
 
 `--delete` is off by default (won't prune non-site files from the webroot); if
 the webroot is dedicated to the site, add it in the workflow's rsync step to

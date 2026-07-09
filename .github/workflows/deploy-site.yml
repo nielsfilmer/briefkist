@@ -17,6 +17,11 @@
 #   DEPLOY_KNOWN_HOSTS  the host's SSH host-key line(s), from
 #                       `ssh-keyscan -t ed25519,rsa <host>` — pins the host key
 #                       so the deploy can't be MITM'd.
+# Optional:
+#   DEPLOY_SITE_URL     URL the post-deploy liveness probe hits; defaults to
+#                       https://<DEPLOY_HOST>/. Set this when DEPLOY_HOST is a
+#                       bare IP (a plain https://<ip>/ probe fails TLS cert
+#                       validation and would false-red an otherwise good deploy).
 # Until DEPLOY_HOST is set the job SKIPS (stays green) instead of failing red.
 #
 # This repo is PUBLIC: nothing sensitive is hardcoded here — host, user, path,
@@ -44,7 +49,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # Skip gracefully (green) when the deploy secrets aren't configured yet,
       # rather than failing main red. Only DEPLOY_HOST is probed as the sentinel.
@@ -94,7 +99,7 @@ jobs:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
           rsync -rlptzv --stats \
-            -e "ssh -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts -o StrictHostKeyChecking=yes" \
+            -e "ssh -i $HOME/.ssh/deploy_key -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=yes" \
             website/dist/ "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/"
 
       # Liveness probe: the site is static so Caddy serves the new files with no
@@ -104,9 +109,14 @@ jobs:
         if: steps.cfg.outputs.configured == 'true'
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_SITE_URL: ${{ secrets.DEPLOY_SITE_URL }}
         run: |
-          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "https://${DEPLOY_HOST}/" || echo 000)
-          echo "GET https://${DEPLOY_HOST}/ -> $code"
+          # Probe DEPLOY_SITE_URL if set, else https://<host>/. The override
+          # matters when DEPLOY_HOST is a bare IP: https://<ip>/ fails TLS cert
+          # validation and would false-red a good deploy.
+          url="${DEPLOY_SITE_URL:-https://${DEPLOY_HOST}/}"
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$url" || echo 000)
+          echo "GET $url -> $code"
           case "$code" in
             2*|3*|401) echo "site is responding";;
             *) echo "::error::site did not respond healthily (HTTP $code)"; exit 1;;
