@@ -341,6 +341,9 @@ milestone "Native apps" — real-device pass + follow-ups still open)**.
 - `.github/workflows/ci.yml` — CI: ruff + pytest (ubuntu), Docker build
   (pushes `ghcr.io/nielsfilmer/briefkist` on main). Flutter checks live in
   the briefkist-app repo's own CI.
+- `.github/workflows/deploy-site.yml` — CD: on push to `main` touching
+  `website/**`, rebuild the static site and rsync it to the web host (secrets
+  `DEPLOY_*`; skips green until configured). See RUNBOOK "Marketing site deploy".
 - `tests/` — pytest suite (`uv run pytest`).
 - `data/` — generated/captured data, **gitignored** (synthetic set under
   `data/testset/`, real letters under `data/testset-real/`).
