@@ -231,7 +231,7 @@
     <div class="postmark">Key ·<br>Held ·<br>By you</div>
     <div class="eyebrow reveal"><span class="n">03</span><span class="rule"></span> Why we win</div>
     <h2 class="reveal">A key only you hold.</h2>
-    <p class="lead reveal" style="max-width:40ch">No competitor offers hosted convenience where the operator keeps only ciphertext under a key the customer holds. That is the whole company.</p>
+    <p class="lead reveal" style="max-width:40ch">To our knowledge, no shipping hosted document-management service today offers OCR, extraction and search under a customer-held key. That is the whole company.</p>
     <blockquote class="claim reveal">Ciphertext at rest under a key only you hold. Plaintext exists only in your server's RAM for the seconds a letter is being read. No third party is ever in the data path.</blockquote>
     <p class="reveal" style="margin-top:26px;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase">We never say "zero-knowledge" or "end-to-end encrypted." We say exactly what the architecture does — and publish the threat model.</p>
   </section>
@@ -241,8 +241,8 @@
     <div class="eyebrow reveal"><span class="n">04</span><span class="rule"></span> Why now</div>
     <h2 class="reveal">Europe is actively leaving the US cloud.</h2>
     <div class="grid cols-3" style="margin-top:8px">
-      <div class="card reveal"><div class="stat fig">CLOUD Act</div><div class="stat-sub">No contract overrides it — Microsoft, under oath. Schrems II already voided Privacy Shield.</div></div>
-      <div class="card reveal"><div class="stat fig">+80%</div><div class="stat-sub">Tuta paying customers, H1 2025, on a "Go European" wave. Proton passed 100M users.</div></div>
+      <div class="card reveal"><div class="stat fig">CLOUD Act</div><div class="stat-sub">Microsoft France's legal director, under oath (French Senate, June 2025): he 'cannot guarantee' data won't go to US authorities.</div></div>
+      <div class="card reveal"><div class="stat fig">+80%</div><div class="stat-sub">Tuta paying customers, H1 2025 (company-reported), on a "Go European" wave. Proton: 100M+ accounts (2023).</div></div>
       <div class="card reveal"><div class="stat fig">€14.99</div><div class="stat-sub">What Deutsche Post charges monthly to open and scan your mail — the inferior privacy model, at a higher price.</div></div>
     </div>
     <p class="reveal lead" style="margin-top:28px">"Your letters, on an EU box, under your key, with no US-cloud operator in the path" is the sentence this market has started paying for.</p>
@@ -272,16 +272,17 @@
     <p class="reveal">Convenience or custody — every alternative forces the trade. Briefkist is the only one that holds neither your plaintext nor your key.</p>
     <div class="table-wrap reveal">
       <table>
-        <thead><tr><th>Offering</th><th>Price</th><th>Hosted for you</th><th>Operator can't read it</th></tr></thead>
+        <thead><tr><th>Offering</th><th>Price</th><th>Hosted for you</th><th>Operator holds only ciphertext</th></tr></thead>
         <tbody>
           <tr><td class="name">Paperless-ngx (self-host)</td><td class="fig">Free / DIY</td><td><span class="badge no">You run it</span></td><td><span class="badge yes">Yes — if you self-host</span></td></tr>
           <tr><td class="name">PikaPods / Elestio / Papra</td><td class="fig">$5–16/mo</td><td><span class="badge yes">Yes</span></td><td><span class="badge no">Holds plaintext + keys</span></td></tr>
-          <tr><td class="name">POSTSCAN / Caya / Dropscan</td><td class="fig">€13–15/mo</td><td><span class="badge yes">Yes</span></td><td><span class="badge no">Opens your mail</span></td></tr>
-          <tr><td class="name">Evernote / Google Drive</td><td class="fig">Free–$15</td><td><span class="badge yes">Yes</span></td><td><span class="badge no">Content mined</span></td></tr>
+          <tr><td class="name">POSTSCAN / Caya / Dropscan</td><td class="fig">€13–25/mo</td><td><span class="badge yes">Yes</span></td><td><span class="badge no">Opens your mail</span></td></tr>
+          <tr><td class="name">Evernote / Google Drive</td><td class="fig">Free–$25/mo</td><td><span class="badge yes">Yes</span></td><td><span class="badge no" style="white-space:normal">Scanned + licensed to Google to 'host, reproduce and analyze' — never end-to-end encrypted</span></td></tr>
           <tr class="us"><td class="name">Briefkist</td><td class="fig">Free · €9–24/mo</td><td><span class="badge yes">Yes</span></td><td><span class="badge yes">Key only you hold</span></td></tr>
         </tbody>
       </table>
     </div>
+    <p class="note">The client-side-ML + e2ee architecture exists — Ente proved it for photos; nobody has shipped it for document management.</p>
   </section>
 
   <!-- 08 model -->
@@ -293,7 +294,7 @@
       <div class="card feat reveal"><span class="k" style="color:var(--plum)">Hosted · most popular</span><div class="price-row"><span class="price fig">€12</span><span style="color:var(--ink-3)">/mo · €9 annual</span></div><p>Single-tenant EU server, encrypted under your passphrase, backups and updates handled.</p></div>
       <div class="card reveal"><span class="k">Dedicated</span><div class="price-row"><span class="price fig">€24</span><span style="color:var(--ink-3)">/mo · €19 annual</span></div><p>Reserved inference for larger archives. Same key custody, more headroom.</p></div>
     </div>
-    <p class="note">Priced below the mail-scanning incumbents (€13–15) and at parity with plaintext-holding hosts — winning on custody, not undercutting on price. Known challenge: EU ARM VM capacity has been intermittent; the x86 fallback runs above the €12 line today, so hosting margin is a funded priority, not yet a solved one.</p>
+    <p class="note">Priced below the mail-scanning incumbents (€13–25) and at parity with plaintext-holding hosts — winning on custody, not undercutting on price. Known challenge: EU ARM VM capacity has been intermittent; the x86 fallback runs above the €12 line today, so hosting margin is a funded priority, not yet a solved one.</p>
   </section>
 
   <!-- 09 gtm -->
