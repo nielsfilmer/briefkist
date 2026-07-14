@@ -163,9 +163,13 @@ pricing, naming).
     item, which imply app-level blob encryption ships in v1, are
     superseded by this scoping until that hardening lands.
 21. **Pricing (launch)**: self-host free forever (full product, no paywalled
-    features — Immich model); hosted **€12/mo (€9/mo annual)**; dedicated
-    €24/€19. VAT-inclusive. The customer-held key is the differentiator no
-    hosted-Paperless competitor offers.
+    features — Immich model); ~~hosted **€12/mo (€9/mo annual)**; dedicated
+    €24/€19. VAT-inclusive.~~ **Superseded 2026-07-14 (pricing-gate
+    resolution): hosted €15/mo (€12 annual) with 50 GB; dedicated €24/€19
+    with 100 GB. VAT-inclusive. Margin-positive after the CX-fallback COGS
+    fix; shared lower-price tier under investigation (briefkist-cloud#41).**
+    The customer-held key is the differentiator no hosted-Paperless
+    competitor offers.
 22. **The self-host path keeps equal dignity forever** — it IS the privacy
     promise fully kept; hosted is the convenience trade, stated plainly
     (§5.1's own VPS caveat becomes the product's honesty page).
