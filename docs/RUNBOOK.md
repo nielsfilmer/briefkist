@@ -182,3 +182,11 @@ uv run python -m spike.benchmark --set data/testset-real --out docs/phase0-real
   lockdown + formal airplane-mode test are the Phase 3 gate (issue #14).
 - Latency ~20–30 s/page vs the 15 s KPI (issue #13).
 - Semantic-search relevance cutoff untuned until real letters exist (#20).
+- **The 8 GB mini cannot absorb dev workloads on top of its server role.**
+  Diagnosed 2026-07-14: a booted iOS Simulator + Xcode + a parallel
+  `next build` pushed swap to ~17 GB and made RustDesk/desktop use crawl.
+  Rules of thumb: close Xcode and the Simulator after every app build
+  (`xcrun simctl shutdown all`; the weekly personal-team re-sign reopens
+  them), and run at most one heavy Claude Code session on this box while
+  using it interactively — heavy dev sessions belong on another machine.
+  The 32 GB mini upgrade path (plan.md §5.1) lifts this entirely.
