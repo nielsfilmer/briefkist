@@ -111,7 +111,8 @@ Notes:
    lean on). On the mini, from the repo checkout directory (or with the same
    `FLOPY_DATA_DIR` the service uses):
    `uv run python -m server.tokens_cli add "mini-desktop"` → copy the token.
-2. Run the desktop app (`cd app && flutter run -d macos`, or a built copy) →
+2. Run the desktop app (from the [briefkist-app](https://github.com/nielsfilmer/briefkist-app)
+   checkout: `flutter run -d macos`, or a built copy) →
    Settings → Connection: enter `http://<mini-LAN-IP>:8484` + that token,
    Save. (The address must be the LAN IP — the pairing card refuses to mint
    codes for a loopback address, since no other device could reach it.)
