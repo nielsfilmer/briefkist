@@ -177,8 +177,8 @@ pricing, naming).
 ## Decision log — 2026-07-15 (v0.7, platform consolidation — owner directive)
 
 23. **The marketing site and the cloud control plane consolidate into ONE
-    private repo (briefkist-cloud) as a Next.js site plus a single Bun
-    orchestrator.** The static-site builder (`website/`) and the vanilla-JS
+    private repo (briefkist-cloud) as a Next.js site (the Next server runs
+    on the Bun runtime) plus a single Bun orchestrator service.** The static-site builder (`website/`) and the vanilla-JS
     control-plane pages retire; the FastAPI/Python control plane is ported
     to Bun (same SQLite schema and API contract, so the production DB and
     tenant VMs migrate unchanged). Cutover happens only when the parallel
