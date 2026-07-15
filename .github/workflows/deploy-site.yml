@@ -13,7 +13,7 @@
 #                       ~/.ssh/authorized_keys (ideally command-restricted).
 #   DEPLOY_HOST         host to ssh to, e.g. briefkist.eu or 78.47.167.21
 #   DEPLOY_USER         ssh user, e.g. deploy
-#   DEPLOY_PATH         absolute webroot Caddy serves, e.g. /var/www/briefkist
+#   DEPLOY_PATH         absolute webroot Caddy serves, e.g. /srv/briefkist-www
 #   DEPLOY_KNOWN_HOSTS  the host's SSH host-key line(s), from
 #                       `ssh-keyscan -t ed25519,rsa <host>` — pins the host key
 #                       so the deploy can't be MITM'd.
@@ -87,10 +87,14 @@ jobs:
           chmod 644 ~/.ssh/known_hosts
 
       # rsync the built site to the webroot. Trailing slash on the source syncs
-      # the CONTENTS of dist/ into DEPLOY_PATH. --delete is intentionally OFF:
-      # it would remove anything in the webroot not present in dist/, which is
-      # destructive if the webroot holds non-site files. If the webroot is
-      # dedicated to this site, add --delete to prune renamed/removed pages.
+      # the CONTENTS of dist/ into DEPLOY_PATH. --delete makes the webroot an
+      # exact mirror of dist/, pruning renamed/removed pages — required since
+      # the pretty-URL move (foo.html -> foo/index.html) orphans the old flat
+      # files, which otherwise linger and serve duplicate content. Verified
+      # safe: DEPLOY_PATH (/srv/briefkist-www) is dedicated to this static site
+      # — a dry-run --delete removed only the 8 relocated .html files, no assets
+      # or non-site content. If the webroot ever gains non-site files, this
+      # flag would delete them — keep the webroot site-only.
       - name: Deploy via rsync
         if: steps.cfg.outputs.configured == 'true'
         env:
@@ -98,7 +102,10 @@ jobs:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
-          rsync -rlptzv --stats \
+          # Guard: never mirror-delete an empty/broken build over the live site.
+          # If build.py exits 0 but produced no homepage, abort before rsync.
+          test -f website/dist/index.html || { echo "::error::dist/index.html missing — refusing to deploy"; exit 1; }
+          rsync -rlptzv --delete --stats \
             -e "ssh -i $HOME/.ssh/deploy_key -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=yes" \
             website/dist/ "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/"
 
