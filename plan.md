@@ -174,6 +174,26 @@ pricing, naming).
     promise fully kept; hosted is the convenience trade, stated plainly
     (§5.1's own VPS caveat becomes the product's honesty page).
 
+## Decision log — 2026-07-15 (v0.7, platform consolidation — owner directive)
+
+23. **The marketing site and the cloud control plane consolidate into ONE
+    private repo (briefkist-cloud) as a Next.js site plus a single Bun
+    orchestrator.** The static-site builder (`website/`) and the vanilla-JS
+    control-plane pages retire; the FastAPI/Python control plane is ported
+    to Bun (same SQLite schema and API contract, so the production DB and
+    tenant VMs migrate unchanged). Cutover happens only when the parallel
+    build is green — the live external-QA round runs on the Python stack
+    untouched until then, with flip-back rollback. Execution: briefkist-cloud
+    milestone "v2 — Next.js + Bun consolidation", tracker briefkist-cloud#52.
+24. **This public repo strips to the AGPL product** after the cutover:
+    `website/`, `design/` (the Claude Design mirror), the site deploy
+    workflow, and the token generator move to the private repo — there is no
+    reason the marketing site and design system are public. The Flutter apps
+    keep only generated tokens. Removed directories remain in public git
+    history (no history rewrite). This repo stays: server/, spike/, web/,
+    tests, docs, plan. **This section (§ numbers, decision numbers) remains
+    the canonical plan** — the tenant-side product is unaffected.
+
 ---
 
 ## 1. Goal
