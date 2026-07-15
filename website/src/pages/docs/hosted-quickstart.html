@@ -8,7 +8,7 @@ active: docs
 
     <article style="flex:1;min-width:0;max-width:720px">
       <nav aria-label="Breadcrumb" style="display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);margin-bottom:20px">
-        <a href="index.html" class="hov-accent-underline" style="color:var(--text-3);text-decoration:none">docs</a>
+        <a href="{{root}}docs/" class="hov-accent-underline" style="color:var(--text-3);text-decoration:none">docs</a>
         <span>/</span>
         <span>hosted</span>
         <span>/</span>
@@ -23,12 +23,12 @@ active: docs
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:2px" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
         <div style="display:flex;flex-direction:column;gap:4px">
           <span style="font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--text-2)">opening soon</span>
-          <p style="margin:0;font-size:var(--text-sm);line-height:var(--leading-sm);color:var(--text-1)">Hosted servers are opening soon — this page describes the flow as it will work at launch. Self-hosting is ready today: see the <a href="self-host-linux.html">Linux</a> and <a href="self-host-mac.html">Mac</a> guides for the same product, free, on your own hardware.</p>
+          <p style="margin:0;font-size:var(--text-sm);line-height:var(--leading-sm);color:var(--text-1)">Hosted servers are opening soon — this page describes the flow as it will work at launch. Self-hosting is ready today: see the <a href="{{root}}docs/self-host-linux/">Linux</a> and <a href="{{root}}docs/self-host-mac/">Mac</a> guides for the same product, free, on your own hardware.</p>
         </div>
       </div>
 
       <h2 id="signup" style="margin:40px 0 12px;font-family:var(--font-serif);font-weight:600;font-size:var(--text-xl);line-height:var(--leading-xl)">Sign up and choose a server</h2>
-      <p style="margin:0 0 16px;font-size:var(--text-base);line-height:var(--leading-base);color:var(--text-2)">On the <a href="../signup.html">signup page</a> you pick a tier — hosted or dedicated, both single-tenant machines in the EU — and create an account with an email address and password. The account signs you into billing and the dashboard; it is deliberately <em>not</em> the key to your archive. That comes next, and it stays with you.</p>
+      <p style="margin:0 0 16px;font-size:var(--text-base);line-height:var(--leading-base);color:var(--text-2)">On the <a href="{{root}}signup/">signup page</a> you pick a tier — hosted or dedicated, both single-tenant machines in the EU — and create an account with an email address and password. The account signs you into billing and the dashboard; it is deliberately <em>not</em> the key to your archive. That comes next, and it stays with you.</p>
 
       <h2 id="passphrase" style="margin:40px 0 12px;font-family:var(--font-serif);font-weight:600;font-size:var(--text-xl);line-height:var(--leading-xl)">The passphrase — the only key</h2>
       <p style="margin:0 0 16px;font-size:var(--text-base);line-height:var(--leading-base);color:var(--text-2)">During setup you choose the passphrase that encrypts everything your server stores. The key is derived from it on your server, where it stays — it never travels to us. We never see it, never store it, and cannot reset it.</p>
@@ -45,14 +45,14 @@ active: docs
 
       <h2 id="first-letter" style="margin:40px 0 12px;font-family:var(--font-serif);font-weight:600;font-size:var(--text-xl);line-height:var(--leading-xl)">File your first letter</h2>
       <p style="margin:0 0 16px;font-size:var(--text-base);line-height:var(--leading-base);color:var(--text-2)">Photograph any letter from today's pile. Your server reads it, understands it, and files it with a sender, date, summary and keywords — then it is searchable by words or by meaning. Correct any field inline if the model got something wrong.</p>
-      <p style="margin:0 0 16px;font-size:var(--text-base);line-height:var(--leading-base);color:var(--text-2)">Exactly what we can and cannot see along the way is written down, precisely, on the <a href="../security.html">security page</a> — it is short and worth the read before you trust us with your mail.</p>
+      <p style="margin:0 0 16px;font-size:var(--text-base);line-height:var(--leading-base);color:var(--text-2)">Exactly what we can and cannot see along the way is written down, precisely, on the <a href="{{root}}security/">security page</a> — it is short and worth the read before you trust us with your mail.</p>
 
       <div style="display:flex;gap:16px;margin-top:48px;flex-wrap:wrap">
-        <a href="self-host-mac.html" class="hov-bg" style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:16px 18px;border:1px solid var(--border);border-radius:var(--radius-md);text-decoration:none">
+        <a href="{{root}}docs/self-host-mac/" class="hov-bg" style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:16px 18px;border:1px solid var(--border);border-radius:var(--radius-md);text-decoration:none">
           <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);letter-spacing:var(--tracking-caps);text-transform:uppercase">← previous</span>
           <span style="font-size:var(--text-sm);font-weight:var(--weight-semibold);color:var(--text-1)">Self-host on a Mac (native)</span>
         </a>
-        <a href="index.html" class="hov-bg" style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:16px 18px;border:1px solid var(--border);border-radius:var(--radius-md);text-decoration:none;text-align:right">
+        <a href="{{root}}docs/" class="hov-bg" style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:16px 18px;border:1px solid var(--border);border-radius:var(--radius-md);text-decoration:none;text-align:right">
           <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-3);letter-spacing:var(--tracking-caps);text-transform:uppercase">next →</span>
           <span style="font-size:var(--text-sm);font-weight:var(--weight-semibold);color:var(--text-1)">All docs</span>
         </a>

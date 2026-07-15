@@ -86,8 +86,21 @@ def build():
     for page in pages:
         rel = page.relative_to(SRC / "pages")
         meta, body = parse_page(page.read_text())
+
+        # Directory-style output ("pretty URLs"): foo.html -> foo/index.html,
+        # so a plain file_server serves it at /foo/ (no .html in the URL).
+        # index.html is already a directory index, so it's kept in place.
+        # 404.html stays FLAT at the dist root: Caddy's error handler rewrites
+        # to that exact path (/404.html), so it must not move.
+        if rel.name == "index.html" or rel == Path("404.html"):
+            out_rel = rel
+        else:
+            out_rel = rel.parent / rel.stem / "index.html"
+
         variables = dict(meta)
-        variables.setdefault("root", "../" * (len(rel.parts) - 1))
+        # {{root}} is relative to the OUTPUT depth, not the source depth, so
+        # assets/links resolve from wherever the page actually lands.
+        variables.setdefault("root", "../" * (len(out_rel.parts) - 1))
         active = meta.get("active", "")
         for section in NAV_SECTIONS:
             variables[f"active_{section}"] = "is-active" if active == section else ""
@@ -102,10 +115,10 @@ def build():
         parts.append(FOOT)
         html = substitute("".join(parts), variables)
 
-        out = DIST / rel
+        out = DIST / out_rel
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(html)
-        print(f"built {rel}")
+        print(f"built {rel} -> {out_rel}")
     print(f"{len(pages)} pages -> {DIST}")
 
 
