@@ -13,7 +13,7 @@
 #                       ~/.ssh/authorized_keys (ideally command-restricted).
 #   DEPLOY_HOST         host to ssh to, e.g. briefkist.eu or 78.47.167.21
 #   DEPLOY_USER         ssh user, e.g. deploy
-#   DEPLOY_PATH         absolute webroot Caddy serves, e.g. /var/www/briefkist
+#   DEPLOY_PATH         absolute webroot Caddy serves, e.g. /srv/briefkist-www
 #   DEPLOY_KNOWN_HOSTS  the host's SSH host-key line(s), from
 #                       `ssh-keyscan -t ed25519,rsa <host>` — pins the host key
 #                       so the deploy can't be MITM'd.
@@ -102,6 +102,9 @@ jobs:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
+          # Guard: never mirror-delete an empty/broken build over the live site.
+          # If build.py exits 0 but produced no homepage, abort before rsync.
+          test -f website/dist/index.html || { echo "::error::dist/index.html missing — refusing to deploy"; exit 1; }
           rsync -rlptzv --delete --stats \
             -e "ssh -i $HOME/.ssh/deploy_key -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=yes" \
             website/dist/ "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/"
