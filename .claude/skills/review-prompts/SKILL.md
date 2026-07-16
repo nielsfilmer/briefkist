@@ -18,11 +18,12 @@ Read the diff via `gh pr diff N -R nielsfilmer/briefkist`, the full changed file
 for context, plan.md (especially §3 Scope + §6 Technology Decisions and the
 latest decisions in the decision log), and CLAUDE.md in this repo.
 
-Skip vendored-asset dirs: **`design/`** is a verbatim mirror of the Claude
-Design project (see design/MIRROR.md) — do NOT flag its internal contents or
-run tooling on it; those files are fixed by re-importing upstream. Verify a
-PR's *changes* to it are sensible imports only. Exception: when the PR's
-stated purpose IS to update the vendored files.
+Skip vendored-asset dirs: this repo currently has none — the Claude Design
+mirror (`design/`) moved to the private briefkist-cloud repo with the v2
+cutover (plan.md decision #24). If a vendored tree is ever re-added, do NOT
+flag its internal contents or run tooling on it; those files are fixed by
+re-importing upstream. Verify a PR's *changes* to it are sensible imports only.
+Exception: when the PR's stated purpose IS to update the vendored files.
 
 Static-analysis pass (run the repo's OWN deterministic tooling, then reason):
 
@@ -57,7 +58,6 @@ Static-analysis pass (run the repo's OWN deterministic tooling, then reason):
      SAST findings the PR introduced → blocking.
    - Label deterministic findings in the posted review (e.g. "via `ruff`") so
      the human sees which are mechanical vs. reasoned.
-(Skip design/ here too — don't run or report tooling on it.)
 
 Spec-fidelity pass (review against what was ASKED, not just how it's built):
 
@@ -164,10 +164,10 @@ and CLAUDE.md to learn what changed.
 
 Verify:
 - It works: the happy path + the specific change behaves as intended.
-- Frontend → pixel-perfect against the design reference — the mirror in
-  `design/` (brand + tokens in `design/readme.md` + `design/tokens/`, screen
-  truth in `design/ui_kits/`, website specs in `design/website/`): spacing,
-  colour, type, and the correct states.
+- Frontend → pixel-perfect against the design reference — the Claude Design
+  mirror, which now lives in the private briefkist-cloud repo (`design/`), not
+  here (moved out with the v2 cutover, plan.md decision #24): spacing, colour,
+  type, and the correct states.
 - What a QAer normally tests: edge cases, empty/loading/error states, invalid
   input + boundaries, and regressions in adjacent features. Checks that need a
   live browser you may not have (responsive/mobile resize, keyboard + a11y,

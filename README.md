@@ -78,9 +78,11 @@ not protect against is written out in plan.md §5.1.
 
 Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) (DCO sign-off,
 no CLA; the privacy constraints are non-negotiable review criteria). Security
-reports: [SECURITY.md](SECURITY.md). This repo also carries the design system
-mirror ([design/](design/)) and the development conventions
-([CLAUDE.md](CLAUDE.md)); live phase state is on GitHub milestones.
+reports: [SECURITY.md](SECURITY.md). This repo carries the self-hosted server,
+the web fallback app, and the development conventions
+([CLAUDE.md](CLAUDE.md)); live phase state is on GitHub milestones. (The
+marketing site and Claude Design system moved to a separate private repo with
+the v2 cutover — plan.md decision #24.)
 
 **Never commit** real mail, captured documents, `.env` files, model/API keys,
 or WireGuard/Tailscale keys — see `.gitignore`. The repo is public; the

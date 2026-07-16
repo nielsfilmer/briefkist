@@ -40,32 +40,12 @@ itself once the address is right).
 
 ## Marketing site deploy (briefkist.eu)
 
-The public site (`website/`) deploys automatically. Any push to `main` that
-touches `website/**` triggers `.github/workflows/deploy-site.yml`, which
-rebuilds the static site (`python3 website/build.py`) and rsyncs `dist/` to the
-web host. No manual step, and no server reload needed — the site is static, so
-Caddy serves the new files immediately. To redeploy the current `dist/` without
-a code change, run the workflow by hand: Actions → "Deploy site" → Run workflow.
-
-One-time setup (repo Settings → Secrets and variables → Actions). The workflow
-skips (stays green) until `DEPLOY_HOST` is set:
-
-- `DEPLOY_SSH_KEY` — private key of a **dedicated** deploy keypair (not a
-  personal key); its public half goes in the host user's
-  `~/.ssh/authorized_keys` (ideally `command=`-restricted to rsync).
-- `DEPLOY_HOST` — `briefkist.eu` (or the host IP).
-- `DEPLOY_USER` — the ssh user.
-- `DEPLOY_PATH` — the absolute webroot Caddy serves (e.g. `/var/www/briefkist`).
-- `DEPLOY_KNOWN_HOSTS` — output of `ssh-keyscan -t ed25519,rsa <host>`; pins
-  the host key so the deploy can't be MITM'd.
-- `DEPLOY_SITE_URL` *(optional)* — URL the post-deploy liveness probe hits;
-  defaults to `https://<DEPLOY_HOST>/`. Set it (e.g. `https://briefkist.eu/`)
-  when `DEPLOY_HOST` is a bare IP, else the probe fails TLS validation and
-  false-reds an otherwise good deploy.
-
-`--delete` is off by default (won't prune non-site files from the webroot); if
-the webroot is dedicated to the site, add it in the workflow's rsync step to
-clear renamed/removed pages.
+**Moved out of this repo.** As of the v2 cutover (2026-07-16, plan.md decision
+#24), the public site (briefkist.eu) is a Next.js app served from the private
+**briefkist-cloud** repo — the old static builder (`website/`), the Claude
+Design mirror (`design/`), and the `deploy-site.yml` CD workflow no longer live
+here. Site deploy is the private repo's concern; see briefkist-cloud for its
+runbook. This repo is now the AGPL self-hosted product only.
 
 ## Docker (Linux)
 

@@ -53,10 +53,11 @@ Every task ends with a pull request. Do **not** push directly to `main`.
      drives that instance (hit its endpoints / drive it with a browser if the QA
      agent has one) and reads the screenshot, confirming the change **visually +
      functionally**, not just by reading the diff:
-     - **Frontend:** pixel-perfect against the design reference — **the mirror in
-       `design/`** (brand + tokens in `design/readme.md` + `design/tokens/`, screen
-       truth in `design/ui_kits/`): spacing, colour, type, the right states — and
-       that it actually works: the happy path plus the specific change.
+     - **Frontend:** pixel-perfect against the design reference — the Claude
+       Design mirror, which now lives in the private **briefkist-cloud** repo
+       (`design/`), not here (moved out with the v2 cutover, decision #24):
+       spacing, colour, type, the right states — and that it actually works:
+       the happy path plus the specific change.
      - **Plus what a QAer normally tests:** edge cases, empty/loading/error
        states, invalid input + boundaries, and regressions in adjacent features
        — plus responsive/mobile, keyboard + a11y, and reconnect *where a live
@@ -210,14 +211,14 @@ source of truth; edit prompts there, not here.
   `code-review`, MIT) cover what tooling can't: delivery against the
   originating spec, and design judgement calls.
 - **The senior-dev review skips vendored-asset directories by default.** If the
-  repo vendors a tree from an external source (a design import, an SDK snapshot,
-  third-party tokens), the reviewer should NOT flag its internal contents —
-  those are fixed by re-importing upstream, not by editing here. Verify that a
-  PR's *changes* to such a dir are sensible imports, but don't critique the
-  imported files. **Exception:** when a PR's stated purpose IS to update the
-  vendored files. Paste this paragraph (naming the dirs) into the review prompt.
-  **This repo's vendored dir: `design/`** (mirror of the Claude Design project —
-  see `design/MIRROR.md`).
+  repo ever vendors a tree from an external source (a design import, an SDK
+  snapshot, third-party tokens), the reviewer should NOT flag its internal
+  contents — those are fixed by re-importing upstream, not by editing here.
+  Verify that a PR's *changes* to such a dir are sensible imports, but don't
+  critique the imported files. **Exception:** when a PR's stated purpose IS to
+  update the vendored files. *(This repo currently has no vendored dir — the
+  Claude Design mirror `design/` moved to the private briefkist-cloud repo with
+  the v2 cutover, decision #24.)*
 
 ---
 
@@ -256,7 +257,8 @@ WireGuard/Tailscale overlay, not the public
 internet. Stack (v0.2, amended 2026-07-03; native apps added 2026-07-06 v0.5 —
 see plan.md decision log): **Flutter native apps** (iOS + macOS, one codebase in
 the separate briefkist-app repo since the 2026-07-07 subtree split, built
-against `design/` here) alongside the **web app** fallback
+against the Claude Design system — mirrored in the private briefkist-cloud repo
+since the v2 cutover, decision #24) alongside the **web app** fallback
 (mobile capture page + desktop browse, served by the backend),
 **FastAPI** backend, **Ollama** running **Qwen3-VL-4B** (2B fallback) + OCR (Apple
 Vision vs PaddleOCR, benchmarked in Phase 0), **SQLite FTS5 + sqlite-vec**, **bge-m3**
@@ -271,7 +273,7 @@ sizing choice still assumes 8 GB; an upgrade to a 32 GB mini restores the
 
 Status: **executing — Phase 0 complete (GO, `docs/phase0/VERDICT.md`); Phase 1
 (end-to-end thin slice + search) built; native Flutter apps (iOS + macOS)
-**built and verified** against the `design/` design system (decision log v0.5;
+**built and verified** against the Claude Design system (decision log v0.5;
 milestone "Native apps" — real-device pass + follow-ups still open)**.
 
 ## File map
@@ -305,25 +307,21 @@ milestone "Native apps" — real-device pass + follow-ups still open)**.
 - `web/` — the v1 web app served by the backend: phone capture page + archive
   browse/search/correct (vanilla JS, mobile-first, dark-mode aware). Stays as
   the zero-install fallback; restyle to the design system is a follow-up.
-- `website/` — the public marketing + docs site (briefkist.eu): stdlib-only
-  static builder (`website/build.py`), `src/` (partials, pages, self-hosted
-  fonts), committed `dist/`. Built from the `design/website/` specs; content
-  corrections are logged in docs/design-feedback.md entries 12–13.
-- [design/](design/MIRROR.md) — **verbatim mirror of the Claude Design project**
-  (brand, tokens, components, mobile + desktop UI kits): the design source of
-  truth for the native apps. **Vendored-asset dir — don't edit here**; change
-  the Claude Design project and re-mirror (see `design/MIRROR.md`).
+- Marketing site + design system — **no longer in this repo.** The static
+  marketing site (`website/`), the Claude Design mirror (`design/`), the site
+  deploy workflow, and the `gen_flutter_tokens.py` token generator moved to the
+  private **briefkist-cloud** repo with the v2 (Next.js + Bun) cutover
+  (plan.md decision #24; the dirs remain in this repo's git history). This repo
+  is now the AGPL product only. The Flutter apps keep only the generated
+  `tokens.g.dart`.
 - Native apps (Flutter, iOS + macOS) — live in
   [github.com/nielsfilmer/briefkist-app](https://github.com/nielsfilmer/briefkist-app)
   (Apache-2.0, subtree-split 2026-07-07 with history preserved; was `app/`
-  here). The design source of truth stays here in `design/`.
-- [scripts/gen_flutter_tokens.py](scripts/gen_flutter_tokens.py) — oklch→sRGB
-  token generator: `design/tokens/colors.css` → `tokens.g.dart`. The script
-  stays here with the design mirror; its OUTPUT lives in the app repo — pass
-  the output path (required arg), e.g.
-  `uv run python scripts/gen_flutter_tokens.py ../briefkist-app/lib/design/tokens.g.dart`.
+  here). The design source of truth now lives in briefkist-cloud (`design/`).
 - [docs/design-feedback.md](docs/design-feedback.md) — the as-built deviation
   log, finalized as the update prompt for the Claude Design project.
+  *(Candidate to move to briefkist-cloud alongside the design mirror — kept
+  here pending that decision; see the strip PR that removed `design/`.)*
 - `docs/research/` — verbatim research reports feeding the v0.6
   productization decisions (privacy architecture, licensing, positioning,
   naming). Point-in-time; decisions themselves live in plan.md.
@@ -341,9 +339,6 @@ milestone "Native apps" — real-device pass + follow-ups still open)**.
 - `.github/workflows/ci.yml` — CI: ruff + pytest (ubuntu), Docker build
   (pushes `ghcr.io/nielsfilmer/briefkist` on main). Flutter checks live in
   the briefkist-app repo's own CI.
-- `.github/workflows/deploy-site.yml` — CD: on push to `main` touching
-  `website/**`, rebuild the static site and rsync it to the web host (secrets
-  `DEPLOY_*`; skips green until configured). See RUNBOOK "Marketing site deploy".
 - `tests/` — pytest suite (`uv run pytest`).
 - `data/` — generated/captured data, **gitignored** (synthetic set under
   `data/testset/`, real letters under `data/testset-real/`).
